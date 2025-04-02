@@ -1,0 +1,1 @@
+{"version":3,"file":"getFocusedFieldsFromSlateSelection.d.ts","sourceRoot":"","sources":["../../../../../../src/compiler/builtins/$richText/utils/getFocusedFieldsFromSlateSelection.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,OAAO,CAAC;AAIpC,iBAAS,kCAAkC,CACzC,MAAM,EAAE,MAAM,EACd,2BAA2B,EAAE,MAAM,EACnC,MAAM,EAAE,MAAM,wBAgBf;AAED,OAAO,EAAE,kCAAkC,EAAE,CAAC"}

@@ -1,0 +1,5 @@
+import { SchemaProp } from "../types";
+import { CompilationCache } from "./CompilationCache";
+import { CompilationContextType, ContextProps, EditingInfoComponent, EditingInfoComponentCollection } from "./types";
+export declare function compileFromSchema<T extends SchemaProp>(value: any, schemaProp: T, compilationContext: CompilationContextType, cache: CompilationCache, contextProps?: ContextProps, meta?: any, editingInfoComponent?: EditingInfoComponent | EditingInfoComponentCollection | undefined, configPrefix?: string): string | number | boolean | import("..").NoCodeComponentEntry | import("..").TrulyResponsiveValue<string> | import("..").ExternalReferenceEmpty | import("..").ExternalReferenceNonEmpty<import("..").NonNullish> | import("..").TrulyResponsiveValue<boolean> | import("..").CompiledLocalTextReference | import("./definitions").ConfigComponentCompilationOutput[];
+//# sourceMappingURL=compileFromSchema.d.ts.map

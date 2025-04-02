@@ -1,0 +1,39 @@
+{
+  "extends": "./base.tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist/types",
+    "target": "ESNext",
+    "baseUrl": "./src",
+    "noErrorTruncation": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@easyblocks/utils": [
+        "./utils"
+      ],
+      "@easyblocks/reduce-css-calc": [
+        "./reduce-css-calc"
+      ]
+    }
+  },
+  "include": [
+    "./src/",
+    "build-tools"
+  ],
+  "exclude": [
+    "./src/**/*.test.ts",
+    "./src/**/*.test.tsx",
+    "./src/__tests__/",
+    "./src/testUtils.ts"
+  ],
+  "ts-node": {
+    "moduleTypes": {
+      "jest.config.ts": "cjs"
+    }
+  }
+}

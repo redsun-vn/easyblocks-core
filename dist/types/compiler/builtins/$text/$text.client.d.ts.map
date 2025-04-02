@@ -1,0 +1,1 @@
+{"version":3,"file":"$text.client.d.ts","sourceRoot":"","sources":["../../../../../src/compiler/builtins/$text/$text.client.tsx"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,EAAE,YAAY,EAAE,MAAM,OAAO,CAAC;AAE5C,KAAK,SAAS,GAAG;IACf,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,IAAI,EAAE,YAAY,CAAC;CACpB,CAAC;AAEF,iBAAS,UAAU,CAAC,KAAK,EAAE,SAAS,qBAgBnC;AAED,OAAO,EAAE,UAAU,EAAE,CAAC"}
