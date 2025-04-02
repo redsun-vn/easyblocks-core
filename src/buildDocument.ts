@@ -1,4 +1,3 @@
-import { serialize } from "@easyblocks/utils";
 import { buildEntry } from "./buildEntry";
 import type {
   RequestedExternalData,
@@ -6,6 +5,7 @@ import type {
   Config,
   RenderableDocument,
 } from "./types";
+import { serialize } from "@/utils";
 
 async function buildDocument({
   documentId,

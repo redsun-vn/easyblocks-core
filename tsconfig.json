@@ -8,16 +8,14 @@
     "emitDeclarationOnly": true,
     "declarationDir": "./dist/types",
     "target": "ESNext",
-    "baseUrl": "./src",
+    "rootDir": "src",
+    "baseUrl": "src",
     "noErrorTruncation": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "paths": {
-      "@easyblocks/utils": [
-        "./utils"
-      ],
-      "@easyblocks/reduce-css-calc": [
-        "./reduce-css-calc"
+      "@/*": [
+        "./*"
       ]
     }
   },

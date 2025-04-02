@@ -3,8 +3,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var $text_styles = require('./_text.styles.cjs');
+var range = require('../../../utils/array/range.cjs');
 
 const textEditableComponent = {
   id: "@easyblocks/text",
@@ -32,7 +32,7 @@ const textEditableComponent = {
       options: [{
         value: "p",
         label: "Paragraph"
-      }, ...utils.range(1, 6).map(index => ({
+      }, ...range.range(1, 6).map(index => ({
         value: `h${index}`,
         label: `Heading ${index}`
       }))]

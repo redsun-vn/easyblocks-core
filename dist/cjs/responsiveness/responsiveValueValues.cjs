@@ -3,11 +3,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var entries = require('../utils/object/entries.cjs');
 
 function responsiveValueValues(value) {
   const values = [];
-  utils.entries(value).forEach(_ref => {
+  entries.entries(value).forEach(_ref => {
     let [key, v] = _ref;
     if (key === "$res") return;
     values.push(v);

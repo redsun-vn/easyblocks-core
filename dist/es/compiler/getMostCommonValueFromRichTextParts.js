@@ -1,9 +1,9 @@
 /* with love from shopstory */
-import { entries } from '@easyblocks/utils';
 import { getFallbackForLocale } from '../locales.js';
 import { richTextPartEditableComponent } from './builtins/_richText/_richTextPart/_richTextPart.js';
 import { compileComponentValues } from './compileComponentValues.js';
 import { findComponentDefinitionById } from './findComponentDefinition.js';
+import { entries } from '../utils/object/entries.js';
 
 /**
  * Returns the most common value for given `prop` parameter among all @easyblocks/rich-text-part components from `richTextComponentConfig`.

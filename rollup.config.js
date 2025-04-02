@@ -3,6 +3,7 @@ import babel from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import nodeResolve from "@rollup/plugin-node-resolve";
+import alias from "@rollup/plugin-alias";
 import replace from "@rollup/plugin-replace";
 import path from "node:path";
 import visualizer from "rollup-plugin-visualizer";
@@ -108,10 +109,15 @@ function createRollupConfigs({
       preserveModules: true,
       preserveModulesRoot: "src",
     },
-    plugins: getPlugins(
-      path.join(baseStatOutputDir, "es/index.html"),
-      isFullBundle
-    ),
+    plugins: [
+      ...getPlugins(
+        path.join(baseStatOutputDir, "es/index.html"),
+        isFullBundle
+      ),
+      alias({
+        entries: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
+      }),
+    ],
     external,
     onwarn,
   };
@@ -127,10 +133,15 @@ function createRollupConfigs({
       preserveModulesRoot: "src",
       entryFileNames: "[name].cjs",
     },
-    plugins: getPlugins(
-      path.join(baseStatOutputDir, "cjs/index.html"),
-      isFullBundle
-    ),
+    plugins: [
+      ...getPlugins(
+        path.join(baseStatOutputDir, "cjs/index.html"),
+        isFullBundle
+      ),
+      alias({
+        entries: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
+      }),
+    ],
     external,
     onwarn,
   };

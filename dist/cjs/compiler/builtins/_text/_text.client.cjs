@@ -3,8 +3,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var React = require('react');
+var cleanString = require('../../../utils/cleanString.cjs');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -17,7 +17,7 @@ function TextClient(props) {
   } = props;
 
   // We need to transform new lines into <br />
-  const lines = utils.cleanString(value || "").split(/(?:\r\n|\r|\n)/g);
+  const lines = cleanString.cleanString(value || "").split(/(?:\r\n|\r|\n)/g);
   const elements = [];
   lines.forEach((line, index) => {
     elements.push(/*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, {

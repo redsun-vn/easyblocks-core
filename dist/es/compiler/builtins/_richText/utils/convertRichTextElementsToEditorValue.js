@@ -1,5 +1,5 @@
 /* with love from shopstory */
-import { uniqueId } from '@easyblocks/utils';
+import { uniqueId } from '../../../../utils/uniqueId.js';
 
 function convertRichTextElementsToEditorValue(richTextElements) {
   if (!richTextElements || richTextElements.length === 0) {

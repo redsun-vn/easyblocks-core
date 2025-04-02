@@ -1,0 +1,1 @@
+{"version":3,"file":"omit.d.ts","sourceRoot":"","sources":["../../../../src/utils/func/omit.ts"],"names":[],"mappings":"AAEA,iBAAS,IAAI,CACX,KAAK,SAAS,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,EACjC,WAAW,SAAS,MAAM,KAAK,EAC/B,KAAK,EAAE,KAAK,EAAE,WAAW,EAAE,KAAK,CAAC,WAAW,CAAC,GAAG,IAAI,CAAC,KAAK,EAAE,WAAW,CAAC,CAMzE;AAED,OAAO,EAAE,IAAI,EAAE,CAAC"}

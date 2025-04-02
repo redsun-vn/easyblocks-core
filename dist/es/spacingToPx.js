@@ -1,5 +1,5 @@
 /* with love from shopstory */
-import { reduceCSSCalc } from '@easyblocks/reduce-css-calc';
+import { reduceCSSCalc } from './reduce-css-calc/index.js';
 
 function parseSpacing(spacing) {
   if (spacing.endsWith("px")) {

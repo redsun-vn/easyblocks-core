@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var assert = require('../utils/assert.cjs');
 
 function getCommonFieldProps(schemaProp) {
   const label = schemaProp.label || schemaProp.prop;
@@ -154,7 +154,7 @@ const tinaFieldProviders = {
       return tinaFieldProviders.external(schemaProp, editorContext, value);
     }
     if (customTypeDefinition.type === "token") {
-      let tokens = utils.assertDefined(editorContext.theme[customTypeDefinition.token], `Missing token values within the Easyblocks config for "${customTypeDefinition.token}"`);
+      let tokens = assert.assertDefined(editorContext.theme[customTypeDefinition.token], `Missing token values within the Easyblocks config for "${customTypeDefinition.token}"`);
       if ("params" in schemaProp && schemaProp.params && "prefix" in schemaProp.params && typeof schemaProp.params.prefix === "string") {
         // Copy tokens to prevent mutating original tokens
         tokens = {

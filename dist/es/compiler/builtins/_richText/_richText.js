@@ -1,9 +1,11 @@
 /* with love from shopstory */
-import { range, dotNotationGet, nonNullable } from '@easyblocks/utils';
 import { getFallbackLocaleForLocale } from '../../../locales.js';
 import { configFindAllPaths } from '../../configFindAllPaths.js';
 import { richTextStyles } from './_richText.styles.js';
 import { richTextBlockElementEditableComponent } from './_richTextBlockElement/_richTextBlockElement.js';
+import { range } from '../../../utils/array/range.js';
+import { nonNullable } from '../../../utils/array/nonNullable.js';
+import { dotNotationGet } from '../../../utils/object/dotNotationGet.js';
 
 const editing = _ref => {
   let {

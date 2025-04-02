@@ -1,4 +1,4 @@
-import { dotNotationGet, nonNullable, range } from "@easyblocks/utils";
+import { dotNotationGet, nonNullable, range } from "@/utils";
 import { Locale, getFallbackLocaleForLocale } from "../../../locales";
 import {
   NoCodeComponentDefinition,
@@ -139,23 +139,23 @@ const editing: RichTextEditingFunction = ({
       ...fieldsBeforeAccessibilityRole,
       richTextPartSources.length > 0
         ? {
-            type: "field",
-            path: richTextPartSources.map((source) => `${source}.font`),
-          }
+          type: "field",
+          path: richTextPartSources.map((source) => `${source}.font`),
+        }
         : null,
       richTextPartSources.length > 0
         ? {
-            type: "field",
-            path: richTextPartSources.map((source) => `${source}.color`),
-          }
+          type: "field",
+          path: richTextPartSources.map((source) => `${source}.color`),
+        }
         : null,
       richTextBlockPath
         ? {
-            type: "field",
-            path: `${richTextBlockPath}.type`,
-            label: "List style",
-            group: "Text",
-          }
+          type: "field",
+          path: `${richTextBlockPath}.type`,
+          label: "List style",
+          group: "Text",
+        }
         : null,
       ...fieldsAfterAccessibilityRole,
     ].filter(nonNullable()),

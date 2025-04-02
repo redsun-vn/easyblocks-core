@@ -1,4 +1,4 @@
-import { dotNotationGet } from "@easyblocks/utils";
+import { dotNotationGet } from "@/utils";
 /**
  * When selecting text within $richText, we keep information about which text parts are selected
  * within focused fields. If the text part is partially selected, we add information about the selection.
@@ -37,11 +37,11 @@ export function parsePath(path: string, form: any): PathInfo {
 
   let pathInfo:
     | {
-        templateId: string;
-        index?: number;
-        fieldName?: string;
-        parent?: ParentPathInfo;
-      }
+      templateId: string;
+      index?: number;
+      fieldName?: string;
+      parent?: ParentPathInfo;
+    }
     | undefined = undefined;
 
   // We're going from current path down the path to find current template and parent template

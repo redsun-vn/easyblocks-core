@@ -3,10 +3,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var slate = require('slate');
 var convertEditorValueToRichTextElements = require('./utils/convertEditorValueToRichTextElements.cjs');
 var getFocusedRichTextPartsConfigPaths = require('./utils/getFocusedRichTextPartsConfigPaths.cjs');
+var nonNullable = require('../../../utils/array/nonNullable.cjs');
 
 function isEditorSelection(editor) {
   return editor.selection !== null;
@@ -54,7 +54,7 @@ function updateSelection(editor, key) {
     const selectedTextNodesRanges = selectedTextNodeEntries.map(_ref => {
       let [, textNodePath] = _ref;
       return slate.Range.intersection(editor.selection, slate.Editor.range(editor, textNodePath));
-    }).filter(utils.nonNullable());
+    }).filter(nonNullable.nonNullable());
     slate.Editor.withoutNormalizing(editor, () => {
       selectedTextNodesRanges.reverse().forEach((range, index) => {
         slate.Transforms.setNodes(editor, {

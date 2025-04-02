@@ -1,6 +1,7 @@
 /* with love from shopstory */
-import { last, dotNotationGet } from '@easyblocks/utils';
 import { parseFocusedRichTextPartConfigPath } from './parseRichTextPartConfigPath.js';
+import { last } from '../../../../utils/array/last.js';
+import { dotNotationGet } from '../../../../utils/object/dotNotationGet.js';
 
 function getEditorSelectionFromFocusedFields(focusedFields, form) {
   try {

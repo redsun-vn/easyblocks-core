@@ -3,7 +3,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var locales = require('../locales.cjs');
 var builders = require('./builtins/_richText/builders.cjs');
 var compileComponent = require('./compileComponent.cjs');
@@ -15,6 +14,7 @@ var isTrulyResponsiveValue = require('../responsiveness/isTrulyResponsiveValue.c
 var responsiveValueAt = require('../responsiveness/responsiveValueAt.cjs');
 var responsiveValueMap = require('../responsiveness/responsiveValueMap.cjs');
 var responsiveValueFill = require('../responsiveness/responsiveValueFill.cjs');
+var uniqueId = require('../utils/uniqueId.cjs');
 
 const textProvider = (schemaProp, compilationContext) => {
   const checkIfValid = x => {
@@ -35,7 +35,7 @@ const textProvider = (schemaProp, compilationContext) => {
     normalize: x => {
       if (x === undefined || x === null) {
         return {
-          id: "local." + utils.uniqueId(),
+          id: "local." + uniqueId.uniqueId(),
           value: {
             [compilationContext.contextParams.locale]: schemaProp.defaultValue ?? "Lorem ipsum"
           },
@@ -626,7 +626,7 @@ function externalReferenceGetHash(value, breakpointIndex) {
 }
 function normalizeComponent(configComponent, compilationContext) {
   const ret = {
-    _id: configComponent._id ?? utils.uniqueId(),
+    _id: configComponent._id ?? uniqueId.uniqueId(),
     _component: configComponent._component
   };
 

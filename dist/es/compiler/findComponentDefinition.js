@@ -1,5 +1,5 @@
 /* with love from shopstory */
-import { toArray } from '@easyblocks/utils';
+import { toArray } from '../utils/array/toArray.js';
 
 function allDefs(context) {
   return context?.definitions.components || [];

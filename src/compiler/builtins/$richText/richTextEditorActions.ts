@@ -1,4 +1,4 @@
-import { nonNullable } from "@easyblocks/utils";
+import { nonNullable } from "@/utils";
 import { BaseRange, Editor, Node, Range, Text, Transforms } from "slate";
 import { SetNonNullable } from "type-fest";
 import { RichTextComponentConfig } from "./$richText";
@@ -24,9 +24,9 @@ function updateSelection<
   ...values: Array<RichTextPartComponentConfig[T]>
 ):
   | {
-      elements: RichTextComponentConfig["elements"][string];
-      focusedRichTextParts: Array<string>;
-    }
+    elements: RichTextComponentConfig["elements"][string];
+    focusedRichTextParts: Array<string>;
+  }
   | undefined {
   if (!isEditorSelection(editor)) {
     return;

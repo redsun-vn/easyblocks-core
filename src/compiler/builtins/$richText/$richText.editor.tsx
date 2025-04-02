@@ -1,5 +1,5 @@
 "use client";
-import { deepClone, deepCompare, dotNotationGet } from "@easyblocks/utils";
+import { deepClone, deepCompare, dotNotationGet } from "@/utils";
 import throttle from "lodash/throttle";
 import React, {
   useCallback,

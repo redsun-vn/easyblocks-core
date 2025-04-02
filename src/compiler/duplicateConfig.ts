@@ -1,4 +1,4 @@
-import { deepClone, uniqueId } from "@easyblocks/utils";
+import { deepClone, uniqueId } from "@/utils";
 import { NoCodeComponentEntry } from "../types";
 import { configTraverse } from "./configTraverse";
 import { traverseComponents } from "./traverseComponents";

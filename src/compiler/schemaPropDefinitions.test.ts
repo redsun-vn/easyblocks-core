@@ -16,7 +16,7 @@ import {
   EditorContextType,
   InternalRenderableComponentDefinition,
 } from "./types";
-import { dotNotationSet } from "@easyblocks/utils";
+import { dotNotationSet } from "@/utils";
 import { createCompilationContext } from "./createCompilationContext";
 import { EasyblocksBackend } from "../EasyblocksBackend";
 
@@ -67,7 +67,7 @@ export const testDevices: Devices = [
 
 const openComponentPicker: EditorContextType["actions"]["openComponentPicker"] =
   () => {
-    return new Promise(() => {});
+    return new Promise(() => { });
   };
 
 export const testEditorContext: EditorContextType = {
@@ -93,7 +93,7 @@ export const testEditorContext: EditorContextType = {
   },
   mainBreakpointIndex: "b4",
   focussedField: [],
-  setFocussedField: () => {},
+  setFocussedField: () => { },
   form: {
     values: {},
     change(path: string, value: any) {
@@ -106,16 +106,16 @@ export const testEditorContext: EditorContextType = {
     },
   },
   actions: {
-    notify: () => {},
+    notify: () => { },
     openComponentPicker,
-    insertItem: () => {},
-    runChange: () => {},
-    duplicateItems: () => {},
-    moveItems: () => {},
-    removeItems: () => {},
-    replaceItems: () => {},
-    pasteItems: () => {},
-    logSelectedItems: () => {},
+    insertItem: () => { },
+    runChange: () => { },
+    duplicateItems: () => { },
+    moveItems: () => { },
+    removeItems: () => { },
+    replaceItems: () => { },
+    pasteItems: () => { },
+    logSelectedItems: () => { },
   },
   locales: [
     {

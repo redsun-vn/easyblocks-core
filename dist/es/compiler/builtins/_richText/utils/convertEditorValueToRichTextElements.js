@@ -1,7 +1,7 @@
 /* with love from shopstory */
-import { cleanString } from '@easyblocks/utils';
 import { Element } from 'slate';
 import { buildRichTextBlockElementComponentConfig, buildRichTextLineElementComponentConfig, buildRichTextPartComponentConfig } from '../builders.js';
+import { cleanString } from '../../../../utils/cleanString.js';
 
 function convertEditorValueToRichTextElements(editorValue) {
   return editorValue.map(blockElement => {

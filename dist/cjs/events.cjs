@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var serialize = require('./utils/serialize.cjs');
 
 function selectionFramePositionChanged(target, container) {
   return {
@@ -17,7 +17,7 @@ function selectionFramePositionChanged(target, container) {
 function richTextChangedEvent(payload) {
   return {
     type: "@easyblocks-editor/rich-text-changed",
-    payload: utils.serialize(payload)
+    payload: serialize.serialize(payload)
   };
 }
 function componentPickerOpened(path) {

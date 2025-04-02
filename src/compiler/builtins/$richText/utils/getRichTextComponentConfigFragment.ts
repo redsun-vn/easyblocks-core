@@ -1,7 +1,7 @@
 import {
   dotNotationGet as get,
   dotNotationSet as set,
-} from "@easyblocks/utils";
+} from "@/utils";
 import { RichTextComponentConfig } from "../$richText";
 import { RichTextPartComponentConfig } from "../$richTextPart/$richTextPart";
 import { duplicateConfig } from "../../../duplicateConfig";

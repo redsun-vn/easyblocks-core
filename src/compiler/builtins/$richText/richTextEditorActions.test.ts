@@ -1,4 +1,4 @@
-// import { uniqueId } from "@easyblocks/utils";
+// import { uniqueId } from "@/utils";
 import { createEditor, Editor, Transforms } from "slate";
 import { withReact } from "slate-react";
 import {

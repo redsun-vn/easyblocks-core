@@ -1,5 +1,5 @@
 /* with love from shopstory */
-import { entries } from '@easyblocks/utils';
+import { entries } from '../utils/object/entries.js';
 
 function responsiveValueEntries(value) {
   const values = [];

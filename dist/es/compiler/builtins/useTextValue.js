@@ -1,8 +1,8 @@
 /* with love from shopstory */
-import { cleanString } from '@easyblocks/utils';
 import debounce from 'lodash/debounce';
 import React from 'react';
 import { getFallbackForLocale } from '../../locales.js';
+import { cleanString } from '../../utils/cleanString.js';
 
 function useTextValue(value, onChange, locale, locales, defaultPlaceholder, normalize) {
   const isExternal = typeof value === "object" && value !== null;

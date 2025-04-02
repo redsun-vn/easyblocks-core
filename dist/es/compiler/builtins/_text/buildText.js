@@ -1,6 +1,6 @@
 /* with love from shopstory */
-import { uniqueId } from '@easyblocks/utils';
 import { getDefaultLocale } from '../../../locales.js';
+import { uniqueId } from '../../../utils/uniqueId.js';
 
 function buildText(x, editorContext) {
   const defaultLocale = getDefaultLocale(editorContext.locales);

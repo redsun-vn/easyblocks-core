@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var dotNotationGet = require('../utils/object/dotNotationGet.cjs');
 
 /**
  * When selecting text within $richText, we keep information about which text parts are selected
@@ -23,7 +23,7 @@ function parsePath(path, form) {
   // We're going from current path down the path to find current template and parent template
   for (let i = pathSplit.length; i >= 0; i--) {
     const testedPath = pathSplit.slice(0, i).join(".");
-    const value = utils.dotNotationGet(values, testedPath);
+    const value = dotNotationGet.dotNotationGet(values, testedPath);
     if (typeof value === "object" && typeof value._component === "string") {
       if (pathInfo === undefined) {
         pathInfo = {

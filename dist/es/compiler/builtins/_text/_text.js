@@ -1,6 +1,6 @@
 /* with love from shopstory */
-import { range } from '@easyblocks/utils';
 import { textStyles } from './_text.styles.js';
+import { range } from '../../../utils/array/range.js';
 
 const textEditableComponent = {
   id: "@easyblocks/text",

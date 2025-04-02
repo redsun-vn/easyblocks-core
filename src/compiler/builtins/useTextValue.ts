@@ -1,4 +1,4 @@
-import { cleanString } from "@easyblocks/utils";
+import { cleanString } from "@/utils";
 import debounce from "lodash/debounce";
 import React from "react";
 import { Locale, getFallbackForLocale } from "../../locales";

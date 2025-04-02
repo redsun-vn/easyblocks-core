@@ -1,4 +1,4 @@
-import { deepCompare, keys, uniqueId } from "@easyblocks/utils";
+import { deepCompare, keys, uniqueId } from "@/utils";
 import {
   Editor,
   NodeEntry,

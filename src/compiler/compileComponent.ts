@@ -9,7 +9,7 @@ import {
   raiseError,
   toArray,
   uniqueId,
-} from "@easyblocks/utils";
+} from "@/utils";
 import { xxHash32 } from "js-xxhash";
 import { isComponentConfig } from "../checkers";
 import {
@@ -223,7 +223,7 @@ export function compileComponent(
           compilationContext,
           $width,
           (schemaProp as SpaceSchemaProp).params?.autoConstant ??
-            DEFAULT_SPACE_AUTO_CONSTANT
+          DEFAULT_SPACE_AUTO_CONSTANT
         );
       }
     });
@@ -240,7 +240,7 @@ export function compileComponent(
           compilationContext,
           $width,
           (arg.itemSchemaProp as SpaceSchemaProp).params?.autoConstant ??
-            DEFAULT_SPACE_AUTO_CONSTANT
+          DEFAULT_SPACE_AUTO_CONSTANT
         );
       }
 
@@ -408,13 +408,13 @@ export function compileComponent(
             (device) => device.id === editorContext.breakpointIndex
           )!,
           ...(componentDefinition.id === "@easyblocks/rich-text" ||
-          componentDefinition.id === "@easyblocks/rich-text-part"
+            componentDefinition.id === "@easyblocks/rich-text-part"
             ? {
-                __SECRET_INTERNALS__: {
-                  pathPrefix: configPrefix,
-                  editorContext,
-                },
-              }
+              __SECRET_INTERNALS__: {
+                pathPrefix: configPrefix,
+                editorContext,
+              },
+            }
             : {}),
         });
 
@@ -600,13 +600,13 @@ export function compileComponent(
           (device) => device.id === editorContext.breakpointIndex
         )!,
         ...(componentDefinition.id === "@easyblocks/rich-text" ||
-        componentDefinition.id === "@easyblocks/rich-text-part"
+          componentDefinition.id === "@easyblocks/rich-text-part"
           ? {
-              __SECRET_INTERNALS__: {
-                pathPrefix: configPrefix,
-                editorContext,
-              },
-            }
+            __SECRET_INTERNALS__: {
+              pathPrefix: configPrefix,
+              editorContext,
+            },
+          }
           : {}),
       });
 
@@ -793,7 +793,7 @@ function createOwnComponentProps({
     })
   );
 
-  const ownValues: { _id: string; _component: string; [key: string]: any } = {
+  const ownValues: { _id: string; _component: string;[key: string]: any } = {
     // Copy id and component which uniquely identify component.
     _id: config._id,
     _component: config._component,
@@ -819,7 +819,7 @@ function flattenItemProps(
       return [
         itemSchemaProp.prop,
         config._itemProps[componentDefinition.id][collectionSchemaProp.prop][
-          itemSchemaProp.prop
+        itemSchemaProp.prop
         ],
       ];
     })
@@ -964,7 +964,7 @@ function compileSubcomponents(
                   schemaProp.itemFields.map((itemSchemaProp) => {
                     const itemPropValue =
                       configAfterAuto[schemaProp.prop][index][
-                        itemSchemaProp.prop
+                      itemSchemaProp.prop
                       ];
 
                     return [itemSchemaProp.prop, itemPropValue];
@@ -1017,8 +1017,8 @@ function itemFieldsForEach(
   compilationContext: CompilationContextType,
   callback: (arg: {
     collectionSchemaProp:
-      | ComponentCollectionLocalisedSchemaProp
-      | ComponentCollectionSchemaProp;
+    | ComponentCollectionLocalisedSchemaProp
+    | ComponentCollectionSchemaProp;
     itemIndex: number;
     itemSchemaProp: SchemaProp;
     itemPropPath: string;
@@ -1239,8 +1239,7 @@ function buildDefaultEditingInfo(
             fields: (schemaProp.itemFields ?? []).map((itemSchemaProp) =>
               getDefaultFieldDefinition(
                 itemSchemaProp,
-                `${configPrefix}${configPrefix === "" ? "" : "."}${
-                  schemaProp.prop
+                `${configPrefix}${configPrefix === "" ? "" : "."}${schemaProp.prop
                 }.${index}._itemProps.${definition.id}.${schemaProp.prop}`,
                 definition,
                 editorContext,
@@ -1728,7 +1727,7 @@ function convertEditingFieldToInternalEditingField(
               const componentItemIndex = +pathFragments[1];
               sourceInternalEditingInfoField = (
                 internalEditingInfo.components[
-                  componentSchemaProp.prop
+                componentSchemaProp.prop
                 ] as EditingInfoComponentCollection
               ).items[componentItemIndex].fields.find(
                 (f) => f.prop === itemField.prop

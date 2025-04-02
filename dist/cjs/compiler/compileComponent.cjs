@@ -3,7 +3,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var jsXxhash = require('js-xxhash');
 var checkers = require('../checkers.cjs');
 var applyAutoUsingResponsiveTokens = require('./applyAutoUsingResponsiveTokens.cjs');
@@ -19,9 +18,19 @@ var resop = require('./resop.cjs');
 var index = require('./schema/index.cjs');
 var tinaFieldProviders = require('./tinaFieldProviders.cjs');
 var locales = require('../locales.cjs');
+var deepCompare = require('../utils/deepCompare.cjs');
+var deepClone = require('../utils/deepClone.cjs');
 var responsiveValueAt = require('../responsiveness/responsiveValueAt.cjs');
+var dotNotationSet = require('../utils/object/dotNotationSet.cjs');
+var bubbleDown = require('../utils/array/bubbleDown.cjs');
+var raiseError = require('../utils/raiseError.cjs');
+var assert = require('../utils/assert.cjs');
+var uniqueId = require('../utils/uniqueId.cjs');
 var responsiveValueFill = require('../responsiveness/responsiveValueFill.cjs');
 var responsiveValueNormalize = require('../responsiveness/responsiveValueNormalize.cjs');
+var dotNotationGet = require('../utils/object/dotNotationGet.cjs');
+var entries = require('../utils/object/entries.cjs');
+var toArray = require('../utils/array/toArray.cjs');
 
 function compileComponent(editableElement, compilationContext, contextProps,
 // contextProps are already compiled! They're result of compilation function.
@@ -37,11 +46,11 @@ meta, cache, parentComponentEditingInfo) {
   const cachedResult = cache.get(editableElement._id);
   let componentDefinition = findComponentDefinition.findComponentDefinitionById(editableElement._component, compilationContext);
   if (!componentDefinition) {
-    componentDefinition = utils.assertDefined(findComponentDefinition.findComponentDefinitionById("@easyblocks/missing-component", compilationContext));
+    componentDefinition = assert.assertDefined(findComponentDefinition.findComponentDefinitionById("@easyblocks/missing-component", compilationContext));
     const error = `Easyblocks can’t find definition for component "${editableElement._component}" in your config. Please contact your developers to resolve this issue.`;
     editableElement = {
       _component: componentDefinition.id,
-      _id: utils.uniqueId(),
+      _id: uniqueId.uniqueId(),
       error
     };
     console.warn(error);
@@ -68,12 +77,12 @@ meta, cache, parentComponentEditingInfo) {
   let subcomponentsContextProps = {};
   let editingContextProps;
   if (cachedResult) {
-    hasComponentConfigChanged = !utils.deepCompare(ownProps, cachedResult.values);
+    hasComponentConfigChanged = !deepCompare.deepCompare(ownProps, cachedResult.values);
     if (!hasComponentConfigChanged) {
       ownPropsAfterAuto = cachedResult.valuesAfterAuto;
       compiledValues = cachedResult.compiledValues;
       compiled = cachedResult.compiledConfig;
-      configAfterAuto = utils.deepClone({
+      configAfterAuto = deepClone.deepClone({
         ...cachedResult.valuesAfterAuto.values,
         ...cachedResult.valuesAfterAuto.params
       });
@@ -88,7 +97,7 @@ meta, cache, parentComponentEditingInfo) {
   } = calculateWidths(compilationContext, contextProps);
   if (hasComponentConfigChanged) {
     // We are going to mutate this object so let's disconnect it from its source object
-    ownPropsAfterAuto = utils.deepClone(ownProps);
+    ownPropsAfterAuto = deepClone.deepClone(ownProps);
 
     /**
      * APPLY AUTO
@@ -113,7 +122,7 @@ meta, cache, parentComponentEditingInfo) {
       if (arg.itemSchemaProp.type === "space") {
         value = linearizeSpace.linearizeSpace(value, compilationContext, $width, arg.itemSchemaProp.params?.autoConstant ?? DEFAULT_SPACE_AUTO_CONSTANT);
       }
-      utils.dotNotationSet(ownPropsAfterAuto.values, arg.itemPropPath, value);
+      dotNotationSet.dotNotationSet(ownPropsAfterAuto.values, arg.itemPropPath, value);
     });
     const autoFunction = componentDefinition.auto;
     if (autoFunction) {
@@ -138,13 +147,13 @@ meta, cache, parentComponentEditingInfo) {
       ownPropsAfterAuto.params[prop] = responsiveValueFill.responsiveValueFill(ownPropsAfterAuto.params[prop], compilationContext.devices, devices.getDevicesWidths(compilationContext.devices));
     }
     itemFieldsForEach(ownPropsAfterAuto.values, compilationContext, arg => {
-      utils.dotNotationSet(ownPropsAfterAuto.values, arg.itemPropPath, responsiveValueFill.responsiveValueFill(arg.itemPropValue, compilationContext.devices, devices.getDevicesWidths(compilationContext.devices)));
+      dotNotationSet.dotNotationSet(ownPropsAfterAuto.values, arg.itemPropPath, responsiveValueFill.responsiveValueFill(arg.itemPropValue, compilationContext.devices, devices.getDevicesWidths(compilationContext.devices)));
     });
 
     // First we compile all the props and store them in compiledValues
     const _compiledValues = compileComponentValues.compileComponentValues(ownPropsAfterAuto.values, componentDefinition, compilationContext, cache);
     compiledValues = {
-      ...utils.deepClone(ownPropsAfterAuto.values),
+      ...deepClone.deepClone(ownPropsAfterAuto.values),
       ..._compiledValues
     };
 
@@ -192,7 +201,7 @@ meta, cache, parentComponentEditingInfo) {
        */
       if (renderableComponentDefinition.editing) {
         const scalarizedConfig = resop.scalarizeConfig(compiledValues, editorContext.breakpointIndex, editorContext.devices, renderableComponentDefinition.schema);
-        const identityEditingField = utils.assertDefined(editingInfo.fields.find(f => f.prop === "$myself"));
+        const identityEditingField = assert.assertDefined(editingInfo.fields.find(f => f.prop === "$myself"));
         const editingInfoWithoutIdentityField = {
           ...editingInfo,
           // Filter out identity field, since it's not users responsibility to care of it.
@@ -243,13 +252,13 @@ meta, cache, parentComponentEditingInfo) {
       if (!renderableComponentDefinition.styles) {
         return {};
       }
-      const device = utils.assertDefined(compilationContext.devices.find(device => device.id === breakpointIndex), `Missing device "${breakpointIndex}"`);
+      const device = assert.assertDefined(compilationContext.devices.find(device => device.id === breakpointIndex), `Missing device "${breakpointIndex}"`);
       const stylesInput = {
         values,
         params: {
           ...params,
-          $width: utils.assertDefined(responsiveValueAt.responsiveValueAt($width, breakpointIndex)),
-          $widthAuto: utils.assertDefined(responsiveValueAt.responsiveValueAt($widthAuto, breakpointIndex))
+          $width: assert.assertDefined(responsiveValueAt.responsiveValueAt($width, breakpointIndex)),
+          $widthAuto: assert.assertDefined(responsiveValueAt.responsiveValueAt($widthAuto, breakpointIndex))
         },
         isEditing: !!compilationContext.isEditing,
         device,
@@ -310,7 +319,7 @@ meta, cache, parentComponentEditingInfo) {
     };
 
     // We are going to mutate this object so let's disconnect it from its source object
-    configAfterAuto = utils.deepClone({
+    configAfterAuto = deepClone.deepClone({
       ...ownPropsAfterAuto.values,
       ...ownPropsAfterAuto.params
     });
@@ -329,7 +338,7 @@ meta, cache, parentComponentEditingInfo) {
      */
     if (renderableComponentDefinition.editing) {
       const scalarizedValues = resop.scalarizeConfig(compiledValues, editorContext.breakpointIndex, editorContext.devices, renderableComponentDefinition.schema);
-      const identityEditingField = utils.assertDefined(editingInfo.fields.find(f => f.prop === "$myself"));
+      const identityEditingField = assert.assertDefined(editingInfo.fields.find(f => f.prop === "$myself"));
       const editingInfoWithoutIdentityField = {
         ...editingInfo,
         // Filter out identity field, since it's not users responsibility to care of it.
@@ -537,7 +546,7 @@ cache) {
                 const itemPropValue = configAfterAuto[schemaProp.prop][index][itemSchemaProp.prop];
                 return [itemSchemaProp.prop, itemPropValue];
               }));
-              utils.dotNotationSet(compilationOutput.configAfterAuto, itemPropsCollectionPath, itemProps);
+              dotNotationSet.dotNotationSet(compilationOutput.configAfterAuto, itemPropsCollectionPath, itemProps);
             }
             return compilationOutput.configAfterAuto;
           });
@@ -584,12 +593,12 @@ function itemFieldsForEach(config, compilationContext, callback) {
           path = `${path}.${compilationContext.contextParams.locale}`;
         }
       }
-      const value = utils.dotNotationGet(config, path) ?? [];
+      const value = dotNotationGet.dotNotationGet(config, path) ?? [];
       value.forEach((_, index) => {
         if (itemFields) {
           itemFields.forEach(itemSchemaProp => {
             const itemPath = `${path}.${index}.${itemSchemaProp.prop}`;
-            const itemValue = utils.dotNotationGet(config, itemPath);
+            const itemValue = dotNotationGet.dotNotationGet(config, itemPath);
             callback({
               collectionSchemaProp: schemaProp,
               itemIndex: index,
@@ -672,7 +681,7 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
     };
     defaultFields.unshift(headerField);
   } else {
-    const rootComponentDefinition = utils.assertDefined(findComponentDefinition.findComponentDefinitionById(utils.dotNotationGet(editorContext.form.values, "")._component, editorContext));
+    const rootComponentDefinition = assert.assertDefined(findComponentDefinition.findComponentDefinitionById(dotNotationGet.dotNotationGet(editorContext.form.values, "")._component, editorContext));
     const headerSchemaProp = {
       prop: "$myself",
       label: "Component type",
@@ -691,7 +700,7 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
     };
     defaultFields.unshift(headerField);
   }
-  const fields = utils.bubbleDown(x => x.prop === "Analytics", defaultFields);
+  const fields = bubbleDown.bubbleDown(x => x.prop === "Analytics", defaultFields);
   const editingInfo = {
     fields,
     components: {}
@@ -750,7 +759,7 @@ function compileRichTextValuesFromRichTextParts(richTextConfig, compilationConte
   };
 }
 function mapResponsiveFontToResponsiveFontSize(responsiveFontValue) {
-  return Object.fromEntries(utils.entries(responsiveFontValue).map(_ref5 => {
+  return Object.fromEntries(entries.entries(responsiveFontValue).map(_ref5 => {
     let [breakpoint, fontValue] = _ref5;
     if (breakpoint === "$res") {
       return [breakpoint, fontValue];
@@ -926,7 +935,7 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
     // Even though the type definition for field doesn't allow `path` to be an array, $richText component
     // returns an array of paths.
     if (Array.isArray(field.path)) {
-      const fieldName = field.path[0]?.split(".").at(-1) ?? utils.raiseError("Expected field name to be present");
+      const fieldName = field.path[0]?.split(".").at(-1) ?? raiseError.raiseError("Expected field name to be present");
       const sources = field.path.map(p => p.split(".").slice(0, -1).join("."));
       return {
         portal: "multi-field",
@@ -937,7 +946,7 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
     const isAbsolutePath = isFieldPathAbsolutePath(field, editorContext);
     if (isAbsolutePath) {
       if (field.type === "fields") {
-        const groups = field.filters?.group ? utils.toArray(field.filters.group) : undefined;
+        const groups = field.filters?.group ? toArray.toArray(field.filters.group) : undefined;
         return {
           portal: "component",
           source: field.path,
@@ -945,7 +954,7 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
         };
       }
       const pathFragments = field.path.split(".");
-      const fieldName = pathFragments.at(-1) ?? utils.raiseError("Expected field name to be present");
+      const fieldName = pathFragments.at(-1) ?? raiseError.raiseError("Expected field name to be present");
       const source = pathFragments.slice(0, -1).join(".");
       return {
         portal: "field",
@@ -1006,7 +1015,7 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
       portal: "component",
       source: absoluteFieldPath,
       ...(field.filters?.group !== undefined && {
-        groups: utils.toArray(field.filters.group)
+        groups: toArray.toArray(field.filters.group)
       })
     };
   }
@@ -1014,14 +1023,14 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
 }
 function isFieldPathAbsolutePath(field, editorContext) {
   const pathFragments = field.path.split(".");
-  const rootValue = utils.dotNotationGet(editorContext.form.values, "");
+  const rootValue = dotNotationGet.dotNotationGet(editorContext.form.values, "");
   let currentPathFragmentIndex = 0;
-  let currentValue = utils.dotNotationGet(rootValue, pathFragments[currentPathFragmentIndex]);
+  let currentValue = dotNotationGet.dotNotationGet(rootValue, pathFragments[currentPathFragmentIndex]);
   while (currentValue !== undefined) {
     if (pathFragments.length - 1 === currentPathFragmentIndex) {
       return true;
     }
-    currentValue = utils.dotNotationGet(currentValue, pathFragments[++currentPathFragmentIndex]);
+    currentValue = dotNotationGet.dotNotationGet(currentValue, pathFragments[++currentPathFragmentIndex]);
   }
   return false;
 }

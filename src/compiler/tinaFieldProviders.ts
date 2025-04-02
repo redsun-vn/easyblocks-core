@@ -1,4 +1,4 @@
-import { assertDefined } from "@easyblocks/utils";
+import { assertDefined } from "@/utils";
 import {
   AnyTinaField,
   BooleanSchemaProp,
@@ -263,8 +263,8 @@ const tinaFieldProviders: TinaFieldProviders = {
         allowCustom: !!customTypeDefinition.allowCustom,
         extraValues:
           "params" in schemaProp &&
-          schemaProp.params &&
-          "extraValues" in schemaProp.params
+            schemaProp.params &&
+            "extraValues" in schemaProp.params
             ? schemaProp.params.extraValues
             : undefined,
       };
@@ -289,15 +289,15 @@ const tinaFieldProviders: TinaFieldProviders = {
     return {
       ...getCommonFieldProps(schemaProp),
       ...(customTypeDefinition.responsiveness === "always" ||
-      (customTypeDefinition.responsiveness === "optional" &&
-        schemaProp.responsive)
+        (customTypeDefinition.responsiveness === "optional" &&
+          schemaProp.responsive)
         ? {
-            component: "responsive2",
-            subComponent: "local",
-          }
+          component: "responsive2",
+          subComponent: "local",
+        }
         : {
-            component: "local",
-          }),
+          component: "local",
+        }),
     };
   },
 };

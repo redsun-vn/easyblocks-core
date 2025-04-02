@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var toArray = require('../utils/array/toArray.cjs');
 
 function allDefs(context) {
   return context?.definitions.components || [];
@@ -20,7 +20,7 @@ function findComponentDefinitionById(id, context) {
   return $findComponentDefinitionById(id, context);
 }
 function findComponentDefinitionsByType(tag, context) {
-  return allDefs(context).filter(def => utils.toArray(def.type ?? []).includes(tag));
+  return allDefs(context).filter(def => toArray.toArray(def.type ?? []).includes(tag));
 }
 
 /**

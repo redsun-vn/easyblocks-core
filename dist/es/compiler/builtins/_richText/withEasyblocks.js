@@ -1,6 +1,8 @@
 /* with love from shopstory */
-import { uniqueId, keys, deepCompare } from '@easyblocks/utils';
 import { Element, Node, Transforms, Text } from 'slate';
+import { keys } from '../../../utils/object/keys.js';
+import { uniqueId } from '../../../utils/uniqueId.js';
+import { deepCompare } from '../../../utils/deepCompare.js';
 
 /**
  * Tracks which ids were used during current normalization run

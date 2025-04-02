@@ -3,9 +3,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var slate = require('slate');
 var builders = require('../builders.cjs');
+var cleanString = require('../../../../utils/cleanString.cjs');
 
 function convertEditorValueToRichTextElements(editorValue) {
   return editorValue.map(blockElement => {
@@ -25,7 +25,7 @@ function convertEditorElementToRichTextLineElement(editorElement) {
   const lineElement = builders.buildRichTextLineElementComponentConfig({
     elements: editorElement.children.map(child => {
       return builders.buildRichTextPartComponentConfig({
-        value: utils.cleanString(child.text),
+        value: cleanString.cleanString(child.text),
         color: child.color,
         font: child.font,
         id: child.id,

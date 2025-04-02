@@ -1,5 +1,4 @@
 /* with love from shopstory */
-import { uniqueId } from '@easyblocks/utils';
 import { getFallbackLocaleForLocale, getFallbackForLocale } from '../locales.js';
 import { buildRichTextNoCodeEntry } from './builtins/_richText/builders.js';
 import { compileComponent } from './compileComponent.js';
@@ -11,6 +10,7 @@ import { isTrulyResponsiveValue } from '../responsiveness/isTrulyResponsiveValue
 import { responsiveValueAt } from '../responsiveness/responsiveValueAt.js';
 import { responsiveValueMap } from '../responsiveness/responsiveValueMap.js';
 import { responsiveValueFill } from '../responsiveness/responsiveValueFill.js';
+import { uniqueId } from '../utils/uniqueId.js';
 
 const textProvider = (schemaProp, compilationContext) => {
   const checkIfValid = x => {

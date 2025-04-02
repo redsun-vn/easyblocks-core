@@ -1,8 +1,9 @@
 /* with love from shopstory */
-import { dotNotationGet, dotNotationSet } from '@easyblocks/utils';
 import { duplicateConfig } from '../../../duplicateConfig.js';
 import { parseFocusedRichTextPartConfigPath } from './parseRichTextPartConfigPath.js';
 import { stripRichTextPartSelection } from './stripRichTextTextPartSelection.js';
+import { dotNotationGet } from '../../../../utils/object/dotNotationGet.js';
+import { dotNotationSet } from '../../../../utils/object/dotNotationSet.js';
 
 function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, editorContext) {
   const {

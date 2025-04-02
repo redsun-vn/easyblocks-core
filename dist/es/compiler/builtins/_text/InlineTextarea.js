@@ -1,10 +1,10 @@
 /* with love from shopstory */
 import _extends from '@babel/runtime/helpers/extends';
-import { dotNotationGet } from '@easyblocks/utils';
 import React, { useState, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import { useTextValue } from '../useTextValue.js';
+import { dotNotationGet } from '../../../utils/object/dotNotationGet.js';
 
 function InlineTextarea(_ref) {
   let {

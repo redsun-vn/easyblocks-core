@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var uniqueId = require('../../../utils/uniqueId.cjs');
 
 function buildRichTextNoCodeEntry(options) {
   const {
@@ -30,7 +30,7 @@ function buildRichTextNoCodeEntry(options) {
     fontTokenValue.tokenId = font;
   }
   return {
-    _id: utils.uniqueId(),
+    _id: uniqueId.uniqueId(),
     _component: "@easyblocks/rich-text",
     accessibilityRole: accessibilityRole ?? "div",
     elements: {
@@ -58,7 +58,7 @@ function buildRichTextComponentConfig(_ref) {
     mainFont
   } = _ref;
   return {
-    _id: utils.uniqueId(),
+    _id: uniqueId.uniqueId(),
     _component: "@easyblocks/rich-text",
     accessibilityRole: accessibilityRole ?? "div",
     elements: {
@@ -74,7 +74,7 @@ function buildRichTextBlockElementComponentConfig(type, elements) {
     _component: "@easyblocks/rich-text-block-element",
     elements,
     type,
-    _id: utils.uniqueId()
+    _id: uniqueId.uniqueId()
   };
 }
 function buildRichTextParagraphBlockElementComponentConfig(_ref2) {
@@ -85,7 +85,7 @@ function buildRichTextParagraphBlockElementComponentConfig(_ref2) {
     _component: "@easyblocks/rich-text-block-element",
     elements,
     type: "paragraph",
-    _id: utils.uniqueId()
+    _id: uniqueId.uniqueId()
   };
 }
 function buildRichTextBulletedListBlockElementComponentConfig(_ref3) {
@@ -96,7 +96,7 @@ function buildRichTextBulletedListBlockElementComponentConfig(_ref3) {
     _component: "@easyblocks/rich-text-block-element",
     elements,
     type: "bulleted-list",
-    _id: utils.uniqueId()
+    _id: uniqueId.uniqueId()
   };
 }
 function buildRichTextLineElementComponentConfig(_ref4) {
@@ -106,7 +106,7 @@ function buildRichTextLineElementComponentConfig(_ref4) {
   return {
     _component: "@easyblocks/rich-text-line-element",
     elements,
-    _id: utils.uniqueId()
+    _id: uniqueId.uniqueId()
   };
 }
 function buildRichTextPartComponentConfig(_ref5) {
@@ -118,7 +118,7 @@ function buildRichTextPartComponentConfig(_ref5) {
     TextWrapper
   } = _ref5;
   return {
-    _id: id ?? utils.uniqueId(),
+    _id: id ?? uniqueId.uniqueId(),
     _component: "@easyblocks/rich-text-part",
     color,
     font,

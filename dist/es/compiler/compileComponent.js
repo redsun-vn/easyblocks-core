@@ -1,5 +1,4 @@
 /* with love from shopstory */
-import { assertDefined, uniqueId, deepCompare, deepClone, dotNotationSet, dotNotationGet, bubbleDown, entries, raiseError, toArray } from '@easyblocks/utils';
 import { xxHash32 } from 'js-xxhash';
 import { isComponentConfig } from '../checkers.js';
 import { applyAutoUsingResponsiveTokens } from './applyAutoUsingResponsiveTokens.js';
@@ -15,9 +14,19 @@ import { scalarizeConfig, resop2 } from './resop.js';
 import { isExternalSchemaProp, isSchemaPropComponentOrComponentCollection, isSchemaPropComponent, isSchemaPropComponentCollectionLocalised, isSchemaPropActionTextModifier, isSchemaPropTextModifier, isSchemaPropCollection } from './schema/index.js';
 import { getTinaField } from './tinaFieldProviders.js';
 import { getFallbackLocaleForLocale } from '../locales.js';
+import { deepCompare } from '../utils/deepCompare.js';
+import { deepClone } from '../utils/deepClone.js';
 import { responsiveValueAt } from '../responsiveness/responsiveValueAt.js';
+import { dotNotationSet } from '../utils/object/dotNotationSet.js';
+import { bubbleDown } from '../utils/array/bubbleDown.js';
+import { raiseError } from '../utils/raiseError.js';
+import { assertDefined } from '../utils/assert.js';
+import { uniqueId } from '../utils/uniqueId.js';
 import { responsiveValueFill } from '../responsiveness/responsiveValueFill.js';
 import { responsiveValueNormalize } from '../responsiveness/responsiveValueNormalize.js';
+import { dotNotationGet } from '../utils/object/dotNotationGet.js';
+import { entries } from '../utils/object/entries.js';
+import { toArray } from '../utils/array/toArray.js';
 
 function compileComponent(editableElement, compilationContext, contextProps,
 // contextProps are already compiled! They're result of compilation function.

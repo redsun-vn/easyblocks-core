@@ -1,8 +1,8 @@
 /* with love from shopstory */
-import { nonNullable } from '@easyblocks/utils';
 import { Range, Editor, Node, Text, Transforms } from 'slate';
 import { convertEditorValueToRichTextElements } from './utils/convertEditorValueToRichTextElements.js';
 import { getFocusedRichTextPartsConfigPaths } from './utils/getFocusedRichTextPartsConfigPaths.js';
+import { nonNullable } from '../../../utils/array/nonNullable.js';
 
 function isEditorSelection(editor) {
   return editor.selection !== null;

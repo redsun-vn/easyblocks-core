@@ -3,11 +3,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var locales = require('../../../locales.cjs');
 var configFindAllPaths = require('../../configFindAllPaths.cjs');
 var $richText_styles = require('./_richText.styles.cjs');
 var $richTextBlockElement = require('./_richTextBlockElement/_richTextBlockElement.cjs');
+var range = require('../../../utils/array/range.cjs');
+var nonNullable = require('../../../utils/array/nonNullable.cjs');
+var dotNotationGet = require('../../../utils/object/dotNotationGet.cjs');
 
 const editing = _ref => {
   let {
@@ -23,7 +25,7 @@ const editing = _ref => {
     pathPrefix,
     editorContext
   } = __SECRET_INTERNALS__;
-  const richTextConfig = utils.dotNotationGet(editorContext.form.values, pathPrefix);
+  const richTextConfig = dotNotationGet.dotNotationGet(editorContext.form.values, pathPrefix);
   const richTextBlockPaths = configFindAllPaths.configFindAllPaths(richTextConfig, editorContext, config => {
     return config._component === "@easyblocks/rich-text-block-element";
   });
@@ -39,7 +41,7 @@ const editing = _ref => {
     if (!richTextBlockPath) {
       return field;
     }
-    const richTextBlockType = utils.dotNotationGet(editorContext.form.values, `${richTextBlockPath}.type`);
+    const richTextBlockType = dotNotationGet.dotNotationGet(editorContext.form.values, `${richTextBlockPath}.type`);
     if (richTextBlockType !== "paragraph") {
       if (field.path === "accessibilityRole") {
         return {
@@ -85,7 +87,7 @@ const editing = _ref => {
       path: `${richTextBlockPath}.type`,
       label: "List style",
       group: "Text"
-    } : null, ...fieldsAfterAccessibilityRole].filter(utils.nonNullable())
+    } : null, ...fieldsAfterAccessibilityRole].filter(nonNullable.nonNullable())
   };
 };
 const richTextEditableComponent = {
@@ -131,7 +133,7 @@ const richTextEditableComponent = {
       options: [{
         value: "div",
         label: "Paragraph"
-      }, ...utils.range(1, 6).map(index => ({
+      }, ...range.range(1, 6).map(index => ({
         value: `h${index}`,
         label: `Heading ${index}`
       }))]

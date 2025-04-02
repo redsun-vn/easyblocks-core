@@ -3,10 +3,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var debounce = require('lodash/debounce');
 var React = require('react');
 var locales = require('../../locales.cjs');
+var cleanString = require('../../utils/cleanString.cjs');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -91,7 +91,7 @@ function useTextValue(value, onChange, locale, locales$1, defaultPlaceholder, no
   return {
     onChange: handleChange,
     onBlur: handleBlur,
-    value: utils.cleanString(localInputValue),
+    value: cleanString.cleanString(localInputValue),
     style,
     placeholder: defaultPlaceholder ?? "Enter text"
   };

@@ -4,11 +4,11 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var _extends = require('@babel/runtime/helpers/extends');
-var utils = require('@easyblocks/utils');
 var React = require('react');
 var reactDom = require('react-dom');
 var TextareaAutosize = require('react-textarea-autosize');
 var useTextValue = require('../useTextValue.cjs');
+var dotNotationGet = require('../../../utils/object/dotNotationGet.cjs');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -32,7 +32,7 @@ function InlineTextarea(_ref) {
     locales
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
-  const value = utils.dotNotationGet(form.values, valuePath);
+  const value = dotNotationGet.dotNotationGet(form.values, valuePath);
   const inputProps = useTextValue.useTextValue(value, val => {
     form.change(valuePath, val);
   }, locale, locales, placeholder);

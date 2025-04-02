@@ -5,7 +5,6 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var _extends = require('@babel/runtime/helpers/extends');
-var utils = require('@easyblocks/utils');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
@@ -31,6 +30,9 @@ var getFocusedFieldsFromSlateSelection = require('./utils/getFocusedFieldsFromSl
 var getFocusedRichTextPartsConfigPaths = require('./utils/getFocusedRichTextPartsConfigPaths.cjs');
 var getRichTextComponentConfigFragment = require('./utils/getRichTextComponentConfigFragment.cjs');
 var withEasyblocks = require('./withEasyblocks.cjs');
+var dotNotationGet = require('../../../utils/object/dotNotationGet.cjs');
+var deepClone = require('../../../utils/deepClone.cjs');
+var deepCompare = require('../../../utils/deepCompare.cjs');
 var responsiveValueFill = require('../../../responsiveness/responsiveValueFill.cjs');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -62,7 +64,7 @@ function RichTextEditor(props) {
     },
     align
   } = props;
-  let richTextConfig = utils.dotNotationGet(form.values, path);
+  let richTextConfig = dotNotationGet.dotNotationGet(form.values, path);
   const [editor] = React.useState(() => withEasyblocks.withEasyblocks(slateReact.withReact(slate.createEditor())));
   const localizedRichTextElements = richTextConfig.elements[contextParams.locale];
   const fallbackRichTextElements = locales.getFallbackForLocale(richTextConfig.elements, contextParams.locale, locales$1);
@@ -75,7 +77,7 @@ function RichTextEditor(props) {
   if (richTextElements.length === 0 && !fallbackRichTextElements) {
     // We only want to show rich text for default config within this component, we don't want to update raw content
     // To prevent implicit update of raw content we make a deep copy.
-    richTextConfig = utils.deepClone(richTextConfig);
+    richTextConfig = deepClone.deepClone(richTextConfig);
     richTextConfig.elements[contextParams.locale] = convertEditorValueToRichTextElements.convertEditorValueToRichTextElements(editorValue);
   }
 
@@ -169,7 +171,7 @@ function RichTextEditor(props) {
       // When value for current locale is empty we want to show value from fallback value instead of placeholder
       // if the fallback value is present.
       if (isSlateValueEmpty && fallbackRichTextElements !== undefined) {
-        const nextRichTextElement = utils.deepClone(richTextConfig);
+        const nextRichTextElement = deepClone.deepClone(richTextConfig);
         delete nextRichTextElement.elements[contextParams.locale];
         editor.children = convertRichTextElementsToEditorValue.convertRichTextElementsToEditorValue(fallbackRichTextElements);
         form.change(path, nextRichTextElement);
@@ -373,7 +375,7 @@ function RichTextEditor(props) {
       lastChangeReason.current = "text-input";
       return;
     }
-    const isValueSame = utils.deepCompare(value, editorValue);
+    const isValueSame = deepCompare.deepCompare(value, editorValue);
 
     // Slate runs `onChange` callback on any change, even when the text haven't changed.
     // If value haven't changed, it must be a selection change.
@@ -585,7 +587,7 @@ function isEditorValueEmpty(editorValue) {
   return editorValue.length === 1 && editorValue[0].children.length === 1 && editorValue[0].children[0].children.length === 1 && slate.Text.isText(editorValue[0].children[0].children[0]) && editorValue[0].children[0].children[0].text === "";
 }
 function isConfigEqual(newConfig, oldConfig) {
-  return utils.deepCompare(newConfig, oldConfig);
+  return deepCompare.deepCompare(newConfig, oldConfig);
 }
 function mapResponsiveAlignmentToStyles(align, _ref4) {
   let {

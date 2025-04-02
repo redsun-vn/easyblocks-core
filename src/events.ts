@@ -1,4 +1,4 @@
-import { serialize } from "@easyblocks/utils";
+import { serialize } from "@/utils";
 import { NoCodeComponentEntry, SchemaProp } from "./types";
 import { Component$$$SchemaProp } from "./compiler/schema";
 

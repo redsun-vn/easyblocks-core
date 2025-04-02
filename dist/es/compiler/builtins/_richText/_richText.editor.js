@@ -1,7 +1,6 @@
 'use client';
 /* with love from shopstory */
 import _extends from '@babel/runtime/helpers/extends';
-import { dotNotationGet, deepClone, deepCompare } from '@easyblocks/utils';
 import throttle from 'lodash/throttle';
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
@@ -27,6 +26,9 @@ import { getFocusedFieldsFromSlateSelection } from './utils/getFocusedFieldsFrom
 import { getFocusedRichTextPartsConfigPaths } from './utils/getFocusedRichTextPartsConfigPaths.js';
 import { getRichTextComponentConfigFragment } from './utils/getRichTextComponentConfigFragment.js';
 import { withEasyblocks, NORMALIZED_IDS_TO_IDS } from './withEasyblocks.js';
+import { dotNotationGet } from '../../../utils/object/dotNotationGet.js';
+import { deepClone } from '../../../utils/deepClone.js';
+import { deepCompare } from '../../../utils/deepCompare.js';
 import { responsiveValueFill } from '../../../responsiveness/responsiveValueFill.js';
 
 function RichTextEditor(props) {

@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
+var uniqueId = require('../../../../utils/uniqueId.cjs');
 
 function convertRichTextElementsToEditorValue(richTextElements) {
   if (!richTextElements || richTextElements.length === 0) {
@@ -54,13 +54,13 @@ function convertRichTextBlockElementComponentConfigToEditorElement(blockElementC
 }
 function getPlaceholderRichTextElements() {
   return [{
-    id: utils.uniqueId(),
+    id: uniqueId.uniqueId(),
     type: "paragraph",
     children: [{
-      id: utils.uniqueId(),
+      id: uniqueId.uniqueId(),
       type: "text-line",
       children: [{
-        id: utils.uniqueId(),
+        id: uniqueId.uniqueId(),
         color: {
           tokenId: "black",
           value: "black",

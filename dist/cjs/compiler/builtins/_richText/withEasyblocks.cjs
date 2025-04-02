@@ -3,8 +3,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var slate = require('slate');
+var keys = require('../../../utils/object/keys.cjs');
+var uniqueId = require('../../../utils/uniqueId.cjs');
+var deepCompare = require('../../../utils/deepCompare.cjs');
 
 /**
  * Tracks which ids were used during current normalization run
@@ -119,7 +121,7 @@ function updateNonUniqueIds(editor, entry) {
   const [node, path] = entry;
   if (slate.Text.isText(node) || slate.Element.isElement(node)) {
     if (USED_IDS.has(node.id)) {
-      const newId = utils.uniqueId();
+      const newId = uniqueId.uniqueId();
       NORMALIZED_IDS_TO_IDS.set(newId, node.id);
       slate.Transforms.setNodes(editor, {
         id: newId
@@ -232,15 +234,15 @@ function mergeVisuallyTheSameOrEmptyTextNodes(editor, entry) {
 // }
 
 function filterNonComparableProperties(obj) {
-  return utils.keys(obj).filter(key => ["color", "font", "TextWrapper"].includes(key)).reduce((filteredObject, currentKey) => {
+  return keys.keys(obj).filter(key => ["color", "font", "TextWrapper"].includes(key)).reduce((filteredObject, currentKey) => {
     filteredObject[currentKey] = obj[currentKey];
     return filteredObject;
   }, {});
 }
 function compareText(text1, text2) {
   let areEqual = true;
-  const part1Keys = utils.keys(filterNonComparableProperties(text1));
-  const part2Keys = utils.keys(filterNonComparableProperties(text2));
+  const part1Keys = keys.keys(filterNonComparableProperties(text1));
+  const part2Keys = keys.keys(filterNonComparableProperties(text2));
   if (part1Keys.length !== part2Keys.length) {
     return false;
   }
@@ -248,7 +250,7 @@ function compareText(text1, text2) {
     const key = part1Keys[index];
     const part1Value = text1[key];
     const part2Value = text2[key];
-    const areValuesEqual = utils.deepCompare(part1Value, part2Value);
+    const areValuesEqual = deepCompare.deepCompare(part1Value, part2Value);
     if (!areValuesEqual) {
       areEqual = false;
       break;

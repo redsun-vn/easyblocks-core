@@ -3,13 +3,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var locales = require('../../../locales.cjs');
+var uniqueId = require('../../../utils/uniqueId.cjs');
 
 function buildText(x, editorContext) {
   const defaultLocale = locales.getDefaultLocale(editorContext.locales);
   return {
-    id: "locale." + utils.uniqueId(),
+    id: "locale." + uniqueId.uniqueId(),
     value: {
       [defaultLocale.code]: x
     }

@@ -3,8 +3,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var buildEntry = require('./buildEntry.cjs');
+var serialize = require('./utils/serialize.cjs');
 
 async function buildDocument(_ref) {
   let {
@@ -32,7 +32,7 @@ async function buildDocument(_ref) {
   return {
     renderableDocument: {
       renderableContent,
-      meta: utils.serialize(meta),
+      meta: serialize.serialize(meta),
       configAfterAuto
     },
     externalData

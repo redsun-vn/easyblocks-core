@@ -3,13 +3,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var parseRichTextPartConfigPath = require('./parseRichTextPartConfigPath.cjs');
+var last = require('../../../../utils/array/last.cjs');
+var dotNotationGet = require('../../../../utils/object/dotNotationGet.cjs');
 
 function getEditorSelectionFromFocusedFields(focusedFields, form) {
   try {
     const anchorFocusedField = focusedFields[0];
-    const focusFocusedField = utils.last(focusedFields);
+    const focusFocusedField = last.last(focusedFields);
     const parsedAnchorField = parseRichTextPartConfigPath.parseFocusedRichTextPartConfigPath(anchorFocusedField);
     const parsedFocusedField = parseRichTextPartConfigPath.parseFocusedRichTextPartConfigPath(focusFocusedField);
     if (!parsedAnchorField.path.length || !parsedFocusedField.path.length) {
@@ -21,7 +22,7 @@ function getEditorSelectionFromFocusedFields(focusedFields, form) {
         path: parsedAnchorField.path
       },
       focus: {
-        offset: parsedFocusedField.range ? parsedFocusedField.range[1] : utils.dotNotationGet(form.values, focusFocusedField).value.length,
+        offset: parsedFocusedField.range ? parsedFocusedField.range[1] : dotNotationGet.dotNotationGet(form.values, focusFocusedField).value.length,
         path: parsedFocusedField.path
       }
     };

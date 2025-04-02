@@ -1,6 +1,6 @@
 /* with love from shopstory */
-import { cleanString } from '@easyblocks/utils';
 import React from 'react';
+import { cleanString } from '../../../utils/cleanString.js';
 
 function TextClient(props) {
   const {

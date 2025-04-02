@@ -1,7 +1,8 @@
 /* with love from shopstory */
-import { deepClone, uniqueId } from '@easyblocks/utils';
 import { configTraverse } from './configTraverse.js';
 import { traverseComponents } from './traverseComponents.js';
+import { deepClone } from '../utils/deepClone.js';
+import { uniqueId } from '../utils/uniqueId.js';
 
 function duplicateConfig(inputConfig, compilationContext) {
   // deep copy first

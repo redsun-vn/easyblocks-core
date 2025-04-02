@@ -3,11 +3,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var locales = require('../locales.cjs');
 var $richTextPart = require('./builtins/_richText/_richTextPart/_richTextPart.cjs');
 var compileComponentValues = require('./compileComponentValues.cjs');
 var findComponentDefinition = require('./findComponentDefinition.cjs');
+var entries = require('../utils/object/entries.cjs');
 
 /**
  * Returns the most common value for given `prop` parameter among all @easyblocks/rich-text-part components from `richTextComponentConfig`.
@@ -41,7 +41,7 @@ function getMostCommonValueFromRichTextParts(richTextComponentConfig, prop, comp
   };
 }
 function getCompiledValueFromEntryWithMaxTotalValueLength(entry) {
-  const compiledPropValue = utils.entries(entry[1]).reduce((maxEntry, currentEntry) => currentEntry[1] > maxEntry[1] ? currentEntry : maxEntry)[0];
+  const compiledPropValue = entries.entries(entry[1]).reduce((maxEntry, currentEntry) => currentEntry[1] > maxEntry[1] ? currentEntry : maxEntry)[0];
   try {
     return JSON.parse(compiledPropValue);
   } catch {

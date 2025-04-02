@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var reduceCssCalc = require('@easyblocks/reduce-css-calc');
+var index = require('./reduce-css-calc/index.cjs');
 
 function parseSpacing(spacing) {
   if (spacing.endsWith("px")) {
@@ -29,7 +29,7 @@ function parseSpacing(spacing) {
   throw new Error(`incorrect spacing: ${spacing}.`);
 }
 function spacingToPx(spacing, width) {
-  const reducedSpacing = reduceCssCalc.reduceCSSCalc(`calc(${spacing})` /* wrapping calc is necessary, otherwise max(10px,20px) doesn't work */, 5, {
+  const reducedSpacing = index.reduceCSSCalc(`calc(${spacing})` /* wrapping calc is necessary, otherwise max(10px,20px) doesn't work */, 5, {
     vw: width,
     percent: width
   });

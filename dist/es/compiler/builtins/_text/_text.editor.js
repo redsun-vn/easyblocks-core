@@ -1,9 +1,9 @@
 'use client';
 /* with love from shopstory */
 import _extends from '@babel/runtime/helpers/extends';
-import { dotNotationGet } from '@easyblocks/utils';
 import React from 'react';
 import { InlineTextarea } from './InlineTextarea.js';
+import { dotNotationGet } from '../../../utils/object/dotNotationGet.js';
 
 function TextEditor(props) {
   const {

@@ -1,5 +1,5 @@
 /* with love from shopstory */
-import { serialize } from '@easyblocks/utils';
+import { serialize } from './utils/serialize.js';
 
 function selectionFramePositionChanged(target, container) {
   return {

@@ -3,10 +3,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var utils = require('@easyblocks/utils');
 var duplicateConfig = require('../../../duplicateConfig.cjs');
 var parseRichTextPartConfigPath = require('./parseRichTextPartConfigPath.cjs');
 var stripRichTextTextPartSelection = require('./stripRichTextTextPartSelection.cjs');
+var dotNotationGet = require('../../../../utils/object/dotNotationGet.cjs');
+var dotNotationSet = require('../../../../utils/object/dotNotationSet.cjs');
 
 function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, editorContext) {
   const {
@@ -21,7 +22,7 @@ function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, edito
     }
   };
   focussedField.forEach(focusedField => {
-    const textPartConfig = utils.dotNotationGet(form.values, stripRichTextTextPartSelection.stripRichTextPartSelection(focusedField));
+    const textPartConfig = dotNotationGet.dotNotationGet(form.values, stripRichTextTextPartSelection.stripRichTextPartSelection(focusedField));
     const {
       path,
       range
@@ -36,23 +37,23 @@ function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, edito
       if (index === 0) {
         currentConfigPath += `.${pathIndex}`;
       } else {
-        const parentConfig = utils.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
+        const parentConfig = dotNotationGet.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
         currentConfigPath += `.elements.${Math.min(parentConfig.elements.length, pathIndex)}`;
       }
-      const currentConfig = utils.dotNotationGet(newRichTextComponentConfig, currentConfigPath);
+      const currentConfig = dotNotationGet.dotNotationGet(newRichTextComponentConfig, currentConfigPath);
       if (!currentConfig) {
         const sourceConfigPath = lastParentConfigPath + (index === 0 ? `.${pathIndex}` : `.elements.${pathIndex}`);
-        const sourceConfig = utils.dotNotationGet(sourceRichTextComponentConfig, sourceConfigPath);
+        const sourceConfig = dotNotationGet.dotNotationGet(sourceRichTextComponentConfig, sourceConfigPath);
         const configCopy = {
           ...sourceConfig,
           elements: []
         };
-        utils.dotNotationSet(newRichTextComponentConfig, currentConfigPath, configCopy);
+        dotNotationSet.dotNotationSet(newRichTextComponentConfig, currentConfigPath, configCopy);
       }
       lastParentConfigPath = currentConfigPath;
     });
-    const textPartParentConfig = utils.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
-    utils.dotNotationSet(newRichTextComponentConfig, lastParentConfigPath, {
+    const textPartParentConfig = dotNotationGet.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
+    dotNotationSet.dotNotationSet(newRichTextComponentConfig, lastParentConfigPath, {
       ...textPartParentConfig,
       elements: [...textPartParentConfig.elements, newTextPartConfig]
     });

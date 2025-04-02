@@ -5,9 +5,9 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var _extends = require('@babel/runtime/helpers/extends');
-var utils = require('@easyblocks/utils');
 var React = require('react');
 var InlineTextarea = require('./InlineTextarea.cjs');
+var dotNotationGet = require('../../../utils/object/dotNotationGet.cjs');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -27,7 +27,7 @@ function TextEditor(props) {
     form
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
-  const configValue = utils.dotNotationGet(form.values, valuePath);
+  const configValue = dotNotationGet.dotNotationGet(form.values, valuePath);
   const isLocalTextReference = configValue.id?.startsWith("local.");
   return /*#__PURE__*/React__default["default"].createElement(Text.type, _extends__default["default"]({}, Text.props, {
     as: "div"

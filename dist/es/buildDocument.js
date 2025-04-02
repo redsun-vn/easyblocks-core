@@ -1,6 +1,6 @@
 /* with love from shopstory */
-import { serialize } from '@easyblocks/utils';
 import { buildEntry } from './buildEntry.js';
+import { serialize } from './utils/serialize.js';
 
 async function buildDocument(_ref) {
   let {
