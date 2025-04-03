@@ -71,11 +71,11 @@ export type BooleanSchemaProp = ValueSchemaProp<"boolean", boolean, "optional">;
 
 export type Option =
   | {
-      value: string;
-      label?: string;
-      icon?: string | ComponentType<{ size?: number; isStroke?: boolean }>;
-      hideLabel?: boolean;
-    }
+    value: string;
+    label?: string;
+    icon?: string | ComponentType<{ size?: number; isStroke?: boolean }>;
+    hideLabel?: boolean;
+  }
   | string;
 
 export type SelectSchemaProp = ValueSchemaProp<"select", string, "optional"> &
@@ -122,10 +122,10 @@ export type StringTokenSchemaProp = ValueSchemaProp<
   SchemaPropParams<
     {
       tokenId:
-        | "numberOfItemsInRow"
-        | "aspectRatios"
-        | "containerWidths"
-        | "boxShadows";
+      | "numberOfItemsInRow"
+      | "aspectRatios"
+      | "containerWidths"
+      | "boxShadows";
       extraValues?: Array<string | { value: string; label: string }>; // extra values are usually non-token values that are displayed in the select as if they were tokens, the component must understand them
     },
     true
@@ -372,8 +372,8 @@ export type NoCodeComponentStylesFunctionInput<
 
 export type InferNoCodeComponentStylesFunctionInput<T> =
   T extends NoCodeComponentDefinition<infer Values, infer Params>
-    ? NoCodeComponentStylesFunctionInput<Values, Params>
-    : never;
+  ? NoCodeComponentStylesFunctionInput<Values, Params>
+  : never;
 
 export type NoCodeComponentStylesFunctionResult = {
   props?: Record<string, any>;
@@ -524,6 +524,9 @@ export type Backend = {
     getAll: () => Promise<UserDefinedTemplate[]>;
     create: (payload: {
       label: string;
+      group?: string;
+      thumbnail?: string;
+      thumbnailLabel?: string;
       entry: NoCodeComponentEntry;
       width?: number;
       widthAuto?: boolean;
@@ -531,6 +534,9 @@ export type Backend = {
     update: (payload: {
       id: string;
       label: string;
+      group?: string;
+      thumbnail?: string;
+      thumbnailLabel?: string;
     }) => Promise<Omit<UserDefinedTemplate, "entry">>;
     delete: (payload: { id: string }) => Promise<void>;
   };
@@ -562,13 +568,13 @@ export type SchemaPropShared<Type extends string> = {
   label?: string;
   isLabelHidden?: boolean;
   visible?:
-    | boolean
-    | ((
-        allValues: any,
-        options: {
-          editorContext: any;
-        }
-      ) => boolean);
+  | boolean
+  | ((
+    allValues: any,
+    options: {
+      editorContext: any;
+    }
+  ) => boolean);
   description?: string;
   group?: string;
   layout?: "row" | "column";
@@ -580,14 +586,14 @@ type ValueSchemaProp<
   Responsiveness extends "optional" | "forced" | "never"
 > = SchemaPropShared<Type> & {
   defaultValue?: Responsiveness extends "optional" | "forced"
-    ? ResponsiveValue<ValueType>
-    : ValueType;
+  ? ResponsiveValue<ValueType>
+  : ValueType;
   buildOnly?: boolean;
   responsive?: Responsiveness extends "optional"
-    ? boolean
-    : Responsiveness extends "never"
-    ? false
-    : never;
+  ? boolean
+  : Responsiveness extends "never"
+  ? false
+  : never;
 };
 
 export type SchemaPropParams<
@@ -595,8 +601,8 @@ export type SchemaPropParams<
   Required extends boolean = false
 > = Required extends true
   ? {
-      params: T;
-    }
+    params: T;
+  }
   : { params?: T };
 
 export type DeviceRange = {
@@ -621,11 +627,11 @@ export type NoCodeComponentChangeFunction = (arg: {
 export type SidebarPreviewVariant = {
   description?: string;
   thumbnail?:
-    | {
-        type: "image";
-        src: string;
-      }
-    | { type: "color"; color: string };
+  | {
+    type: "image";
+    src: string;
+  }
+  | { type: "color"; color: string };
 };
 
 export type ComponentDefinitionShared<Identifier extends string = string> = {
@@ -721,25 +727,25 @@ export interface Field<
 
 export type FieldPortal =
   | {
-      portal: "component";
-      source: string;
-      includeHeader?: boolean;
-      groups?: string[];
-    }
+    portal: "component";
+    source: string;
+    includeHeader?: boolean;
+    groups?: string[];
+  }
   | {
-      portal: "field";
-      source: string;
-      fieldName: string;
-      overrides?: any; //Omit<Partial<TinaField>, "name">;
-      hidden?: boolean;
-    }
+    portal: "field";
+    source: string;
+    fieldName: string;
+    overrides?: any; //Omit<Partial<TinaField>, "name">;
+    hidden?: boolean;
+  }
   | {
-      portal: "multi-field";
-      sources: Array<string>;
-      fieldName: string;
-      overrides?: any; //Omit<Partial<TinaField>, "name">;
-      hidden?: boolean;
-    };
+    portal: "multi-field";
+    sources: Array<string>;
+    fieldName: string;
+    overrides?: any; //Omit<Partial<TinaField>, "name">;
+    hidden?: boolean;
+  };
 
 export type CompiledComponentConfigBase<
   Identifier extends string = string,
@@ -844,9 +850,9 @@ export type CompilerModule = {
   ) => ExternalWithSchemaProp[];
   validate: (input: unknown) =>
     | {
-        isValid: true;
-        input: Document | NoCodeComponentEntry | null | undefined;
-      }
+      isValid: true;
+      input: Document | NoCodeComponentEntry | null | undefined;
+    }
     | { isValid: false };
 };
 
