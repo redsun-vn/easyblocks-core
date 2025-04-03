@@ -9,6 +9,7 @@ import path from "node:path";
 import visualizer from "rollup-plugin-visualizer";
 import preserveDirectives from "rollup-plugin-preserve-directives";
 import packageJson from "./package.json";
+import { sourceMapsEnabled } from "node:process";
 // import { getFullySpecifiedEnvs } from "@easyblocks/build-tools";
 
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
@@ -106,8 +107,7 @@ function createRollupConfigs({
       format: "es",
       dir: `${baseOutputDir}/es`,
       banner,
-      preserveModules: true,
-      preserveModulesRoot: "src",
+      sourcemap: true,
     },
     plugins: [
       ...getPlugins(
@@ -129,9 +129,8 @@ function createRollupConfigs({
       format: "cjs",
       dir: `${baseOutputDir}/cjs`,
       banner,
-      preserveModules: true,
-      preserveModulesRoot: "src",
       entryFileNames: "[name].cjs",
+      sourcemap: true,
     },
     plugins: [
       ...getPlugins(
