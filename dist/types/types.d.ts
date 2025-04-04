@@ -161,6 +161,7 @@ export type ConfigDevices = {
 export type UserDefinedTemplate = {
     id: string;
     label: string;
+    group?: string;
     thumbnail?: string;
     thumbnailLabel?: string;
     entry: NoCodeComponentEntry;
@@ -171,6 +172,7 @@ export type UserDefinedTemplate = {
 export type InternalTemplate = {
     id: string;
     label?: string;
+    group?: string;
     thumbnail?: string;
     thumbnailLabel?: string;
     entry: NoCodeComponentEntry;
@@ -343,6 +345,9 @@ export type Backend = {
         getAll: () => Promise<UserDefinedTemplate[]>;
         create: (payload: {
             label: string;
+            group?: string;
+            thumbnail?: string;
+            thumbnailLabel?: string;
             entry: NoCodeComponentEntry;
             width?: number;
             widthAuto?: boolean;
@@ -350,6 +355,9 @@ export type Backend = {
         update: (payload: {
             id: string;
             label: string;
+            group?: string;
+            thumbnail?: string;
+            thumbnailLabel?: string;
         }) => Promise<Omit<UserDefinedTemplate, "entry">>;
         delete: (payload: {
             id: string;

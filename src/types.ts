@@ -294,6 +294,7 @@ export type ConfigDevices = {
 export type UserDefinedTemplate = {
   id: string;
   label: string;
+  group?: string;
   thumbnail?: string;
   thumbnailLabel?: string;
   entry: NoCodeComponentEntry;
@@ -305,6 +306,7 @@ export type UserDefinedTemplate = {
 export type InternalTemplate = {
   id: string;
   label?: string;
+  group?: string;
   thumbnail?: string;
   thumbnailLabel?: string;
   entry: NoCodeComponentEntry;
