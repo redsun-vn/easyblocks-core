@@ -1,16 +1,13 @@
 // @ts-check
+import alias from "@rollup/plugin-alias";
 import babel from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import nodeResolve from "@rollup/plugin-node-resolve";
-import alias from "@rollup/plugin-alias";
-import replace from "@rollup/plugin-replace";
 import path from "node:path";
 import visualizer from "rollup-plugin-visualizer";
 import preserveDirectives from "rollup-plugin-preserve-directives";
 import packageJson from "./package.json";
-import { sourceMapsEnabled } from "node:process";
-// import { getFullySpecifiedEnvs } from "@easyblocks/build-tools";
 
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
 
@@ -22,11 +19,6 @@ const getPlugins = (stat, isFullBundle = false) => {
    */
 
   const plugins = [
-    // replace({
-    //   values: getFullySpecifiedEnvs(),
-    //   preventAssignment: true,
-    // }),
-
     babel({
       configFile: "./.babelrc.json",
       extensions,
@@ -68,6 +60,7 @@ const allDependenciesKeys = [
   ...peerDependencyKeys.map((key) => new RegExp(`^${key}`)),
   /@babel\/runtime/,
   /^lodash\//,
+  /react-dom/,
 ];
 
 function createRollupConfigs({
@@ -108,6 +101,7 @@ function createRollupConfigs({
       dir: `${baseOutputDir}/es`,
       banner,
       sourcemap: true,
+      preserveModules: true,
     },
     plugins: [
       ...getPlugins(
@@ -131,6 +125,7 @@ function createRollupConfigs({
       banner,
       entryFileNames: "[name].cjs",
       sourcemap: true,
+      preserveModules: true,
     },
     plugins: [
       ...getPlugins(
@@ -149,7 +144,7 @@ function createRollupConfigs({
 }
 
 export default createRollupConfigs({
-  inputFile: ["src/index.ts", "src/_internals.ts"],
+  inputFile: "./src/index.ts",
   baseOutputDir: "dist",
   baseStatOutputDir: "stats",
 });
