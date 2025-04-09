@@ -1,9 +1,34 @@
 /* with love from shopstory */
+import { serialize } from './utils/serialize.js';
+
+function selectionFramePositionChanged(target, container) {
+  return {
+    type: "@easyblocks-editor/selection-frame-position-changed",
+    payload: {
+      target,
+      container
+    }
+  };
+}
+function richTextChangedEvent(payload) {
+  return {
+    type: "@easyblocks-editor/rich-text-changed",
+    payload: serialize(payload)
+  };
+}
 function componentPickerOpened(path) {
   return {
     type: "@easyblocks-editor/component-picker-opened",
     payload: {
       path
+    }
+  };
+}
+function componentPickerClosed(config) {
+  return {
+    type: "@easyblocks-editor/component-picker-closed",
+    payload: {
+      config
     }
   };
 }
@@ -13,6 +38,12 @@ function itemInserted(payload) {
     payload
   };
 }
+function itemMoved(payload) {
+  return {
+    type: "@easyblocks-editor/item-moved",
+    payload
+  };
+}
 
-export { componentPickerOpened, itemInserted };
+export { componentPickerClosed, componentPickerOpened, itemInserted, itemMoved, richTextChangedEvent, selectionFramePositionChanged };
 //# sourceMappingURL=events.js.map

@@ -1,7 +1,7 @@
 'use client';
 /* with love from shopstory */
 import { createStitches } from '@stitches/core';
-import React, { createContext, useContext } from 'react';
+import React, { useContext, createContext } from 'react';
 import { easyblocksStitchesInstances } from './ssr.js';
 
 const EasyblocksMetadataContext = /*#__PURE__*/createContext(undefined);

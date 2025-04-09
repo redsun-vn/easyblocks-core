@@ -44,11 +44,54 @@ function buildRichTextNoCodeEntry(options) {
     mainFont: fontTokenValue
   };
 }
+function buildRichTextComponentConfig(_ref) {
+  let {
+    accessibilityRole,
+    locale,
+    elements,
+    isListStyleAuto,
+    mainColor,
+    mainFont
+  } = _ref;
+  return {
+    _id: uniqueId(),
+    _component: "@easyblocks/rich-text",
+    accessibilityRole: accessibilityRole ?? "div",
+    elements: {
+      [locale]: elements
+    },
+    isListStyleAuto: isListStyleAuto ?? true,
+    mainColor,
+    mainFont
+  };
+}
 function buildRichTextBlockElementComponentConfig(type, elements) {
   return {
     _component: "@easyblocks/rich-text-block-element",
     elements,
     type,
+    _id: uniqueId()
+  };
+}
+function buildRichTextParagraphBlockElementComponentConfig(_ref2) {
+  let {
+    elements
+  } = _ref2;
+  return {
+    _component: "@easyblocks/rich-text-block-element",
+    elements,
+    type: "paragraph",
+    _id: uniqueId()
+  };
+}
+function buildRichTextBulletedListBlockElementComponentConfig(_ref3) {
+  let {
+    elements
+  } = _ref3;
+  return {
+    _component: "@easyblocks/rich-text-block-element",
+    elements,
+    type: "bulleted-list",
     _id: uniqueId()
   };
 }
@@ -80,5 +123,5 @@ function buildRichTextPartComponentConfig(_ref5) {
   };
 }
 
-export { buildRichTextBlockElementComponentConfig, buildRichTextLineElementComponentConfig, buildRichTextNoCodeEntry, buildRichTextPartComponentConfig };
+export { buildRichTextBlockElementComponentConfig, buildRichTextBulletedListBlockElementComponentConfig, buildRichTextComponentConfig, buildRichTextLineElementComponentConfig, buildRichTextNoCodeEntry, buildRichTextParagraphBlockElementComponentConfig, buildRichTextPartComponentConfig };
 //# sourceMappingURL=builders.js.map

@@ -144,7 +144,7 @@ function createRollupConfigs({
 }
 
 export default createRollupConfigs({
-  inputFile: "./src/index.ts",
+  inputFile: ["./src/index.ts", "./src/_internals.ts"],
   baseOutputDir: "dist",
   baseStatOutputDir: "stats",
 });
