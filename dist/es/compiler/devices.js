@@ -20,15 +20,14 @@ const DEFAULT_DEVICES = [
   id: "xs",
   w: 375,
   h: 667,
-  breakpoint: 568,
+  breakpoint: 640,
   label: "Mobile"
 }, {
   id: "sm",
-  w: 667,
+  w: 640,
   h: 375,
   breakpoint: 768,
-  label: "Mobile SM h",
-  hidden: true
+  label: "Mobile SM - h"
 }, {
   id: "md",
   w: 768,
@@ -37,25 +36,23 @@ const DEFAULT_DEVICES = [
   label: "Tablet"
 }, {
   id: "lg",
-  w: 1024,
+  w: 992,
   h: 768,
   breakpoint: 1280,
-  label: "TabletH",
-  hidden: true
+  label: "Small Desktop - Tablet H"
 }, {
   id: "xl",
-  w: 1366,
+  w: 1280,
   h: 768,
-  breakpoint: 1600,
-  label: "Desktop",
+  breakpoint: 1536,
+  label: "Medium Desktop",
   isMain: true
 }, {
   id: "2xl",
-  w: 1920,
+  w: 1536,
   h: 920,
   label: "Large desktop",
   breakpoint: null
-  // hidden: true,
 }];
 
 export { DEFAULT_DEVICES, getDevicesWidths };
