@@ -3,6 +3,7 @@ export { CompilationCache } from './compiler/CompilationCache.js';
 export { compileBox, getBoxStyles } from './compiler/box.js';
 export { RichTextEditor } from './compiler/builtins/_richText/_richText.editor.js';
 export { TextEditor } from './compiler/builtins/_text/_text.editor.js';
+export { textStyles } from './compiler/builtins/_text/_text.styles.js';
 export { buildText } from './compiler/builtins/_text/buildText.js';
 export { useTextValue } from './compiler/builtins/useTextValue.js';
 export { compileInternal } from './compiler/compileInternal.js';

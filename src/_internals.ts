@@ -3,6 +3,7 @@ export type { CompilationCacheItemValue } from "./compiler/CompilationCache";
 export { compileBox, getBoxStyles } from "./compiler/box";
 export { RichTextEditor } from "./compiler/builtins/$richText/$richText.editor";
 export { TextEditor } from "./compiler/builtins/$text/$text.editor";
+export { textStyles } from "./compiler/builtins/$text/$text.styles";
 export { buildText } from "./compiler/builtins/$text/buildText";
 export { useTextValue } from "./compiler/builtins/useTextValue";
 export { compileInternal } from "./compiler/compileInternal";
