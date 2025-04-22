@@ -28,7 +28,7 @@ function TextEditor(props) {
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
   const configValue = dotNotationGet.dotNotationGet(form.values, valuePath);
-  const isLocalTextReference = configValue.id?.startsWith("local.");
+  const isLocalTextReference = configValue?.id?.startsWith("local.");
   return /*#__PURE__*/React__default["default"].createElement(Text.type, _extends__default["default"]({}, Text.props, {
     as: "div"
   }), isLocalTextReference ? /*#__PURE__*/React__default["default"].createElement(InlineTextarea.InlineTextarea, {

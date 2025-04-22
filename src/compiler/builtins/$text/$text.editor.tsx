@@ -19,7 +19,7 @@ function TextEditor(props: TextProps) {
   const { form } = (window.parent as any).editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
   const configValue = dotNotationGet(form.values, valuePath);
-  const isLocalTextReference = configValue.id?.startsWith("local.");
+  const isLocalTextReference = configValue?.id?.startsWith("local.");
 
   return (
     <Text.type {...Text.props} as={"div"}>
