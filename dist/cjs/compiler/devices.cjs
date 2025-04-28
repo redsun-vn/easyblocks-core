@@ -12,15 +12,7 @@ function getDevicesWidths(devices) {
   });
   return widths;
 }
-const DEFAULT_DEVICES = [
-// de facto all vertical phones have max 414px
-// de facto all horizontal phones start with 620px (end with ~900, almost all below 915) -> vertical tablet resolutions
-// most people don't use horizontal phones anyway
-// no one uses such tiny resolutions on other devices
-// we obviously need phone resolution
-// we introduce "pro forma" resolution (568 - 767px) which is "some horizontal phones". It's here mostly because there is such resolution in bootstrap, tailwind etc.
-// personally I think we could have one resolution that covers all horizontal phones and tablets (620 - 996). But it would break naming that is "commonly understood" by devs (xs phone, sm horizontal phone, md tablet). sm is mostly dead, should be covered by md
-{
+const DEFAULT_DEVICES = [{
   id: "xs",
   w: 375,
   h: 667,
@@ -36,11 +28,11 @@ const DEFAULT_DEVICES = [
   id: "md",
   w: 768,
   h: 1024,
-  breakpoint: 992,
+  breakpoint: 1024,
   label: "Tablet"
 }, {
   id: "lg",
-  w: 992,
+  w: 1024,
   h: 768,
   breakpoint: 1280,
   label: "Small Desktop - Tablet H"
