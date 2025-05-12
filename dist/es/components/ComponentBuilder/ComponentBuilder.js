@@ -203,13 +203,30 @@ function ComponentBuilder(props) {
     }
   }
   const Component = component;
-  const renderabilityStatus = getRenderabilityStatus(compiled, meta, externalData);
-  if (!renderabilityStatus.renderable) {
-    const fieldsRequiredToRender = Array.from(renderabilityStatus.fieldsRequiredToRender);
-    return /*#__PURE__*/React.createElement(MissingComponent, {
-      component: componentDefinition
-    }, `Fill following fields to render the component: ${fieldsRequiredToRender.join(", ")}`, renderabilityStatus.isLoading && /*#__PURE__*/React.createElement(Fragment, null, /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), "Loading data..."));
-  }
+  getRenderabilityStatus(compiled, meta, externalData);
+
+  // if (!renderabilityStatus.renderable) {
+  //   const fieldsRequiredToRender = Array.from(
+  //     renderabilityStatus.fieldsRequiredToRender
+  //   );
+
+  //   return (
+  //     <MissingComponent component={componentDefinition}>
+  //       {`Fill following fields to render the component: ${fieldsRequiredToRender.join(
+  //         ", "
+  //       )}`}
+
+  //       {renderabilityStatus.isLoading && (
+  //         <Fragment>
+  //           <br />
+  //           <br />
+  //           Loading data...
+  //         </Fragment>
+  //       )}
+  //     </MissingComponent>
+  //   );
+  // }
+
   const shopstoryCompiledConfig = compiled;
 
   // Shopstory component

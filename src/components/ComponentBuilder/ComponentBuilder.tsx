@@ -376,27 +376,27 @@ function ComponentBuilder(props: ComponentBuilderProps): ReactElement | null {
     externalData
   );
 
-  if (!renderabilityStatus.renderable) {
-    const fieldsRequiredToRender = Array.from(
-      renderabilityStatus.fieldsRequiredToRender
-    );
+  // if (!renderabilityStatus.renderable) {
+  //   const fieldsRequiredToRender = Array.from(
+  //     renderabilityStatus.fieldsRequiredToRender
+  //   );
 
-    return (
-      <MissingComponent component={componentDefinition}>
-        {`Fill following fields to render the component: ${fieldsRequiredToRender.join(
-          ", "
-        )}`}
+  //   return (
+  //     <MissingComponent component={componentDefinition}>
+  //       {`Fill following fields to render the component: ${fieldsRequiredToRender.join(
+  //         ", "
+  //       )}`}
 
-        {renderabilityStatus.isLoading && (
-          <Fragment>
-            <br />
-            <br />
-            Loading data...
-          </Fragment>
-        )}
-      </MissingComponent>
-    );
-  }
+  //       {renderabilityStatus.isLoading && (
+  //         <Fragment>
+  //           <br />
+  //           <br />
+  //           Loading data...
+  //         </Fragment>
+  //       )}
+  //     </MissingComponent>
+  //   );
+  // }
 
   const shopstoryCompiledConfig = compiled as CompiledShopstoryComponentConfig;
 
