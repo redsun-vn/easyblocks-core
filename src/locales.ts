@@ -1,7 +1,9 @@
 export type Locale = {
   code: string;
+  name?: string;
   isDefault?: boolean;
   fallback?: string;
+  icon?: string;
 };
 
 export function getDefaultLocale(locales: Locale[]): Locale {
