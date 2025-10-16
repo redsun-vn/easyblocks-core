@@ -343,6 +343,7 @@ function createBuiltinTypes(): Record<
       token: "fonts",
       responsiveness: "always",
       defaultValue: { value: { fontFamily: "sans-serif", fontSize: "16px" } },
+      allowCustom: true,
     },
     aspectRatio: {
       type: "token",

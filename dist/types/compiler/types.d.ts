@@ -104,6 +104,9 @@ export type EditorContextType = CompilationContextType & {
     focussedField: Array<string>;
     setFocussedField: (focusedFields: string | Array<string>) => void;
     actions: EditorActions;
+    translationFiles?: {
+        [key: string]: any;
+    };
     templates?: Template[];
 };
 export {};

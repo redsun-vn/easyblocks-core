@@ -372,6 +372,9 @@ export type Config = {
     components?: Array<NoCodeComponentDefinition<any, any>>;
     devices?: ConfigDevices;
     locales: Array<Locale>;
+    translationFiles?: {
+        [key: string]: any;
+    };
     types?: Record<string, CustomTypeDefinition>;
     disableCustomTemplates?: boolean;
     hideCloseButton?: boolean;

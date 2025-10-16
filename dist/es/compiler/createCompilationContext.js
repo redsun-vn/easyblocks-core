@@ -244,7 +244,8 @@ function createBuiltinTypes() {
           fontFamily: "sans-serif",
           fontSize: "16px"
         }
-      }
+      },
+      allowCustom: true
     },
     aspectRatio: {
       type: "token",
