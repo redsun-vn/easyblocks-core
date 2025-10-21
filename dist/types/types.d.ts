@@ -330,6 +330,7 @@ export type Document = {
     entry: NoCodeComponentEntry;
 };
 export type Backend = {
+    userId?: number | string;
     documents: {
         get: (payload: {
             id: string;
