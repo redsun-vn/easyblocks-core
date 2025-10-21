@@ -544,6 +544,9 @@ export type Backend = {
     delete: (payload: { id: string }) => Promise<void>;
   };
   attachments?: {
+    maxSizeUpload: {
+      image: number;
+    };
     create: (payload: {
       userId: number | string;
       fileUpload: File;
