@@ -365,6 +365,9 @@ export type Backend = {
         }) => Promise<void>;
     };
     attachments?: {
+        maxSizeUpload: {
+            image: number;
+        };
         create: (payload: {
             userId: number | string;
             fileUpload: File;
