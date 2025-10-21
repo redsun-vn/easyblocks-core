@@ -542,6 +542,12 @@ export type Backend = {
     }) => Promise<Omit<UserDefinedTemplate, "entry">>;
     delete: (payload: { id: string }) => Promise<void>;
   };
+  attachments?: {
+    create: (payload: {
+      userId: number | string;
+      fileUpload: File;
+    }) => Promise<unknown>;
+  };
 };
 
 /**

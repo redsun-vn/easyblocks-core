@@ -363,6 +363,12 @@ export type Backend = {
             id: string;
         }) => Promise<void>;
     };
+    attachments?: {
+        create: (payload: {
+            userId: number | string;
+            fileUpload: File;
+        }) => Promise<unknown>;
+    };
 };
 /**
  * Config
