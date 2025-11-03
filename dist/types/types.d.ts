@@ -364,6 +364,19 @@ export type Backend = {
             id: string;
         }) => Promise<void>;
     };
+    themes?: {
+        get: (payload: {
+            id: string;
+        }) => Promise<unknown>;
+        update: (input: {
+            id: string;
+            config: Record<string, any>;
+        }) => Promise<unknown>;
+        reset: (input: {
+            id: string;
+            configs: Array<"fonts" | "colors">;
+        }) => Promise<unknown>;
+    };
     attachments?: {
         maxSizeUpload: {
             image: number;
