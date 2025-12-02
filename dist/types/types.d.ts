@@ -391,6 +391,7 @@ export type Backend = {
  * Config
  */
 export type Config = {
+    name?: string;
     backend: Backend;
     components?: Array<NoCodeComponentDefinition<any, any>>;
     devices?: ConfigDevices;
