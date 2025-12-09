@@ -818,9 +818,9 @@ function flattenItemProps(
     itemsSchemas.map((itemSchemaProp) => {
       return [
         itemSchemaProp?.prop,
-        config?._itemProps[componentDefinition?.id][collectionSchemaProp?.prop][
-          itemSchemaProp?.prop
-        ],
+        config?._itemProps?.[componentDefinition?.id]?.[
+          collectionSchemaProp?.prop
+        ]?.[itemSchemaProp?.prop],
       ];
     })
   );
