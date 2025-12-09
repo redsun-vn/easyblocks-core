@@ -817,10 +817,10 @@ function flattenItemProps(
   const itemProps = Object.fromEntries(
     itemsSchemas.map((itemSchemaProp) => {
       return [
-        itemSchemaProp?.prop,
-        config?._itemProps?.[componentDefinition?.id]?.[
-          collectionSchemaProp?.prop
-        ]?.[itemSchemaProp?.prop],
+        itemSchemaProp.prop,
+        config._itemProps[componentDefinition.id][collectionSchemaProp.prop][
+          itemSchemaProp.prop
+        ],
       ];
     })
   );

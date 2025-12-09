@@ -302,14 +302,14 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
   string: (schemaProp, compilationContext): StringSchemaPropDefinition => {
     const normalize = schemaProp.responsive
       ? getResponsiveNormalize(
-        compilationContext,
-        schemaProp.defaultValue,
-        "",
-        (x) => (typeof x === "string" ? x : undefined)
-      )
+          compilationContext,
+          schemaProp.defaultValue,
+          "",
+          (x) => (typeof x === "string" ? x : undefined)
+        )
       : getNormalize(compilationContext, schemaProp.defaultValue, "", (x) =>
-        typeof x === "string" ? x : undefined
-      );
+          typeof x === "string" ? x : undefined
+        );
 
     return {
       normalize,
@@ -327,14 +327,14 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
   boolean: (schemaProp, compilationContext): BooleanSchemaPropDefinition => {
     const normalize = schemaProp.responsive
       ? getResponsiveNormalize(
-        compilationContext,
-        schemaProp.defaultValue,
-        false,
-        (x) => (typeof x === "boolean" ? x : undefined)
-      )
+          compilationContext,
+          schemaProp.defaultValue,
+          false,
+          (x) => (typeof x === "boolean" ? x : undefined)
+        )
       : getNormalize(compilationContext, schemaProp.defaultValue, false, (x) =>
-        typeof x === "boolean" ? x : undefined
-      );
+          typeof x === "boolean" ? x : undefined
+        );
 
     return {
       normalize,
@@ -389,7 +389,8 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
         if (schemaProp.required) {
           if (!componentDefinition) {
             throw new Error(
-              `Missing component definition for prop "${schemaProp.prop
+              `Missing component definition for prop "${
+                schemaProp.prop
               }" for specified accepted types: [${schemaProp.accepts.join(
                 ", "
               )}]`
@@ -496,8 +497,8 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
             cache,
             (
               editingInfoComponents as
-              | EditingInfoComponentCollection
-              | undefined
+                | EditingInfoComponentCollection
+                | undefined
             )?.items?.[index],
             `${configPrefix}.${index}`
           )
@@ -553,8 +554,9 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
           contextProps,
           serializedDefinitions,
           editingInfoComponents,
-          `${configPrefix}.${resolvedLocalisedValue?.locale ??
-          compilationContext.contextParams.locale
+          `${configPrefix}.${
+            resolvedLocalisedValue?.locale ??
+            compilationContext.contextParams.locale
           }`,
           cache
         );
@@ -747,33 +749,33 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
               (customTypeDefinition.responsiveness === "optional" &&
                 schemaProp.responsive)
               ? getResponsiveNormalize<any>(
-                compilationContext,
-                schemaProp.defaultValue,
-                customTypeDefinition.defaultValue,
-                (x: any) => {
-                  return normalizeTokenValue(
-                    x,
-                    themeValues as ResponsiveValue<any>,
-                    defaultValue,
-                    defaultWidgetId,
-                    normalizeScalar ?? ((x) => x)
-                  );
-                }
-              )
+                  compilationContext,
+                  schemaProp.defaultValue,
+                  customTypeDefinition.defaultValue,
+                  (x: any) => {
+                    return normalizeTokenValue(
+                      x,
+                      themeValues as ResponsiveValue<any>,
+                      defaultValue,
+                      defaultWidgetId,
+                      normalizeScalar ?? ((x) => x)
+                    );
+                  }
+                )
               : getNormalize(
-                compilationContext,
-                schemaProp.defaultValue,
-                customTypeDefinition.defaultValue,
-                (x: any) => {
-                  return normalizeTokenValue(
-                    x,
-                    themeValues as ResponsiveValue<any>,
-                    defaultValue,
-                    defaultWidgetId,
-                    normalizeScalar ?? ((x) => x)
-                  );
-                }
-              );
+                  compilationContext,
+                  schemaProp.defaultValue,
+                  customTypeDefinition.defaultValue,
+                  (x: any) => {
+                    return normalizeTokenValue(
+                      x,
+                      themeValues as ResponsiveValue<any>,
+                      defaultValue,
+                      defaultWidgetId,
+                      normalizeScalar ?? ((x) => x)
+                    );
+                  }
+                );
           };
 
           if (customTypeDefinition.token === "space") {
@@ -1019,25 +1021,25 @@ function getSelectSchemaPropDefinition() {
     return {
       normalize: schemaProp.responsive
         ? getResponsiveNormalize(
-          compilationContext,
-          schemaProp.defaultValue,
-          getFirstOptionValue(schemaProp),
-          (x) => {
-            return isSelectValueCorrect(x, schemaProp.params.options)
-              ? x
-              : undefined;
-          }
-        )
+            compilationContext,
+            schemaProp.defaultValue,
+            getFirstOptionValue(schemaProp),
+            (x) => {
+              return isSelectValueCorrect(x, schemaProp.params.options)
+                ? x
+                : undefined;
+            }
+          )
         : getNormalize(
-          compilationContext,
-          schemaProp.defaultValue,
-          getFirstOptionValue(schemaProp),
-          (x) => {
-            return isSelectValueCorrect(x, schemaProp.params.options)
-              ? x
-              : undefined;
-          }
-        ),
+            compilationContext,
+            schemaProp.defaultValue,
+            getFirstOptionValue(schemaProp),
+            (x) => {
+              return isSelectValueCorrect(x, schemaProp.params.options)
+                ? x
+                : undefined;
+            }
+          ),
       compile: (x) => x,
       getHash: (value, currentBreakpoint) => {
         if (isTrulyResponsiveValue(value)) {
@@ -1156,13 +1158,13 @@ function externalNormalize(
           typeof x.widgetId === "string"
             ? x.widgetId
             : (
-              compilationContext.types[externalType] as
-              | Extract<
-                CompilationContextType["types"][string],
-                { type: "external" }
-              >
-              | undefined
-            )?.widgets[0]?.id,
+                compilationContext.types[externalType] as
+                  | Extract<
+                      CompilationContextType["types"][string],
+                      { type: "external" }
+                    >
+                  | undefined
+              )?.widgets[0]?.id,
       };
 
       return normalized;
@@ -1287,7 +1289,9 @@ export function getSchemaDefinition<
   const provider =
     compilationContext.types[schemaProp.type] && schemaProp.type !== "text"
       ? schemaPropDefinitions.custom
-      : schemaPropDefinitions[schemaProp.type as keyof SchemaPropDefinitionProviders];
+      : schemaPropDefinitions[
+          schemaProp.type as keyof SchemaPropDefinitionProviders
+        ];
 
   return provider(schemaProp as any, compilationContext);
 }

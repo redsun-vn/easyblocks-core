@@ -476,7 +476,7 @@ function createOwnComponentProps(_ref4) {
 }
 function flattenItemProps(config, componentDefinition, collectionSchemaProp, itemsSchemas) {
   const itemProps = Object.fromEntries(itemsSchemas.map(itemSchemaProp => {
-    return [itemSchemaProp?.prop, config?._itemProps?.[componentDefinition?.id]?.[collectionSchemaProp?.prop]?.[itemSchemaProp?.prop]];
+    return [itemSchemaProp.prop, config._itemProps[componentDefinition.id][collectionSchemaProp.prop][itemSchemaProp.prop]];
   }));
   return itemProps;
 }
