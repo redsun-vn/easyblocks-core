@@ -441,7 +441,7 @@ function getFontFamilies() {
     return {
       id: font,
       value: font,
-      label: font.split(",")[0]
+      label: font
     };
   });
 }
