@@ -12,10 +12,11 @@ export type {
   EasyblocksProps,
 } from "./components/Easyblocks";
 export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
+export * from "./EasyblocksBackend";
 export { isNoCodeComponentOfType } from "./isNoCodeComponentOfType";
 export * from "./locales";
 export * from "./resourcesUtils";
 export * from "./responsiveness";
-export { spacingToPx, parseSpacing } from "./spacingToPx";
+export { parseSpacing, spacingToPx } from "./spacingToPx";
 export * from "./types";
-export * from "./EasyblocksBackend";
+export * from "./utils/fonts";

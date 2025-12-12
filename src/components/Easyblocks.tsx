@@ -6,6 +6,7 @@ import { RichTextLineElementClient } from "../compiler/builtins/$richText/$richT
 import { RichTextPartClient } from "../compiler/builtins/$richText/$richTextPart/$richTextPart.client";
 import { TextClient } from "../compiler/builtins/$text/$text.client";
 import { ExternalData, RenderableDocument } from "../types";
+import { loadGoogleFonts } from "../utils/fonts";
 import {
   ComponentBuilder,
   ComponentBuilderProps,
@@ -47,6 +48,10 @@ function Easyblocks({
       }px)`
     );
   });
+
+  useEffect(() => {
+    loadGoogleFonts();
+  }, []);
 
   const renderableContent = renderableDocument.renderableContent;
 
