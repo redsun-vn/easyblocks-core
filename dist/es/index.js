@@ -1,6 +1,6 @@
 /* with love from shopstory */
-import { i as isTrulyResponsiveValue, a as isDocument, b as isComponentConfig, c as createCompilationContext, d as compileInternal, n as normalize, e as configTraverse, f as isLocalTextReference, g as isExternalSchemaProp, r as responsiveValueEntries, h as getExternalReferenceLocationKey, s as serialize, j as cleanString, E as EasyblocksMetadataProvider, k as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './EasyblocksBackend-88eb2a8e.js';
-export { D as CompilationCache, a2 as EasyblocksBackend, l as buildRichTextNoCodeEntry, d as compileInternal, c as createCompilationContext, p as easyblocksGetCssText, q as easyblocksGetStyleTag, G as getDefaultLocale, o as getDevicesWidths, h as getExternalReferenceLocationKey, J as getExternalValue, I as getFallbackForLocale, H as getFallbackLocaleForLocale, K as getResolvedExternalDataValue, F as getSchemaDefinition, b as isComponentConfig, M as isCompoundExternalDataValue, a as isDocument, x as isEmptyExternalReference, A as isEmptyRenderableContent, w as isIdReferenceToDocumentExternalValue, f as isLocalTextReference, B as isLocalValue, z as isNonEmptyRenderableContent, y as isRenderableContent, v as isResolvedCompoundExternalDataValue, i as isTrulyResponsiveValue, n as normalize, u as parseSpacing, L as resolveExternalValue, m as resolveLocalisedValue, Z as responsiveValueAt, r as responsiveValueEntries, N as responsiveValueFill, Q as responsiveValueFindDeviceWithDefinedValue, O as responsiveValueFindHigherDeviceWithDefinedValue, P as responsiveValueFindLowerDeviceWithDefinedValue, Y as responsiveValueFlatten, T as responsiveValueForceGet, S as responsiveValueGet, W as responsiveValueGetDefinedValue, U as responsiveValueGetFirstHigherValue, V as responsiveValueGetFirstLowerValue, a1 as responsiveValueGetHighestDefinedDevice, X as responsiveValueMap, a0 as responsiveValueNormalize, $ as responsiveValueReduce, _ as responsiveValueValues, t as spacingToPx } from './EasyblocksBackend-88eb2a8e.js';
+import { i as isTrulyResponsiveValue, a as isDocument, b as isComponentConfig, c as createCompilationContext, d as compileInternal, n as normalize, e as configTraverse, f as isLocalTextReference, g as isExternalSchemaProp, r as responsiveValueEntries, h as getExternalReferenceLocationKey, s as serialize, j as cleanString, E as EasyblocksMetadataProvider, k as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './EasyblocksBackend-76e20b7e.js';
+export { D as CompilationCache, G as EasyblocksBackend, l as buildRichTextNoCodeEntry, d as compileInternal, c as createCompilationContext, p as easyblocksGetCssText, q as easyblocksGetStyleTag, H as getDefaultLocale, o as getDevicesWidths, h as getExternalReferenceLocationKey, K as getExternalValue, J as getFallbackForLocale, I as getFallbackLocaleForLocale, L as getResolvedExternalDataValue, F as getSchemaDefinition, b as isComponentConfig, N as isCompoundExternalDataValue, a as isDocument, x as isEmptyExternalReference, A as isEmptyRenderableContent, w as isIdReferenceToDocumentExternalValue, f as isLocalTextReference, B as isLocalValue, z as isNonEmptyRenderableContent, y as isRenderableContent, v as isResolvedCompoundExternalDataValue, i as isTrulyResponsiveValue, n as normalize, t as parseSpacing, M as resolveExternalValue, m as resolveLocalisedValue, _ as responsiveValueAt, r as responsiveValueEntries, O as responsiveValueFill, S as responsiveValueFindDeviceWithDefinedValue, P as responsiveValueFindHigherDeviceWithDefinedValue, Q as responsiveValueFindLowerDeviceWithDefinedValue, Z as responsiveValueFlatten, U as responsiveValueForceGet, T as responsiveValueGet, X as responsiveValueGetDefinedValue, V as responsiveValueGetFirstHigherValue, W as responsiveValueGetFirstLowerValue, a2 as responsiveValueGetHighestDefinedDevice, Y as responsiveValueMap, a1 as responsiveValueNormalize, a0 as responsiveValueReduce, $ as responsiveValueValues, u as spacingToPx } from './EasyblocksBackend-76e20b7e.js';
 import React, { useEffect } from 'react';
 import _extends from '@babel/runtime/helpers/extends';
 import 'js-xxhash';
@@ -431,6 +431,120 @@ function TextClient(props) {
   return /*#__PURE__*/React.createElement(Text.type, Text.props, elements);
 }
 
+const defaultFontFamily = "Roboto";
+const defaultFontSize = 16;
+const defaultFontWeight = 400;
+const defaultLineHeight = 1.4;
+const fontFamilies = ["Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Inter", "Oswald", "Raleway", "Noto Sans", "Roboto Condensed", "Nunito", "Work Sans", "Rubik", "Mukta", "Ubuntu", "Quicksand", "Hind", "Fira Sans", "Barlow", "Cabin", "Prompt", "Heebo", "Source Sans 3", "Titillium Web", "Muli", "Manrope", "Josefin Sans", "Karla", "DM Sans", "PT Sans", "Tajawal", "Public Sans", "Catamaran", "Urbanist", "Outfit", "Lexend", "Signika", "Asap", "Sarabun", "Red Hat Display", "Exo 2", "Sen", "Epilogue", "Jost", "IBM Plex Sans", "Varela Round", "Mulish", "Spartan", "Krub", "Questrial", "Barlow Condensed", "Overpass", "Alata", "Kanit", "Noto Serif", "Merriweather", "Playfair Display", "Lora", "Cormorant Garamond", "EB Garamond", "PT Serif", "Libre Baskerville", "DM Serif Display", "Crimson Text", "Bitter", "Spectral", "Cormorant", "Zilla Slab", "Nanum Myeongjo", "Tinos", "Cardo", "Domine", "Arvo", "Vollkorn", "Bree Serif", "Alegreya", "Noticia Text", "Libre Caslon Text", "Faustina", "Mate", "Lusitana", "Arapey", "Fira Sans Condensed", "Space Grotesk", "Sofia Sans", "Niramit", "Be Vietnam Pro", "Eczar", "Quattrocento", "Rokkitt", "Cormorant Infant", "Slabo 27px", "Ultra", "Rozha One", "Old Standard TT", "Baskervville", "Play", "Mada", "Rajdhani", "Cabinet Grotesk", "Archivo", "Anton", "Bebas Neue", "Abril Fatface", "Alfa Slab One", "Righteous", "Lobster", "Pacifico", "Caveat", "Dancing Script", "Great Vibes", "Satisfy", "Shadows Into Light", "Cookie", "Gloria Hallelujah", "Indie Flower", "Courgette", "Amatic SC", "Fredoka", "Baloo 2", "Chewy", "Luckiest Guy", "Permanent Marker", "Architects Daughter", "Rock Salt", "Handlee", "Kaushan Script", "Patrick Hand", "Carter One", "Sigmar", "Rye", "Black Ops One", "Bungee", "Press Start 2P", "Space Mono", "Fira Code", "Roboto Mono", "JetBrains Mono", "Inconsolata", "Share Tech Mono", "Major Mono Display", "Source Code Pro", "Audiowide", "Syncopate", "Unica One", "Orbitron", "Chakra Petch", "Expletus Sans", "Staatliches", "Poiret One", "Aldrich", "Gruppo", "Viga", "Suez One", "Frank Ruhl Libre", "Cambo", "Marcellus", "Cinzel", "Judson", "Gelasio", "Abhaya Libre", "Cormorant SC", "Crimson Pro", "Noto Serif Display", "Sanchez", "DM Serif Text", "Fjord One", "Suranna", "Kreon", "Cormorant Upright", "Gloock", "Julius Sans One", "Assistant", "Encode Sans", "Nanum Gothic", "Maven Pro", "Overpass Mono", "Albert Sans", "Palanquin", "Chivo", "Arimo", "Exo", "Molengo", "Abel", "Teko", "Saira", "Jura", "Kumbh Sans", "Hepta Slab", "Azeret Mono", "League Spartan", "Rufina", "Crete Round", "Amiri", "Spectral SC", "Petrona", "Neuton", "Coustard", "Vidaloka", "Bellefair", "Antic Slab", "Copse", "DM Mono", "Anonymous Pro", "Oxygen Mono", "Courier Prime", "IBM Plex Mono", "Zilla Slab Highlight", "Shrikhand", "Bungee Shade", "Fugaz One", "Monoton", "Rammetto One", "Cinzel Decorative", "Fascinate Inline", "Racing Sans One", "Lilita One", "Potta One", "Tourney", "Cherry Swash", "Creepster", "Butcherman", "Ewert", "Bowlby One SC", "Galindo", "Knewave", "Fredoka One", "Ranchers", "Codystar", "VT323", "Cutive Mono", "IBM Plex Serif", "Philosopher"];
+function getFontFamilies() {
+  return fontFamilies.sort().map(font => {
+    return {
+      id: font,
+      value: font,
+      label: font.split(",")[0]
+    };
+  });
+}
+function getFontWeights() {
+  return [{
+    id: "100",
+    value: "100",
+    label: "Thin (100)"
+  }, {
+    id: "200",
+    value: "200",
+    label: "Extra Light (200)"
+  }, {
+    id: "300",
+    value: "300",
+    label: "Light (300)"
+  }, {
+    id: "400",
+    value: "400",
+    label: "Normal (400)"
+  }, {
+    id: "500",
+    value: "500",
+    label: "Medium (500)"
+  }, {
+    id: "600",
+    value: "600",
+    label: "Semi Bold (600)"
+  }, {
+    id: "700",
+    value: "700",
+    label: "Bold (700)"
+  }, {
+    id: "800",
+    value: "800",
+    label: "Extra Bold (800)"
+  }, {
+    id: "900",
+    value: "900",
+    label: "Black (900)"
+  }];
+}
+function getLineHeights() {
+  return [{
+    id: "1",
+    value: "1",
+    label: "1"
+  }, {
+    id: "1.1",
+    value: "1.1",
+    label: "1.1"
+  }, {
+    id: "1.2",
+    value: "1.2",
+    label: "1.2"
+  }, {
+    id: "1.3",
+    value: "1.3",
+    label: "1.3"
+  }, {
+    id: "1.4",
+    value: "1.4",
+    label: "1.4"
+  }, {
+    id: "1.4258",
+    value: "1.4258",
+    label: "1.4258"
+  }, {
+    id: "1.5",
+    value: "1.5",
+    label: "1.5"
+  }, {
+    id: "1.7",
+    value: "1.7",
+    label: "1.7"
+  }, {
+    id: "1.8",
+    value: "1.8",
+    label: "1.8"
+  }, {
+    id: "2",
+    value: "2",
+    label: "2"
+  }];
+}
+function getFontSizes(editorContext) {
+  return Object.values(editorContext.theme.space).filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
+    id: parseFloat(s.value).toString(),
+    value: parseFloat(s.value).toString(),
+    label: s.label ?? ""
+  }));
+}
+async function loadGoogleFonts() {
+  if (typeof window !== "undefined") {
+    const WebFont = await import('webfontloader');
+    WebFont.load({
+      google: {
+        families: fontFamilies
+      }
+    });
+  }
+}
+
 const rootStyles = {
   position: "relative",
   width: "100%"
@@ -527,6 +641,9 @@ function Easyblocks(_ref) {
   useEffect(() => {
     document.documentElement.style.setProperty("--shopstory-viewport-width", `calc(100vw - ${window.innerWidth - document.documentElement.clientWidth}px)`);
   });
+  useEffect(() => {
+    loadGoogleFonts();
+  }, []);
   const renderableContent = renderableDocument.renderableContent;
   if (renderableContent === null) {
     return null;
@@ -562,4 +679,4 @@ function isNoCodeComponentOfType(definition, type) {
   return definition.type.includes(type);
 }
 
-export { Easyblocks, box, buildDocument, buildEntry, compile, findExternals, isNoCodeComponentOfType, mergeCompilationMeta, normalizeInput, responsiveValueSet, validate };
+export { Easyblocks, box, buildDocument, buildEntry, compile, defaultFontFamily, defaultFontSize, defaultFontWeight, defaultLineHeight, findExternals, fontFamilies, getFontFamilies, getFontSizes, getFontWeights, getLineHeights, isNoCodeComponentOfType, loadGoogleFonts, mergeCompilationMeta, normalizeInput, responsiveValueSet, validate };

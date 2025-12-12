@@ -13,6 +13,24 @@ require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
+function _interopNamespace(e) {
+  if (e && e.__esModule) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n["default"] = e;
+  return Object.freeze(n);
+}
+
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
 
@@ -439,6 +457,120 @@ function TextClient(props) {
   return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, elements);
 }
 
+const defaultFontFamily = "Roboto";
+const defaultFontSize = 16;
+const defaultFontWeight = 400;
+const defaultLineHeight = 1.4;
+const fontFamilies = ["Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Inter", "Oswald", "Raleway", "Noto Sans", "Roboto Condensed", "Nunito", "Work Sans", "Rubik", "Mukta", "Ubuntu", "Quicksand", "Hind", "Fira Sans", "Barlow", "Cabin", "Prompt", "Heebo", "Source Sans 3", "Titillium Web", "Muli", "Manrope", "Josefin Sans", "Karla", "DM Sans", "PT Sans", "Tajawal", "Public Sans", "Catamaran", "Urbanist", "Outfit", "Lexend", "Signika", "Asap", "Sarabun", "Red Hat Display", "Exo 2", "Sen", "Epilogue", "Jost", "IBM Plex Sans", "Varela Round", "Mulish", "Spartan", "Krub", "Questrial", "Barlow Condensed", "Overpass", "Alata", "Kanit", "Noto Serif", "Merriweather", "Playfair Display", "Lora", "Cormorant Garamond", "EB Garamond", "PT Serif", "Libre Baskerville", "DM Serif Display", "Crimson Text", "Bitter", "Spectral", "Cormorant", "Zilla Slab", "Nanum Myeongjo", "Tinos", "Cardo", "Domine", "Arvo", "Vollkorn", "Bree Serif", "Alegreya", "Noticia Text", "Libre Caslon Text", "Faustina", "Mate", "Lusitana", "Arapey", "Fira Sans Condensed", "Space Grotesk", "Sofia Sans", "Niramit", "Be Vietnam Pro", "Eczar", "Quattrocento", "Rokkitt", "Cormorant Infant", "Slabo 27px", "Ultra", "Rozha One", "Old Standard TT", "Baskervville", "Play", "Mada", "Rajdhani", "Cabinet Grotesk", "Archivo", "Anton", "Bebas Neue", "Abril Fatface", "Alfa Slab One", "Righteous", "Lobster", "Pacifico", "Caveat", "Dancing Script", "Great Vibes", "Satisfy", "Shadows Into Light", "Cookie", "Gloria Hallelujah", "Indie Flower", "Courgette", "Amatic SC", "Fredoka", "Baloo 2", "Chewy", "Luckiest Guy", "Permanent Marker", "Architects Daughter", "Rock Salt", "Handlee", "Kaushan Script", "Patrick Hand", "Carter One", "Sigmar", "Rye", "Black Ops One", "Bungee", "Press Start 2P", "Space Mono", "Fira Code", "Roboto Mono", "JetBrains Mono", "Inconsolata", "Share Tech Mono", "Major Mono Display", "Source Code Pro", "Audiowide", "Syncopate", "Unica One", "Orbitron", "Chakra Petch", "Expletus Sans", "Staatliches", "Poiret One", "Aldrich", "Gruppo", "Viga", "Suez One", "Frank Ruhl Libre", "Cambo", "Marcellus", "Cinzel", "Judson", "Gelasio", "Abhaya Libre", "Cormorant SC", "Crimson Pro", "Noto Serif Display", "Sanchez", "DM Serif Text", "Fjord One", "Suranna", "Kreon", "Cormorant Upright", "Gloock", "Julius Sans One", "Assistant", "Encode Sans", "Nanum Gothic", "Maven Pro", "Overpass Mono", "Albert Sans", "Palanquin", "Chivo", "Arimo", "Exo", "Molengo", "Abel", "Teko", "Saira", "Jura", "Kumbh Sans", "Hepta Slab", "Azeret Mono", "League Spartan", "Rufina", "Crete Round", "Amiri", "Spectral SC", "Petrona", "Neuton", "Coustard", "Vidaloka", "Bellefair", "Antic Slab", "Copse", "DM Mono", "Anonymous Pro", "Oxygen Mono", "Courier Prime", "IBM Plex Mono", "Zilla Slab Highlight", "Shrikhand", "Bungee Shade", "Fugaz One", "Monoton", "Rammetto One", "Cinzel Decorative", "Fascinate Inline", "Racing Sans One", "Lilita One", "Potta One", "Tourney", "Cherry Swash", "Creepster", "Butcherman", "Ewert", "Bowlby One SC", "Galindo", "Knewave", "Fredoka One", "Ranchers", "Codystar", "VT323", "Cutive Mono", "IBM Plex Serif", "Philosopher"];
+function getFontFamilies() {
+  return fontFamilies.sort().map(font => {
+    return {
+      id: font,
+      value: font,
+      label: font.split(",")[0]
+    };
+  });
+}
+function getFontWeights() {
+  return [{
+    id: "100",
+    value: "100",
+    label: "Thin (100)"
+  }, {
+    id: "200",
+    value: "200",
+    label: "Extra Light (200)"
+  }, {
+    id: "300",
+    value: "300",
+    label: "Light (300)"
+  }, {
+    id: "400",
+    value: "400",
+    label: "Normal (400)"
+  }, {
+    id: "500",
+    value: "500",
+    label: "Medium (500)"
+  }, {
+    id: "600",
+    value: "600",
+    label: "Semi Bold (600)"
+  }, {
+    id: "700",
+    value: "700",
+    label: "Bold (700)"
+  }, {
+    id: "800",
+    value: "800",
+    label: "Extra Bold (800)"
+  }, {
+    id: "900",
+    value: "900",
+    label: "Black (900)"
+  }];
+}
+function getLineHeights() {
+  return [{
+    id: "1",
+    value: "1",
+    label: "1"
+  }, {
+    id: "1.1",
+    value: "1.1",
+    label: "1.1"
+  }, {
+    id: "1.2",
+    value: "1.2",
+    label: "1.2"
+  }, {
+    id: "1.3",
+    value: "1.3",
+    label: "1.3"
+  }, {
+    id: "1.4",
+    value: "1.4",
+    label: "1.4"
+  }, {
+    id: "1.4258",
+    value: "1.4258",
+    label: "1.4258"
+  }, {
+    id: "1.5",
+    value: "1.5",
+    label: "1.5"
+  }, {
+    id: "1.7",
+    value: "1.7",
+    label: "1.7"
+  }, {
+    id: "1.8",
+    value: "1.8",
+    label: "1.8"
+  }, {
+    id: "2",
+    value: "2",
+    label: "2"
+  }];
+}
+function getFontSizes(editorContext) {
+  return Object.values(editorContext.theme.space).filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
+    id: parseFloat(s.value).toString(),
+    value: parseFloat(s.value).toString(),
+    label: s.label ?? ""
+  }));
+}
+async function loadGoogleFonts() {
+  if (typeof window !== "undefined") {
+    const WebFont = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('webfontloader')); });
+    WebFont.load({
+      google: {
+        families: fontFamilies
+      }
+    });
+  }
+}
+
 const rootStyles = {
   position: "relative",
   width: "100%"
@@ -535,6 +667,9 @@ function Easyblocks(_ref) {
   React.useEffect(() => {
     document.documentElement.style.setProperty("--shopstory-viewport-width", `calc(100vw - ${window.innerWidth - document.documentElement.clientWidth}px)`);
   });
+  React.useEffect(() => {
+    loadGoogleFonts();
+  }, []);
   const renderableContent = renderableDocument.renderableContent;
   if (renderableContent === null) {
     return null;
@@ -624,8 +759,18 @@ exports.box = box;
 exports.buildDocument = buildDocument;
 exports.buildEntry = buildEntry;
 exports.compile = compile;
+exports.defaultFontFamily = defaultFontFamily;
+exports.defaultFontSize = defaultFontSize;
+exports.defaultFontWeight = defaultFontWeight;
+exports.defaultLineHeight = defaultLineHeight;
 exports.findExternals = findExternals;
+exports.fontFamilies = fontFamilies;
+exports.getFontFamilies = getFontFamilies;
+exports.getFontSizes = getFontSizes;
+exports.getFontWeights = getFontWeights;
+exports.getLineHeights = getLineHeights;
 exports.isNoCodeComponentOfType = isNoCodeComponentOfType;
+exports.loadGoogleFonts = loadGoogleFonts;
 exports.mergeCompilationMeta = mergeCompilationMeta;
 exports.normalizeInput = normalizeInput;
 exports.responsiveValueSet = responsiveValueSet;
