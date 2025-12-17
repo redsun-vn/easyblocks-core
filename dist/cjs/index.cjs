@@ -560,12 +560,12 @@ function getFontSizes(editorContext) {
     label: s.label ?? ""
   }));
 }
-async function loadGoogleFonts() {
+async function loadGoogleFonts(fonts) {
   if (typeof window !== "undefined") {
     const WebFont = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('webfontloader')); });
     WebFont.load({
       google: {
-        families: fontFamilies
+        families: fonts ?? fontFamilies
       }
     });
   }

@@ -534,12 +534,12 @@ function getFontSizes(editorContext) {
     label: s.label ?? ""
   }));
 }
-async function loadGoogleFonts() {
+async function loadGoogleFonts(fonts) {
   if (typeof window !== "undefined") {
     const WebFont = await import('webfontloader');
     WebFont.load({
       google: {
-        families: fontFamilies
+        families: fonts ?? fontFamilies
       }
     });
   }

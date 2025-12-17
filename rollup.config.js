@@ -6,14 +6,11 @@ import json from "@rollup/plugin-json";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import path from "node:path";
 import visualizer from "rollup-plugin-visualizer";
-import preserveDirectives from "rollup-plugin-preserve-directives";
 import packageJson from "./package.json";
 
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
 
 const getPlugins = (stat, isFullBundle = false) => {
-  const preserveDirectivesPlugin = preserveDirectives();
-
   /**
    * @type {Array<import('rollup').Plugin>}
    */
@@ -37,12 +34,6 @@ const getPlugins = (stat, isFullBundle = false) => {
       filename: stat,
       gzipSize: true,
     }),
-
-    {
-      ...preserveDirectivesPlugin,
-      // @ts-expect-error preserveDirectivesPlugin is incompatible by default with our version or rollup
-      renderChunk: preserveDirectivesPlugin.renderChunk.handler,
-    },
   ];
 
   // if (process.env.NODE_ENV === "production") {

@@ -13,6 +13,6 @@ export declare function getFontFamilies(): IFont[];
 export declare function getFontWeights(): IFont[];
 export declare function getLineHeights(): IFont[];
 export declare function getFontSizes(editorContext: EditorContextType): IFont[];
-export declare function loadGoogleFonts(): Promise<void>;
+export declare function loadGoogleFonts(fonts?: string[]): Promise<void>;
 export {};
 //# sourceMappingURL=fonts.d.ts.map

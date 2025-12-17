@@ -298,13 +298,13 @@ export function getFontSizes(editorContext: EditorContextType): IFont[] {
     }));
 }
 
-export async function loadGoogleFonts(): Promise<void> {
+export async function loadGoogleFonts(fonts?: string[]): Promise<void> {
   if (typeof window !== "undefined") {
     const WebFont = await import("webfontloader");
 
     WebFont.load({
       google: {
-        families: fontFamilies,
+        families: fonts ?? fontFamilies,
       },
     });
   }
