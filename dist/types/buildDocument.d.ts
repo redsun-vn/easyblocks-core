@@ -1,4 +1,4 @@
-import type { RequestedExternalData, Config, RenderableDocument } from "./types";
+import type { Config, RenderableDocument, RequestedExternalData } from "./types";
 declare function buildDocument({ documentId, config, locale, }: {
     documentId: string;
     config: Config;

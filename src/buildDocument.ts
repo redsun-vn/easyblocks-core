@@ -1,11 +1,13 @@
+import { serialize } from "@/utils";
 import { buildEntry } from "./buildEntry";
 import type {
-  RequestedExternalData,
-  Document,
   Config,
+  Document,
   RenderableDocument,
+  RequestedExternalData,
 } from "./types";
-import { serialize } from "@/utils";
+import { extractFonts } from "./utils/extractFonts";
+import { loadGoogleFonts } from "./utils/fonts";
 
 async function buildDocument({
   documentId,
@@ -24,6 +26,9 @@ async function buildDocument({
     config,
     locale,
   });
+
+  const fonts = extractFonts(entry);
+  loadGoogleFonts(fonts);
 
   const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
     {
