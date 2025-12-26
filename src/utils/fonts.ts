@@ -304,7 +304,9 @@ export async function loadGoogleFonts(fonts?: string[]): Promise<void> {
 
     WebFont.load({
       google: {
-        families: fonts ?? fontFamilies,
+        families: (fonts ?? fontFamilies).map(
+          (font) => `${font}:300,400,600,700`
+        ),
       },
     });
   }

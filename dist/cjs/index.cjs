@@ -453,7 +453,7 @@ async function loadGoogleFonts(fonts) {
     const WebFont = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('webfontloader')); });
     WebFont.load({
       google: {
-        families: fonts ?? fontFamilies
+        families: (fonts ?? fontFamilies).map(font => `${font}:300,400,600,700`)
       }
     });
   }
