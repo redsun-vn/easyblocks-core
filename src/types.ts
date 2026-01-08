@@ -524,7 +524,12 @@ export type Backend = {
   };
   templates: {
     get(payload: { id: string }): Promise<UserDefinedTemplate>;
-    getAll: () => Promise<UserDefinedTemplate[]>;
+    getAll: (payload?: {
+      filters?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    }) => Promise<UserDefinedTemplate[]>;
     create: (payload: {
       label: string;
       group?: string;
