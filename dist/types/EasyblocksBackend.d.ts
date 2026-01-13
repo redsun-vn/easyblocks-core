@@ -67,7 +67,13 @@ export declare class EasyblocksBackend implements Backend {
         get: (payload: {
             id: string;
         }) => Promise<UserDefinedTemplate>;
-        getAll: () => Promise<UserDefinedTemplate[]>;
+        getAll: () => Promise<{
+            items: UserDefinedTemplate[];
+            count: Record<string, {
+                matchedCount: number;
+                total: number;
+            }>;
+        }>;
         create: (input: {
             label: string;
             entry: NoCodeComponentEntry;

@@ -286,7 +286,9 @@ export function getLineHeights(): IFont[] {
   ];
 }
 
-export function getFontSizes(editorContext: EditorContextType): IFont[] {
+export function getFontSizes(
+  editorContext: Pick<EditorContextType, "theme">
+): IFont[] {
   return Object.values(editorContext.theme.space)
     .filter(
       (s) => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)

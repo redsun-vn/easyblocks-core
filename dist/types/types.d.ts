@@ -348,7 +348,13 @@ export type Backend = {
             search?: string;
             page?: number;
             limit?: number;
-        }) => Promise<UserDefinedTemplate[]>;
+        }) => Promise<{
+            items: UserDefinedTemplate[];
+            count: Record<string, {
+                matchedCount: number;
+                total: number;
+            }>;
+        }>;
         create: (payload: {
             label: string;
             group?: string;

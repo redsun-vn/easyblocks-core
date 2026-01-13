@@ -254,7 +254,7 @@ export class EasyblocksBackend implements Backend {
 
       // dummy inefficient implementation
       const allTemplates = await this.templates.getAll();
-      const template = allTemplates.find(
+      const template = allTemplates.items.find(
         (template) => template.id === payload.id
       );
 
@@ -264,7 +264,10 @@ export class EasyblocksBackend implements Backend {
 
       return template;
     },
-    getAll: async (): Promise<UserDefinedTemplate[]> => {
+    getAll: async (): Promise<{
+      items: UserDefinedTemplate[];
+      count: Record<string, { matchedCount: number; total: number }>;
+    }> => {
       await this.init();
 
       try {
@@ -282,10 +285,10 @@ export class EasyblocksBackend implements Backend {
           widthAuto: item.widthAuto,
         }));
 
-        return templates;
+        return { items: templates, count: {} };
       } catch (error) {
         console.error(error);
-        return [];
+        return { items: [], count: {} };
       }
     },
     create: async (input: {
