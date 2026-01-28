@@ -9,5 +9,4 @@ export { normalize } from "./normalize";
 export { normalizeInput } from "./normalizeInput";
 export { compile } from "./public/compile";
 export { findExternals } from "./public/findResources";
-export { validateColor } from "./validate-color";
 export { validate } from "./validation";

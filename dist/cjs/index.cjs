@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var EasyblocksBackend = require('./EasyblocksBackend-c58c32f3.js');
+var EasyblocksBackend = require('./EasyblocksBackend-39816e56.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');
@@ -763,6 +763,7 @@ exports.responsiveValueNormalize = EasyblocksBackend.responsiveValueNormalize;
 exports.responsiveValueReduce = EasyblocksBackend.responsiveValueReduce;
 exports.responsiveValueValues = EasyblocksBackend.responsiveValueValues;
 exports.spacingToPx = EasyblocksBackend.spacingToPx;
+exports.validateColor = EasyblocksBackend.validateColor;
 exports.Easyblocks = Easyblocks;
 exports.box = box;
 exports.buildDocument = buildDocument;

@@ -6,6 +6,7 @@ export * from "./compiler";
 export { buildRichTextNoCodeEntry } from "./compiler/builtins/$richText/builders";
 export { resolveLocalisedValue } from "./compiler/definitions";
 export { getDevicesWidths } from "./compiler/devices";
+export { validateColor } from "./compiler/validate-color";
 export { Easyblocks } from "./components/Easyblocks";
 export type { ComponentOverrides, EasyblocksProps, } from "./components/Easyblocks";
 export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
