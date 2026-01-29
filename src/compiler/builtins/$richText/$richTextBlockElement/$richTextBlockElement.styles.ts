@@ -81,21 +81,23 @@ export function richTextBlockElementStyles({
       : numberedListMarkerStyles),
   };
 
+  const colorStyles = {
+    background: mainColor,
+    backgroundClip: "text",
+    color: "transparent",
+  };
+
   const listStyles = {
     counterSet: "list-item",
     paddingLeft: 0,
     listStyle: "none",
-    background: mainColor,
-    backgroundClip: "text",
-    color: "transparent",
+    ...colorStyles,
     ...mainFont,
     "& > li": {
-      background: mainColor,
-      backgroundClip: "text",
-      color: "transparent",
+      ...colorStyles,
       ...mainFont,
       // Instead of using ::marker pseudo-element, we use ::before because it gives us more control over its appearance.
-      "&::before": markerStyles,
+      "&::before": { ...markerStyles, ...colorStyles },
     },
   };
 
