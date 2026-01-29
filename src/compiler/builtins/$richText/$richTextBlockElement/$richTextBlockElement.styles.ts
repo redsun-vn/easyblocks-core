@@ -49,7 +49,7 @@ export function richTextBlockElementStyles({
   const maxDigitsCount = elements.length.toString().length;
 
   const paddingInline = `clamp(${px(
-    BULLETED_LIST_MIN_INLINE_SPACING
+    BULLETED_LIST_MIN_INLINE_SPACING,
   )}, calc(${px(mainFontSize)} * 0.5), ${px(mainFontSize)})`;
 
   const bulletedListMarkerStyles = {
@@ -61,7 +61,7 @@ export function richTextBlockElementStyles({
   const numberedListMarkerStyles = {
     minWidth: `calc(${maxDigitsCount} * 1ch + ${NUMBERED_LIST_DOT_CHARACTER_SAFE_WIDTH})`,
     paddingRight: `clamp(${px(
-      NUMBERED_LIST_MIN_COUNTER_SPACING
+      NUMBERED_LIST_MIN_COUNTER_SPACING,
     )}, 0.5ch, ${NUMBERED_LIST_MAX_COUNTER_SPACING})`,
     fontVariantNumeric: "tabular-nums",
     textAlign: "right",
@@ -85,10 +85,14 @@ export function richTextBlockElementStyles({
     counterSet: "list-item",
     paddingLeft: 0,
     listStyle: "none",
-    color: mainColor,
+    background: mainColor,
+    backgroundClip: "text",
+    color: "transparent",
     ...mainFont,
     "& > li": {
-      color: mainColor,
+      background: mainColor,
+      backgroundClip: "text",
+      color: "transparent",
       ...mainFont,
       // Instead of using ::marker pseudo-element, we use ::before because it gives us more control over its appearance.
       "&::before": markerStyles,

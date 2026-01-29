@@ -29,7 +29,9 @@ export function richTextPartStyles({
 
   const textStyles: Record<string, any> = {
     __as: "span",
-    color,
+    background: color,
+    backgroundClip: "text",
+    color: "transparent",
     ...fontWithDefaults,
   };
 

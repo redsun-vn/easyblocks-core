@@ -18,6 +18,9 @@ export function textStyles({
   const align = params.passedAlign || "left";
 
   const fontWithDefaults = {
+    background: values.color,
+    backgroundClip: "text",
+    color: "transparent",
     fontWeight: "initial",
     fontStyle: "initial",
     ...values.font,
@@ -28,7 +31,6 @@ export function textStyles({
       Text: {
         ...fontWithDefaults,
         __as: values.accessibilityRole,
-        color: values.color,
         textAlign: align,
         "& textarea::placeholder": {
           color: "currentColor",
@@ -37,7 +39,6 @@ export function textStyles({
         "& textarea": {
           // This is important when textarea is globally set in project, here we'll override any global styles.
           ...fontWithDefaults,
-          color: values.color,
         },
         border: values.value === "" ? "1px dotted grey" : "none",
       },
