@@ -9,7 +9,7 @@ export declare const validateHTMLColorHsl: (color: string) => boolean;
 export declare const validateHTMLColorHwb: (color: string) => boolean;
 export declare const validateHTMLColorLab: (color: string) => boolean;
 export declare const validateHTMLColor: (color: string) => boolean;
-export declare function validateLinearGradient(input: string): boolean;
+export declare function validateGradient(input: string): boolean;
 declare const validateColor: (color: string) => boolean;
 export { validateColor };
 //# sourceMappingURL=index.d.ts.map

@@ -277,87 +277,27 @@ export const validateHTMLColor = (color: string): boolean => {
   return false;
 };
 
-function splitTopLevelComma(input: string): string[] {
-  const result: string[] = [];
-  let current = "";
-  let depth = 0;
-
-  for (const char of input) {
-    if (char === "(") depth++;
-    if (char === ")") depth--;
-    if (char === "," && depth === 0) {
-      result.push(current.trim());
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  if (current) result.push(current.trim());
-  return result;
-}
-
-const DIRECTION_REGEX =
-  /^(to\s+(left|right|top|bottom)(\s+(left|right|top|bottom))?|[-+]?\d*\.?\d+(deg|turn|rad))$/i;
-
-const COLOR_REGEX =
-  /^(#[0-9a-f]{3,8}|rgba?\(.+\)|hsla?\(.+\)|transparent|[a-z]+)$/i;
-
-const POSITION_REGEX = /^([-+]?\d*\.?\d+(%|px|em|rem)|calc\(.+\))$/i;
-
-export function validateLinearGradient(input: string): boolean {
-  if (!input || typeof input !== "string") return false;
+export function validateGradient(input: string): boolean {
+  if (typeof input !== "string") return false;
 
   const value = input.trim();
 
-  // 1️⃣ Wrapper
-  if (!value.startsWith("linear-gradient(") || !value.endsWith(")")) {
-    return false;
-  }
+  const gradientTypes = [
+    "linear-gradient(",
+    "radial-gradient(",
+    "conic-gradient(",
+  ];
 
-  const content = value.slice(16, -1).trim(); // inside (...)
+  const type = gradientTypes.find((g) => value.startsWith(g));
+  if (!type || !value.endsWith(")")) return false;
 
-  // 2️⃣ Split top-level commas
-  const parts = splitTopLevelComma(content);
+  const inside = value.slice(type.length, -1);
+  const stops = inside.split(",");
 
-  if (parts.length < 2) return false;
-
-  let startIndex = 0;
-
-  // 3️⃣ Optional direction
-  if (DIRECTION_REGEX.test(parts[0])) {
-    startIndex = 1;
-  }
-
-  const stops = parts.slice(startIndex);
-
-  // 4️⃣ At least 2 color-stops
-  if (stops.length < 2) return false;
-
-  // 5️⃣ Validate each color-stop
-  for (const stop of stops) {
-    const tokens = stop.split(/\s+/);
-
-    const color = tokens[0];
-    const position = tokens[1];
-
-    if (!COLOR_REGEX.test(color)) return false;
-
-    if (position && !POSITION_REGEX.test(position)) {
-      return false;
-    }
-  }
-
-  return true;
+  return stops.length >= 2;
 }
 
 const validateColor = (color: string) => {
-  // Former validation - source: https://www.regextester.com/103656
-  // if (isString(color)) {
-  //   const regex = /^#([\da-f]{3}){1,2}$|^#([\da-f]{4}){1,2}$|(rgb|hsl)a?\((\s*-?\d+%?\s*,){2}(\s*-?\d+%?\s*,?\s*\)?)(,\s*(0?\.\d+)?|1|0)?\)$/i;
-  //   return color && regex.test(color);
-  // }
-  // New validation
   if (
     (color && validateHTMLColorHex(color)) ||
     validateHTMLColorName(color) ||
@@ -366,7 +306,7 @@ const validateColor = (color: string) => {
     validateHTMLColorHsl(color) ||
     validateHTMLColorHwb(color) ||
     validateHTMLColorLab(color) ||
-    validateLinearGradient(color)
+    validateGradient(color)
   ) {
     return true;
   }
