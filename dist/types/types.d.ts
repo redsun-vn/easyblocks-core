@@ -410,6 +410,15 @@ export type Config = {
     translationFiles?: {
         [key: string]: any;
     };
+    globalSections?: {
+        [sectionName: string]: {
+            [entryId: string]: {
+                label: string;
+                entry: NoCodeComponentEntry;
+                pages: string[];
+            };
+        };
+    };
     types?: Record<string, CustomTypeDefinition>;
     disableCustomTemplates?: boolean;
     hideCloseButton?: boolean;

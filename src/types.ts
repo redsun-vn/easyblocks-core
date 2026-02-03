@@ -338,7 +338,7 @@ export type WidgetComponentProps<Identifier extends NonNullish = NonNullish> = {
 };
 
 export type InlineTypeWidgetComponentProps<
-  Type extends NonNullish = NonNullish
+  Type extends NonNullish = NonNullish,
 > = {
   value: Type;
   onChange: (newValue: Type) => void;
@@ -346,7 +346,7 @@ export type InlineTypeWidgetComponentProps<
 };
 
 export type TokenTypeWidgetComponentProps<
-  Type extends NonNullish = NonNullish
+  Type extends NonNullish = NonNullish,
 > = InlineTypeWidgetComponentProps<Type>;
 
 export type Widget = {
@@ -364,7 +364,7 @@ export type LocalizedText = {
 
 export type NoCodeComponentStylesFunctionInput<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = {
   values: Values;
   params: { $width: number; $widthAuto: boolean } & Params;
@@ -394,14 +394,14 @@ export type NoCodeComponentStylesFunctionResult = {
 
 export type NoCodeComponentStylesFunction<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = (
-  input: NoCodeComponentStylesFunctionInput<Values, Params>
+  input: NoCodeComponentStylesFunctionInput<Values, Params>,
 ) => NoCodeComponentStylesFunctionResult;
 
 export type NoCodeComponentEditingFunctionInput<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = {
   values: Values;
   params: Params;
@@ -411,14 +411,14 @@ export type NoCodeComponentEditingFunctionInput<
 
 export type NoCodeComponentEditingFunction<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = (
-  input: NoCodeComponentEditingFunctionInput<Values, Params>
+  input: NoCodeComponentEditingFunctionInput<Values, Params>,
 ) => NoCodeComponentEditingFunctionResult;
 
 export type NoCodeComponentAutoFunctionInput<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = {
   values: { [key in keyof Values]: ResponsiveValue<Values[key]> };
   params: { [key in keyof Params]: ResponsiveValue<Params[key]> };
@@ -427,11 +427,11 @@ export type NoCodeComponentAutoFunctionInput<
 
 export type NoCodeComponentAutoFunction<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = (
   input: NoCodeComponentAutoFunctionInput<Values, Params> & {
     params: { $width: TrulyResponsiveValue<number> };
-  }
+  },
 ) => any;
 
 export type RootParameter = {
@@ -442,7 +442,7 @@ export type RootParameter = {
 
 export type NoCodeComponentDefinition<
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = {
   id: string;
   schema: Array<SchemaProp>;
@@ -584,6 +584,15 @@ export type Config = {
   devices?: ConfigDevices;
   locales: Array<Locale>;
   translationFiles?: { [key: string]: any };
+  globalSections?: {
+    [sectionName: string]: {
+      [entryId: string]: {
+        label: string;
+        entry: NoCodeComponentEntry;
+        pages: string[];
+      };
+    };
+  };
   types?: Record<string, CustomTypeDefinition>;
   disableCustomTemplates?: boolean;
   hideCloseButton?: boolean;
@@ -606,7 +615,7 @@ export type SchemaPropShared<Type extends string> = {
         allValues: any,
         options: {
           editorContext: any;
-        }
+        },
       ) => boolean);
   description?: string;
   group?: string;
@@ -616,7 +625,7 @@ export type SchemaPropShared<Type extends string> = {
 type ValueSchemaProp<
   Type extends string,
   ValueType,
-  Responsiveness extends "optional" | "forced" | "never"
+  Responsiveness extends "optional" | "forced" | "never",
 > = SchemaPropShared<Type> & {
   defaultValue?: Responsiveness extends "optional" | "forced"
     ? ResponsiveValue<ValueType>
@@ -625,13 +634,13 @@ type ValueSchemaProp<
   responsive?: Responsiveness extends "optional"
     ? boolean
     : Responsiveness extends "never"
-    ? false
-    : never;
+      ? false
+      : never;
 };
 
 export type SchemaPropParams<
   T extends Record<string, unknown>,
-  Required extends boolean = false
+  Required extends boolean = false,
 > = Required extends true
   ? {
       params: T;
@@ -742,7 +751,7 @@ export type AnyTinaField = AnyField;
 
 export interface Field<
   F extends Field = AnyField,
-  SchemaPropValue extends SchemaProp = SchemaProp
+  SchemaPropValue extends SchemaProp = SchemaProp,
 > {
   name: Array<string> | string;
   label?: string;
@@ -782,7 +791,7 @@ export type FieldPortal =
 
 export type CompiledComponentConfigBase<
   Identifier extends string = string,
-  Props extends Record<string, any> = Record<string, any>
+  Props extends Record<string, any> = Record<string, any>,
 > = {
   _component: Identifier; // instance of the component (unique id)
   _id: string;
@@ -865,7 +874,7 @@ export type CompilerModule = {
   compile: (
     content: NoCodeComponentEntry,
     config: Config,
-    contextParams: ContextParams
+    contextParams: ContextParams,
   ) => {
     compiled: CompiledShopstoryComponentConfig;
     configAfterAuto?: any;
@@ -879,7 +888,7 @@ export type CompilerModule = {
   findExternals: (
     rawContent: any,
     config: Config,
-    contextParams: ContextParams
+    contextParams: ContextParams,
   ) => ExternalWithSchemaProp[];
   validate: (input: unknown) =>
     | {
@@ -944,7 +953,7 @@ export type FetchOutputBasicResources = Record<string, FetchResourceResult>;
 
 export type FetchCompoundResourceResultValue<
   Type extends string = string,
-  Value extends NonNullish = NonNullish
+  Value extends NonNullish = NonNullish,
 > = {
   type: Type;
   value: Value;
@@ -1015,7 +1024,7 @@ export type ExternalReferenceEmpty = {
 };
 
 export type ExternalReferenceNonEmpty<
-  Identifier extends NonNullish = NonNullish
+  Identifier extends NonNullish = NonNullish,
 > = {
   id: Identifier;
   widgetId: string;
