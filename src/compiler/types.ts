@@ -66,14 +66,14 @@ export type EditableComponentToComponentConfig<
     label?: string;
     type?: string | string[];
     schema: Array<SchemaProp>;
-  }
+  },
 > = ComponentConfigBase<EditableComponent["id"]>;
 
 export type CompiledNoCodeComponentProps<
   Identifier extends string = string,
   StateProps extends Record<string, any> = Record<string, any>,
   ContextProps extends Record<string, any> = Record<string, any>,
-  Styles extends Record<string, unknown> = Record<string, unknown>
+  Styles extends Record<string, unknown> = Record<string, unknown>,
 > = {
   _component: Identifier;
   _id: string;
@@ -119,7 +119,7 @@ export type ContextProps = Record<string, any>;
 export type InternalRenderableComponentDefinition<
   Identifier extends string = string,
   Values extends Record<string, any> = Record<string, any>,
-  Params extends Record<string, any> = Record<string, any>
+  Params extends Record<string, any> = Record<string, any>,
 > = ComponentDefinitionShared<Identifier> & {
   pasteSlots?: string[];
   styles?: NoCodeComponentStylesFunction<Values, Params>;
@@ -142,7 +142,7 @@ type EditorActions = {
   }) => Promise<NoCodeComponentEntry | undefined>;
   moveItems: (
     fieldNames: Array<string>,
-    direction: "top" | "right" | "bottom" | "left"
+    direction: "top" | "right" | "bottom" | "left",
   ) => void;
   replaceItems: (paths: Array<string>, newConfig: NoCodeComponentEntry) => void;
   removeItems: (fieldNames: Array<string>) => void;
@@ -154,7 +154,7 @@ type EditorActions = {
   duplicateItems: (fieldNames: Array<string>) => void;
   pasteItems: (items: Array<NoCodeComponentEntry>) => void;
   runChange: <Callback extends () => Array<string> | void>(
-    configChangeCallback: Callback
+    configChangeCallback: Callback,
   ) => void;
   logSelectedItems: () => void;
 };
@@ -167,5 +167,14 @@ export type EditorContextType = CompilationContextType & {
   setFocussedField: (focusedFields: string | Array<string>) => void;
   actions: EditorActions;
   translationFiles?: { [key: string]: any };
+  globalSections?: {
+    [sectionName: string]: {
+      [entryId: string]: {
+        label: string;
+        entry: NoCodeComponentEntry;
+        pages: string[];
+      };
+    };
+  };
   templates?: Template[];
 };

@@ -107,6 +107,15 @@ export type EditorContextType = CompilationContextType & {
     translationFiles?: {
         [key: string]: any;
     };
+    globalSections?: {
+        [sectionName: string]: {
+            [entryId: string]: {
+                label: string;
+                entry: NoCodeComponentEntry;
+                pages: string[];
+            };
+        };
+    };
     templates?: Template[];
 };
 export {};
