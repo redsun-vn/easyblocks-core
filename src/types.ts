@@ -1,6 +1,7 @@
 import { ComponentType, ReactElement } from "react";
 import { PartialDeep } from "type-fest";
 import { Locale } from "./locales";
+import { TGlobalSectionChange } from "./compiler/types";
 
 export type ScalarOrCollection<T> = T | Array<T>;
 
@@ -593,6 +594,7 @@ export type Config = {
       };
     };
   };
+  onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
   types?: Record<string, CustomTypeDefinition>;
   disableCustomTemplates?: boolean;
   hideCloseButton?: boolean;

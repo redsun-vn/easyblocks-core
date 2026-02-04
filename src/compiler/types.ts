@@ -159,6 +159,14 @@ type EditorActions = {
   logSelectedItems: () => void;
 };
 
+export type TGlobalSectionChange = {
+  sectionName: string;
+  mode?: "update" | "delete";
+  entry?: NoCodeComponentEntry;
+  label?: string;
+  pages?: string[];
+};
+
 export type EditorContextType = CompilationContextType & {
   breakpointIndex: string;
   locales: Locale[];
@@ -176,5 +184,6 @@ export type EditorContextType = CompilationContextType & {
       };
     };
   };
+  onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
   templates?: Template[];
 };
