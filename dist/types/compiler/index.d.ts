@@ -9,5 +9,6 @@ export { normalize } from "./normalize";
 export { normalizeInput } from "./normalizeInput";
 export { compile } from "./public/compile";
 export { findExternals } from "./public/findResources";
+export type { TGlobalSectionChange } from "./types";
 export { validate } from "./validation";
 //# sourceMappingURL=index.d.ts.map
