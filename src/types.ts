@@ -1,7 +1,7 @@
 import { ComponentType, ReactElement } from "react";
 import { PartialDeep } from "type-fest";
-import { Locale } from "./locales";
 import { TGlobalSectionChange } from "./compiler/types";
+import { Locale } from "./locales";
 
 export type ScalarOrCollection<T> = T | Array<T>;
 
@@ -519,9 +519,16 @@ export type Document = {
 export type Backend = {
   userId?: number | string;
   documents: {
-    get: (payload: { id: string; locale?: string }) => Promise<Document>;
+    get: (payload: {
+      id: string;
+      locale?: string;
+      themeId?: string;
+    }) => Promise<Document>;
     create: (payload: Omit<Document, "id" | "version">) => Promise<Document>;
-    update: (payload: Omit<Document, "type">) => Promise<Document>;
+    update: (
+      payload: Omit<Document, "type">,
+      themeId?: string,
+    ) => Promise<Document>;
   };
   templates: {
     get(payload: { id: string }): Promise<UserDefinedTemplate>;
@@ -586,11 +593,12 @@ export type Config = {
   locales: Array<Locale>;
   translationFiles?: { [key: string]: any };
   globalSections?: {
-    [sectionName: string]: {
+    [groupName: string]: {
       [entryId: string]: {
         label: string;
-        entry: NoCodeComponentEntry;
+        entry?: NoCodeComponentEntry;
         pages: string[];
+        documentId: string;
       };
     };
   };

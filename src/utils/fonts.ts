@@ -280,6 +280,7 @@ export function getLineHeights(): IFont[] {
     { id: "1.4", value: "1.4", label: "1.4" },
     { id: "1.4258", value: "1.4258", label: "1.4258" },
     { id: "1.5", value: "1.5", label: "1.5" },
+    { id: "1.6", value: "1.6", label: "1.6" },
     { id: "1.7", value: "1.7", label: "1.7" },
     { id: "1.8", value: "1.8", label: "1.8" },
     { id: "2", value: "2", label: "2" },
@@ -287,11 +288,11 @@ export function getLineHeights(): IFont[] {
 }
 
 export function getFontSizes(
-  editorContext: Pick<EditorContextType, "theme">
+  editorContext: Pick<EditorContextType, "theme">,
 ): IFont[] {
   return Object.values(editorContext.theme.space)
     .filter(
-      (s) => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)
+      (s) => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/),
     )
     .map((s) => ({
       id: parseFloat(s.value as string).toString(),
@@ -307,7 +308,7 @@ export async function loadGoogleFonts(fonts?: string[]): Promise<void> {
     WebFont.load({
       google: {
         families: (fonts ?? fontFamilies).map(
-          (font) => `${font}:300,400,600,700`
+          (font) => `${font}:300,400,600,700`,
         ),
       },
     });

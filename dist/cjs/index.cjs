@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var EasyblocksBackend = require('./EasyblocksBackend-1b72544a.js');
+var EasyblocksBackend = require('./EasyblocksBackend-757a6ff2.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');
@@ -415,6 +415,10 @@ function getLineHeights() {
     id: "1.5",
     value: "1.5",
     label: "1.5"
+  }, {
+    id: "1.6",
+    value: "1.6",
+    label: "1.6"
   }, {
     id: "1.7",
     value: "1.7",

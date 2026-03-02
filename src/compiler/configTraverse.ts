@@ -16,7 +16,7 @@ type ConfigTraverseCallback = (arg: {
 function configTraverse(
   config: NoCodeComponentEntry,
   context: Pick<CompilationContextType, "definitions">,
-  callback: ConfigTraverseCallback
+  callback: ConfigTraverseCallback,
 ): void {
   configTraverseInternal(config, context, callback, "");
 }
@@ -25,7 +25,7 @@ function configTraverseArray(
   array: NoCodeComponentEntry[],
   context: Pick<CompilationContextType, "definitions">,
   callback: ConfigTraverseCallback,
-  path: string
+  path: string,
 ) {
   array.forEach((config, index) => {
     configTraverseInternal(config, context, callback, `${path}.${index}`);
@@ -36,13 +36,13 @@ function configTraverseInternal(
   config: NoCodeComponentEntry,
   context: Pick<CompilationContextType, "definitions">,
   callback: ConfigTraverseCallback,
-  path: string
+  path: string,
 ) {
   const componentDefinition = findComponentDefinition(config, context);
 
   if (!componentDefinition) {
     console.warn(
-      `[configTraverse] Unknown component definition for: ${config._component}`
+      `[configTraverse] Unknown component definition for: ${config._component}`,
     );
     return;
   }
@@ -65,7 +65,7 @@ function configTraverseInternal(
         config[schemaProp.prop],
         context,
         callback,
-        `${pathPrefix}${schemaProp.prop}`
+        `${pathPrefix}${schemaProp.prop}`,
       );
     } else if (schemaProp.type === "component-collection-localised") {
       callback({
@@ -76,12 +76,14 @@ function configTraverseInternal(
       });
 
       for (const locale in config[schemaProp.prop]) {
-        configTraverseArray(
-          config[schemaProp.prop][locale],
-          context,
-          callback,
-          `${pathPrefix}${schemaProp.prop}.${locale}`
-        );
+        if (locale !== "__localized") {
+          configTraverseArray(
+            config[schemaProp.prop][locale],
+            context,
+            callback,
+            `${pathPrefix}${schemaProp.prop}.${locale}`,
+          );
+        }
       }
     } else {
       const currentPath = `${pathPrefix}${schemaProp.prop}`;

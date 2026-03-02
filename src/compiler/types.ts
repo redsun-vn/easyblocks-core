@@ -160,7 +160,7 @@ type EditorActions = {
 };
 
 export type TGlobalSectionChange = {
-  sectionName: string;
+  groupName: string;
   mode?: "update" | "delete";
   entry?: NoCodeComponentEntry;
   label?: string;
@@ -176,11 +176,12 @@ export type EditorContextType = CompilationContextType & {
   actions: EditorActions;
   translationFiles?: { [key: string]: any };
   globalSections?: {
-    [sectionName: string]: {
+    [groupName: string]: {
       [entryId: string]: {
         label: string;
-        entry: NoCodeComponentEntry;
+        entry?: NoCodeComponentEntry;
         pages: string[];
+        documentId: string;
       };
     };
   };

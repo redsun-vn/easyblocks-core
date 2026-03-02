@@ -13,7 +13,7 @@ type TraverseComponentsCallback = (arg: {
 function traverseComponents(
   config: NoCodeComponentEntry,
   context: CompilationContextType,
-  callback: TraverseComponentsCallback
+  callback: TraverseComponentsCallback,
 ): void {
   traverseComponentsInternal(config, context, callback, "");
 }
@@ -22,9 +22,9 @@ function traverseComponentsArray(
   array: NoCodeComponentEntry[],
   context: CompilationContextType,
   callback: TraverseComponentsCallback,
-  path: string
+  path: string,
 ) {
-  array.forEach((config, index) => {
+  array?.forEach((config, index) => {
     traverseComponentsInternal(config, context, callback, `${path}.${index}`);
   });
 }
@@ -33,14 +33,14 @@ function traverseComponentsInternal(
   componentConfig: NoCodeComponentEntry,
   context: CompilationContextType,
   callback: TraverseComponentsCallback,
-  path: string
+  path: string,
 ) {
   const componentDefinition = findComponentDefinition(componentConfig, context);
 
   if (!componentDefinition) {
     console.warn(
       "[traverseComponents] Unknown component definition",
-      componentConfig
+      componentConfig,
     );
     return;
   }
@@ -58,16 +58,18 @@ function traverseComponentsInternal(
         componentConfig[schemaProp.prop],
         context,
         callback,
-        `${pathPrefix}${schemaProp.prop}`
+        `${pathPrefix}${schemaProp.prop}`,
       );
     } else if (schemaProp.type === "component-collection-localised") {
       for (const locale in componentConfig[schemaProp.prop]) {
-        traverseComponentsArray(
-          componentConfig[schemaProp.prop][locale],
-          context,
-          callback,
-          `${pathPrefix}${schemaProp.prop}.${locale}`
-        );
+        if (locale !== "__localized") {
+          traverseComponentsArray(
+            componentConfig[schemaProp.prop][locale],
+            context,
+            callback,
+            `${pathPrefix}${schemaProp.prop}.${locale}`,
+          );
+        }
       }
     }
   });
