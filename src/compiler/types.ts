@@ -10,6 +10,7 @@ import {
   ExternalTypeDefinition,
   FieldPortal,
   InlineTypeDefinition,
+  IThemeConfig,
   NoCodeComponentAutoFunction,
   NoCodeComponentDefinition,
   NoCodeComponentEditingFunction,
@@ -175,16 +176,7 @@ export type EditorContextType = CompilationContextType & {
   setFocussedField: (focusedFields: string | Array<string>) => void;
   actions: EditorActions;
   translationFiles?: { [key: string]: any };
-  globalSections?: {
-    [groupName: string]: {
-      [entryId: string]: {
-        label: string;
-        entry?: NoCodeComponentEntry;
-        pages: string[];
-        documentId: string;
-      };
-    };
-  };
+  globalSections?: IThemeConfig["globalSections"];
   onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
   templates?: Template[];
 };

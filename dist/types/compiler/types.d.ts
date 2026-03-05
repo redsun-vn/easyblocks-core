@@ -1,6 +1,6 @@
 import { PartialDeep, SetRequired } from "type-fest";
 import { Locale } from "../locales";
-import { ComponentConfigBase, ComponentDefinitionShared, ContextParams, Devices, EditingInfoBase, ExternalSchemaProp, ExternalTypeDefinition, FieldPortal, InlineTypeDefinition, NoCodeComponentAutoFunction, NoCodeComponentDefinition, NoCodeComponentEditingFunction, NoCodeComponentEntry, NoCodeComponentStylesFunction, ResponsiveValue, SchemaProp, Spacing, Template, ThemeTokenValue, TokenTypeDefinition } from "../types";
+import { ComponentConfigBase, ComponentDefinitionShared, ContextParams, Devices, EditingInfoBase, ExternalSchemaProp, ExternalTypeDefinition, FieldPortal, InlineTypeDefinition, IThemeConfig, NoCodeComponentAutoFunction, NoCodeComponentDefinition, NoCodeComponentEditingFunction, NoCodeComponentEntry, NoCodeComponentStylesFunction, ResponsiveValue, SchemaProp, Spacing, Template, ThemeTokenValue, TokenTypeDefinition } from "../types";
 import { InternalAnyTinaField } from "./schema";
 export type Theme = {
     space: {
@@ -114,16 +114,7 @@ export type EditorContextType = CompilationContextType & {
     translationFiles?: {
         [key: string]: any;
     };
-    globalSections?: {
-        [groupName: string]: {
-            [entryId: string]: {
-                label: string;
-                entry?: NoCodeComponentEntry;
-                pages: string[];
-                documentId: string;
-            };
-        };
-    };
+    globalSections?: IThemeConfig["globalSections"];
     onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
     templates?: Template[];
 };
