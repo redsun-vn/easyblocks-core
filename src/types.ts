@@ -586,6 +586,37 @@ export type Backend = {
  * Config
  */
 
+export interface IFontConfig {
+  id: string;
+  label: string;
+  value: {
+    fontSize: number;
+    lineHeight: number;
+    fontFamily: string;
+    fontWeight?: number;
+  };
+  isDefault?: boolean;
+}
+
+export interface IThemeConfig {
+  fonts?: IFontConfig[];
+  colors?: ConfigTokenValue<ThemeColor>[];
+  globalSections?: {
+    [groupName: string]: {
+      orders: string[];
+      entities: {
+        [entryId: string]: {
+          label: string;
+          pages: string[]; // documentIds
+          documentId: string;
+          entryId?: string;
+          entry?: NoCodeComponentEntry;
+        };
+      };
+    };
+  };
+}
+
 export type Config = {
   name?: string;
   backend: Backend;
@@ -593,16 +624,7 @@ export type Config = {
   devices?: ConfigDevices;
   locales: Array<Locale>;
   translationFiles?: { [key: string]: any };
-  globalSections?: {
-    [groupName: string]: {
-      [entryId: string]: {
-        label: string;
-        entry?: NoCodeComponentEntry;
-        pages: string[];
-        documentId: string;
-      };
-    };
-  };
+  globalSections?: IThemeConfig["globalSections"];
   onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
   types?: Record<string, CustomTypeDefinition>;
   disableCustomTemplates?: boolean;
