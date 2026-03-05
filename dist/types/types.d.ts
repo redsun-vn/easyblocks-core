@@ -769,5 +769,6 @@ export type TokenValue<T = any> = {
     tokenId?: string;
     widgetId?: string;
 };
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export {};
 //# sourceMappingURL=types.d.ts.map
