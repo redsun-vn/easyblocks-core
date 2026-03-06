@@ -387,7 +387,7 @@ export type Backend = {
         }) => Promise<unknown>;
         syncConfig: ({ themeId }: {
             themeId: string;
-        }) => Promise<void>;
+        }) => Promise<boolean>;
         reset: (input: {
             id: string;
             configs: Array<"fonts" | "colors">;

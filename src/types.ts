@@ -565,7 +565,7 @@ export type Backend = {
       id: string;
       config: Record<string, any>;
     }) => Promise<unknown>;
-    syncConfig: ({ themeId }: { themeId: string }) => Promise<void>;
+    syncConfig: ({ themeId }: { themeId: string }) => Promise<boolean>;
     reset: (input: {
       id: string;
       configs: Array<"fonts" | "colors">;
