@@ -429,7 +429,7 @@ const generateFontSizes = (from, to) => {
   return rs;
 };
 function getFontSizes() {
-  return generateFontSizes(0, 100).filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
+  return generateFontSizes(1, 100).filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
     id: parseFloat(s.value).toString(),
     value: parseFloat(s.value).toString(),
     label: s.label ?? ""

@@ -316,7 +316,7 @@ const generateFontSizes = (from: number, to: number) => {
 };
 
 export function getFontSizes(): IFont[] {
-  return generateFontSizes(0, 100)
+  return generateFontSizes(1, 100)
     .filter(
       (s) => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/),
     )
