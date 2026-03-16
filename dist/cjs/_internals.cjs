@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var EasyblocksBackend = require('./EasyblocksBackend-757a6ff2.js');
+var EasyblocksBackend = require('./EasyblocksBackend-f90697dc.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');

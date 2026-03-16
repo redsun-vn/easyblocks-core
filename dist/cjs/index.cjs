@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var EasyblocksBackend = require('./EasyblocksBackend-757a6ff2.js');
+var EasyblocksBackend = require('./EasyblocksBackend-f90697dc.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');

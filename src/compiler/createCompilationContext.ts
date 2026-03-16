@@ -29,7 +29,7 @@ import {
 import { validateColor } from "./validate-color";
 
 function normalizeSpace(
-  space: ResponsiveValue<number | string>
+  space: ResponsiveValue<number | string>,
 ): ResponsiveValue<Spacing> {
   return responsiveValueMap(space, (val) => {
     if (typeof val === "number") {
@@ -73,7 +73,7 @@ function prepareDevices(configDevices: Config["devices"]): Devices {
 export function createCompilationContext(
   config: Config,
   contextParams: ContextParams,
-  rootComponentId: string
+  rootComponentId: string,
 ): CompilationContextType {
   const devices = prepareDevices(config.devices);
   const mainDevice = devices.find((x) => x.isMain);
@@ -119,12 +119,12 @@ export function createCompilationContext(
 
   Object.entries(customTokens).forEach(([id, tokens]) => {
     const type = Object.values(types).find(
-      (type) => type.type === "token" && type.token === id
+      (type) => type.type === "token" && type.token === id,
     ) as TokenTypeDefinition;
 
     if (!type) {
       throw new Error(
-        `Can't find a matching type for a token "${id}" (found in Config.tokens)`
+        `Can't find a matching type for a token "${id}" (found in Config.tokens)`,
       );
     }
 
@@ -133,7 +133,7 @@ export function createCompilationContext(
         if (type.validate) {
           if (type.validate(token.value) !== true) {
             throw new Error(
-              `The value for token "${id}.${token.id}" (${token.value}) is incorrect. The validation function for its corresponding type must return 'true'. `
+              `The value for token "${id}.${token.id}" (${token.value}) is incorrect. The validation function for its corresponding type must return 'true'. `,
             );
           }
         }
@@ -146,7 +146,7 @@ export function createCompilationContext(
             isDefault: token.isDefault ?? false,
           },
         ];
-      })
+      }),
     );
   });
 
@@ -170,12 +170,12 @@ export function createCompilationContext(
   ];
 
   const rootComponent = (config.components ?? []).find(
-    (component) => component.id === rootComponentId
+    (component) => component.id === rootComponentId,
   );
 
   if (!rootComponent) {
     throw new Error(
-      `createCompilationContext: rootComponentId "${rootComponentId}" doesn't exist in config.components`
+      `createCompilationContext: rootComponentId "${rootComponentId}" doesn't exist in config.components`,
     );
   }
 
@@ -207,7 +207,7 @@ export function createCompilationContext(
 
           if (!allTypeIds.includes(prop.type)) {
             throw new Error(
-              `The field "${component.id}.${prop.prop}" has an unrecognized type: "${prop.type}". Custom types can be added in Config.types object`
+              `The field "${component.id}.${prop.prop}" has an unrecognized type: "${prop.type}". Custom types can be added in Config.types object`,
             );
           }
         });
@@ -246,13 +246,13 @@ export function createCompilationContext(
         }
 
         return component;
-      })
+      }),
     );
   }
 
   if (!config.locales) {
     throw new Error(
-      `Required property config.locales doesn't exist in your config.`
+      `Required property config.locales doesn't exist in your config.`,
     );
   }
 
@@ -260,7 +260,7 @@ export function createCompilationContext(
     config.locales.find((l) => l.code === contextParams.locale) === undefined
   ) {
     throw new Error(
-      `You passed locale "${contextParams.locale}" which doesn't exist in your config.locales`
+      `You passed locale "${contextParams.locale}" which doesn't exist in your config.locales`,
     );
   }
 
@@ -281,7 +281,7 @@ export function createCompilationContext(
 }
 
 function createCustomTypes(
-  types: Record<string, CustomTypeDefinition> | undefined
+  types: Record<string, CustomTypeDefinition> | undefined,
 ): Record<string, CompilationContextCustomTypeDefinition> {
   if (!types) {
     return {};
@@ -307,7 +307,7 @@ function createCustomTypes(
           responsiveness: definition.responsiveness ?? "never",
         },
       ];
-    })
+    }),
   );
 }
 
@@ -367,6 +367,7 @@ function createBuiltinTypes(): Record<
         value:
           "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
       },
+      allowCustom: true,
     },
     icon: {
       type: "token",
@@ -389,7 +390,7 @@ function createBuiltinTypes(): Record<
 }
 
 function ensureDocumentDataWidgetForExternalTypes(
-  types: CompilationContextType["types"]
+  types: CompilationContextType["types"],
 ) {
   const externalTypesNames = new Set([
     ...Object.keys(types).filter((t) => types[t].type === "external"),
@@ -405,7 +406,7 @@ function ensureDocumentDataWidgetForExternalTypes(
     }
 
     const hasDocumentDataWidget = externalTypeDefinition.widgets.some(
-      (w) => w.id === "@easyblocks/document-data"
+      (w) => w.id === "@easyblocks/document-data",
     );
 
     if (!hasDocumentDataWidget) {
