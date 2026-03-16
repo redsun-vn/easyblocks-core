@@ -433,17 +433,29 @@ function getLineHeights() {
     label: "2"
   }];
 }
-const generateFontSizes = fontSizes => {
-  return fontSizes.map(fontSize => ({
-    id: String(fontSize),
-    label: String(fontSize),
-    value: `${fontSize}px`
-  }));
+const generateFontSizes = (from, to) => {
+  if (typeof from !== "number" || typeof to !== "number" || from > to) {
+    return [];
+  }
+  if (from === to) {
+    return [{
+      id: String(from.toString()),
+      label: String(from.toString()),
+      value: `${from.toString()}px`
+    }];
+  }
+  let rs = [];
+  for (let index = from; index < to; index++) {
+    rs.push({
+      id: String(index.toString()),
+      label: String(index.toString()),
+      value: `${index.toString()}px`
+    });
+  }
+  return rs;
 };
-function getFontSizes(editorContext) {
-  const baseSpaces = Object.values(editorContext.theme.space);
-  const fontSizeCustoms = generateFontSizes([56]);
-  return [...baseSpaces, ...fontSizeCustoms].filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
+function getFontSizes() {
+  return generateFontSizes(0, 100).filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
     id: parseFloat(s.value).toString(),
     value: parseFloat(s.value).toString(),
     label: s.label ?? ""

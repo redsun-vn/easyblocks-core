@@ -287,21 +287,36 @@ export function getLineHeights(): IFont[] {
   ];
 }
 
-const generateFontSizes = (fontSizes: number[]) => {
-  return fontSizes.map((fontSize) => ({
-    id: String(fontSize),
-    label: String(fontSize),
-    value: `${fontSize}px`,
-  }));
+const generateFontSizes = (from: number, to: number) => {
+  if (typeof from !== "number" || typeof to !== "number" || from > to) {
+    return [];
+  }
+
+  if (from === to) {
+    return [
+      {
+        id: String(from.toString()),
+        label: String(from.toString()),
+        value: `${from.toString()}px`,
+      },
+    ];
+  }
+
+  let rs = [];
+
+  for (let index = from; index < to; index++) {
+    rs.push({
+      id: String(index.toString()),
+      label: String(index.toString()),
+      value: `${index.toString()}px`,
+    });
+  }
+
+  return rs;
 };
 
-export function getFontSizes(
-  editorContext: Pick<EditorContextType, "theme">,
-): IFont[] {
-  const baseSpaces = Object.values(editorContext.theme.space);
-  const fontSizeCustoms = generateFontSizes([56]);
-
-  return [...baseSpaces, ...fontSizeCustoms]
+export function getFontSizes(): IFont[] {
+  return generateFontSizes(0, 100)
     .filter(
       (s) => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/),
     )
