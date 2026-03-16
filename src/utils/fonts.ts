@@ -287,10 +287,21 @@ export function getLineHeights(): IFont[] {
   ];
 }
 
+const generateFontSizes = (fontSizes: number[]) => {
+  return fontSizes.map((fontSize) => ({
+    id: String(fontSize),
+    label: String(fontSize),
+    value: `${fontSize}px`,
+  }));
+};
+
 export function getFontSizes(
   editorContext: Pick<EditorContextType, "theme">,
 ): IFont[] {
-  return Object.values(editorContext.theme.space)
+  const baseSpaces = Object.values(editorContext.theme.space);
+  const fontSizeCustoms = generateFontSizes([56]);
+
+  return [...baseSpaces, ...fontSizeCustoms]
     .filter(
       (s) => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/),
     )

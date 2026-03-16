@@ -433,8 +433,17 @@ function getLineHeights() {
     label: "2"
   }];
 }
+const generateFontSizes = fontSizes => {
+  return fontSizes.map(fontSize => ({
+    id: String(fontSize),
+    label: String(fontSize),
+    value: `${fontSize}px`
+  }));
+};
 function getFontSizes(editorContext) {
-  return Object.values(editorContext.theme.space).filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
+  const baseSpaces = Object.values(editorContext.theme.space);
+  const fontSizeCustoms = generateFontSizes([56]);
+  return [...baseSpaces, ...fontSizeCustoms].filter(s => typeof s.value === "string" && s.value.match(/\d+(\.\d+)?px\b/)).map(s => ({
     id: parseFloat(s.value).toString(),
     value: parseFloat(s.value).toString(),
     label: s.label ?? ""
