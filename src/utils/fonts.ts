@@ -304,7 +304,7 @@ const generateFontSizes = (from: number, to: number) => {
 
   let rs = [];
 
-  for (let index = from; index < to; index++) {
+  for (let index = from; index <= to; index++) {
     rs.push({
       id: String(index.toString()),
       label: String(index.toString()),
