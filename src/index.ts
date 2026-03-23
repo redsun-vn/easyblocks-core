@@ -20,4 +20,6 @@ export * from "./resourcesUtils";
 export * from "./responsiveness";
 export { parseSpacing, spacingToPx } from "./spacingToPx";
 export * from "./types";
+export { getBrightnessColor } from "./utils/colors";
 export * from "./utils/fonts";
+export { globalSectionGroups } from "./utils/globalSections";

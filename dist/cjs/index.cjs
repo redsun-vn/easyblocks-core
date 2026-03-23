@@ -739,6 +739,26 @@ function isNoCodeComponentOfType(definition, type) {
   return definition.type.includes(type);
 }
 
+const getBrightnessColor = hex => {
+  // remove "#"
+  hex = hex.replace("#", "");
+
+  // convert hex to r g b
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness < 128 ? "#ffffff" : "#000000";
+};
+
+const globalSectionGroups = [{
+  id: "group-headers",
+  name: "Headers"
+}, {
+  id: "group-footers",
+  name: "Footers"
+}];
+
 exports.CompilationCache = EasyblocksBackend.CompilationCache;
 exports.EasyblocksBackend = EasyblocksBackend.EasyblocksBackend;
 exports.buildRichTextNoCodeEntry = EasyblocksBackend.buildRichTextNoCodeEntry;
@@ -800,10 +820,12 @@ exports.defaultFontWeight = defaultFontWeight;
 exports.defaultLineHeight = defaultLineHeight;
 exports.findExternals = findExternals;
 exports.fontFamilies = fontFamilies;
+exports.getBrightnessColor = getBrightnessColor;
 exports.getFontFamilies = getFontFamilies;
 exports.getFontSizes = getFontSizes;
 exports.getFontWeights = getFontWeights;
 exports.getLineHeights = getLineHeights;
+exports.globalSectionGroups = globalSectionGroups;
 exports.isNoCodeComponentOfType = isNoCodeComponentOfType;
 exports.loadGoogleFonts = loadGoogleFonts;
 exports.mergeCompilationMeta = mergeCompilationMeta;

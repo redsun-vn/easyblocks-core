@@ -118,5 +118,12 @@ export type EditorContextType = CompilationContextType & {
     onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
     templates?: Template[];
 };
+export type TemplateQueryType = {
+    filters?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    mode?: "replace" | "append";
+};
 export {};
 //# sourceMappingURL=types.d.ts.map
