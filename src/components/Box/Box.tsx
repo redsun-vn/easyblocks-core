@@ -46,7 +46,7 @@ const Box = React.forwardRef<HTMLElement, BoxProps>((props, ref) => {
      */
     const correctedStyles = getBoxStyles(
       JSON.parse(JSON.stringify(styles)),
-      devices
+      devices,
     );
 
     const generateBoxClass = stitches.css(boxStyles);
@@ -68,8 +68,10 @@ const Box = React.forwardRef<HTMLElement, BoxProps>((props, ref) => {
         .join(" "),
       "data-testid": __name,
     },
-    props.children
+    props.children,
   );
 });
+
+Box.displayName = "Box";
 
 export { Box };
