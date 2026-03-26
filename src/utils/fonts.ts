@@ -1,5 +1,3 @@
-import { EditorContextType } from "../_internals";
-
 interface IFont {
   id: string;
   value: string;

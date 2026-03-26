@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var EasyblocksBackend = require('./EasyblocksBackend-32c46b8f.js');
+var ComponentBuilder = require('./ComponentBuilder-e83869cd.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
@@ -39,24 +39,24 @@ function keys(o) {
 
 function duplicateConfig(inputConfig, compilationContext) {
   // deep copy first
-  const config = EasyblocksBackend.deepClone(inputConfig);
+  const config = ComponentBuilder.deepClone(inputConfig);
 
   // refresh component ids
-  EasyblocksBackend.traverseComponents(config, compilationContext, _ref => {
+  ComponentBuilder.traverseComponents(config, compilationContext, _ref => {
     let {
       componentConfig
     } = _ref;
-    componentConfig._id = EasyblocksBackend.uniqueId();
+    componentConfig._id = ComponentBuilder.uniqueId();
   });
 
   // every text must get new local id
-  EasyblocksBackend.configTraverse(config, compilationContext, _ref2 => {
+  ComponentBuilder.configTraverse(config, compilationContext, _ref2 => {
     let {
       value,
       schemaProp
     } = _ref2;
     if (schemaProp.type === "text") {
-      value.id = "local." + EasyblocksBackend.uniqueId();
+      value.id = "local." + ComponentBuilder.uniqueId();
     }
   });
   return config;
@@ -84,10 +84,10 @@ function convertEditorValueToRichTextElements(editorValue) {
   });
 }
 function convertEditorElementToRichTextLineElement(editorElement) {
-  const lineElement = EasyblocksBackend.buildRichTextLineElementComponentConfig({
+  const lineElement = ComponentBuilder.buildRichTextLineElementComponentConfig({
     elements: editorElement.children.map(child => {
-      return EasyblocksBackend.buildRichTextPartComponentConfig({
-        value: EasyblocksBackend.cleanString(child.text),
+      return ComponentBuilder.buildRichTextPartComponentConfig({
+        value: ComponentBuilder.cleanString(child.text),
         color: child.color,
         font: child.font,
         id: child.id,
@@ -99,14 +99,14 @@ function convertEditorElementToRichTextLineElement(editorElement) {
   return lineElement;
 }
 function convertEditorListElementToRichTextListBlockElement(type, editorElement) {
-  const listBlockElement = EasyblocksBackend.buildRichTextBlockElementComponentConfig(type, editorElement.children.map(child => {
+  const listBlockElement = ComponentBuilder.buildRichTextBlockElementComponentConfig(type, editorElement.children.map(child => {
     return convertEditorElementToRichTextLineElement(child);
   }));
   listBlockElement._id = editorElement.id;
   return listBlockElement;
 }
 function convertEditorParagraphElementToRichTextParagraphBlockElement(editorElement) {
-  const paragraphBlockElement = EasyblocksBackend.buildRichTextBlockElementComponentConfig("paragraph", editorElement.children.map(child => {
+  const paragraphBlockElement = ComponentBuilder.buildRichTextBlockElementComponentConfig("paragraph", editorElement.children.map(child => {
     return convertEditorElementToRichTextLineElement(child);
   }));
   paragraphBlockElement._id = editorElement.id;
@@ -217,7 +217,7 @@ function updateSelection(editor, key) {
     const selectedTextNodesRanges = selectedTextNodeEntries.map(_ref => {
       let [, textNodePath] = _ref;
       return slate.Range.intersection(editor.selection, slate.Editor.range(editor, textNodePath));
-    }).filter(EasyblocksBackend.nonNullable());
+    }).filter(ComponentBuilder.nonNullable());
     slate.Editor.withoutNormalizing(editor, () => {
       selectedTextNodesRanges.reverse().forEach((range, index) => {
         slate.Transforms.setNodes(editor, {
@@ -294,13 +294,13 @@ function convertRichTextBlockElementComponentConfigToEditorElement(blockElementC
 }
 function getPlaceholderRichTextElements() {
   return [{
-    id: EasyblocksBackend.uniqueId(),
+    id: ComponentBuilder.uniqueId(),
     type: "paragraph",
     children: [{
-      id: EasyblocksBackend.uniqueId(),
+      id: ComponentBuilder.uniqueId(),
       type: "text-line",
       children: [{
-        id: EasyblocksBackend.uniqueId(),
+        id: ComponentBuilder.uniqueId(),
         color: {
           tokenId: "black",
           value: "black",
@@ -430,7 +430,7 @@ function updateNonUniqueIds(editor, entry) {
   const [node, path] = entry;
   if (slate.Text.isText(node) || slate.Element.isElement(node)) {
     if (USED_IDS.has(node.id)) {
-      const newId = EasyblocksBackend.uniqueId();
+      const newId = ComponentBuilder.uniqueId();
       NORMALIZED_IDS_TO_IDS.set(newId, node.id);
       slate.Transforms.setNodes(editor, {
         id: newId
@@ -559,7 +559,7 @@ function compareText(text1, text2) {
     const key = part1Keys[index];
     const part1Value = text1[key];
     const part2Value = text2[key];
-    const areValuesEqual = EasyblocksBackend.deepCompare(part1Value, part2Value);
+    const areValuesEqual = ComponentBuilder.deepCompare(part1Value, part2Value);
     if (!areValuesEqual) {
       areEqual = false;
       break;
@@ -642,7 +642,7 @@ function getEditorSelectionFromFocusedFields(focusedFields, form) {
         path: parsedAnchorField.path
       },
       focus: {
-        offset: parsedFocusedField.range ? parsedFocusedField.range[1] : EasyblocksBackend.dotNotationGet(form.values, focusFocusedField).value.length,
+        offset: parsedFocusedField.range ? parsedFocusedField.range[1] : ComponentBuilder.dotNotationGet(form.values, focusFocusedField).value.length,
         path: parsedFocusedField.path
       }
     };
@@ -685,7 +685,7 @@ function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, edito
     }
   };
   focussedField.forEach(focusedField => {
-    const textPartConfig = EasyblocksBackend.dotNotationGet(form.values, stripRichTextPartSelection(focusedField));
+    const textPartConfig = ComponentBuilder.dotNotationGet(form.values, stripRichTextPartSelection(focusedField));
     const {
       path,
       range
@@ -700,23 +700,23 @@ function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, edito
       if (index === 0) {
         currentConfigPath += `.${pathIndex}`;
       } else {
-        const parentConfig = EasyblocksBackend.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
+        const parentConfig = ComponentBuilder.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
         currentConfigPath += `.elements.${Math.min(parentConfig.elements.length, pathIndex)}`;
       }
-      const currentConfig = EasyblocksBackend.dotNotationGet(newRichTextComponentConfig, currentConfigPath);
+      const currentConfig = ComponentBuilder.dotNotationGet(newRichTextComponentConfig, currentConfigPath);
       if (!currentConfig) {
         const sourceConfigPath = lastParentConfigPath + (index === 0 ? `.${pathIndex}` : `.elements.${pathIndex}`);
-        const sourceConfig = EasyblocksBackend.dotNotationGet(sourceRichTextComponentConfig, sourceConfigPath);
+        const sourceConfig = ComponentBuilder.dotNotationGet(sourceRichTextComponentConfig, sourceConfigPath);
         const configCopy = {
           ...sourceConfig,
           elements: []
         };
-        EasyblocksBackend.dotNotationSet(newRichTextComponentConfig, currentConfigPath, configCopy);
+        ComponentBuilder.dotNotationSet(newRichTextComponentConfig, currentConfigPath, configCopy);
       }
       lastParentConfigPath = currentConfigPath;
     });
-    const textPartParentConfig = EasyblocksBackend.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
-    EasyblocksBackend.dotNotationSet(newRichTextComponentConfig, lastParentConfigPath, {
+    const textPartParentConfig = ComponentBuilder.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
+    ComponentBuilder.dotNotationSet(newRichTextComponentConfig, lastParentConfigPath, {
       ...textPartParentConfig,
       elements: [...textPartParentConfig.elements, newTextPartConfig]
     });
@@ -747,10 +747,10 @@ function RichTextEditor(props) {
     },
     align
   } = props;
-  let richTextConfig = EasyblocksBackend.dotNotationGet(form.values, path);
+  let richTextConfig = ComponentBuilder.dotNotationGet(form.values, path);
   const [editor] = React.useState(() => withEasyblocks(slateReact.withReact(slate.createEditor())));
   const localizedRichTextElements = richTextConfig.elements[contextParams.locale];
-  const fallbackRichTextElements = EasyblocksBackend.getFallbackForLocale(richTextConfig.elements, contextParams.locale, locales);
+  const fallbackRichTextElements = ComponentBuilder.getFallbackForLocale(richTextConfig.elements, contextParams.locale, locales);
   const richTextElements = localizedRichTextElements ?? fallbackRichTextElements;
   const richTextElementsConfigPath = `${path}.elements.${contextParams.locale}`;
   const [editorValue, setEditorValue] = React.useState(() => convertRichTextElementsToEditorValue(richTextElements));
@@ -760,7 +760,7 @@ function RichTextEditor(props) {
   if (richTextElements.length === 0 && !fallbackRichTextElements) {
     // We only want to show rich text for default config within this component, we don't want to update raw content
     // To prevent implicit update of raw content we make a deep copy.
-    richTextConfig = EasyblocksBackend.deepClone(richTextConfig);
+    richTextConfig = ComponentBuilder.deepClone(richTextConfig);
     richTextConfig.elements[contextParams.locale] = convertEditorValueToRichTextElements(editorValue);
   }
 
@@ -854,7 +854,7 @@ function RichTextEditor(props) {
       // When value for current locale is empty we want to show value from fallback value instead of placeholder
       // if the fallback value is present.
       if (isSlateValueEmpty && fallbackRichTextElements !== undefined) {
-        const nextRichTextElement = EasyblocksBackend.deepClone(richTextConfig);
+        const nextRichTextElement = ComponentBuilder.deepClone(richTextConfig);
         delete nextRichTextElement.elements[contextParams.locale];
         editor.children = convertRichTextElementsToEditorValue(fallbackRichTextElements);
         form.change(path, nextRichTextElement);
@@ -955,7 +955,7 @@ function RichTextEditor(props) {
     if (compiledStyles === undefined) {
       throw new Error("Unknown element type");
     }
-    return /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.Box, _extends__default["default"]({
+    return /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.Box, _extends__default["default"]({
       __compiled: compiledStyles,
       devices: devices,
       stitches: stitches
@@ -986,14 +986,14 @@ function RichTextEditor(props) {
       }
       throw new Error("Missing part");
     }
-    const TextPartComponent = /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.RichTextPartClient, {
+    const TextPartComponent = /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.RichTextPartClient, {
       value: children,
-      Text: /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.Box, _extends__default["default"]({
+      Text: /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.Box, _extends__default["default"]({
         __compiled: TextPart.styled.Text,
         devices: devices,
         stitches: stitches
       }, attributes)),
-      TextWrapper: TextPart.components.TextWrapper[0] ? /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.ComponentBuilder, {
+      TextWrapper: TextPart.components.TextWrapper[0] ? /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.ComponentBuilder, {
         compiled: TextPart.components.TextWrapper[0],
         path: path,
         components: editorContext.components,
@@ -1058,7 +1058,7 @@ function RichTextEditor(props) {
       lastChangeReason.current = "text-input";
       return;
     }
-    const isValueSame = EasyblocksBackend.deepCompare(value, editorValue);
+    const isValueSame = ComponentBuilder.deepCompare(value, editorValue);
 
     // Slate runs `onChange` callback on any change, even when the text haven't changed.
     // If value haven't changed, it must be a selection change.
@@ -1270,7 +1270,7 @@ function isEditorValueEmpty(editorValue) {
   return editorValue.length === 1 && editorValue[0].children.length === 1 && editorValue[0].children[0].children.length === 1 && slate.Text.isText(editorValue[0].children[0].children[0]) && editorValue[0].children[0].children[0].text === "";
 }
 function isConfigEqual(newConfig, oldConfig) {
-  return EasyblocksBackend.deepCompare(newConfig, oldConfig);
+  return ComponentBuilder.deepCompare(newConfig, oldConfig);
 }
 function mapResponsiveAlignmentToStyles(align, _ref4) {
   let {
@@ -1287,15 +1287,15 @@ function mapResponsiveAlignmentToStyles(align, _ref4) {
     return "flex-start";
   }
   const responsiveStyles = resop({
-    align: EasyblocksBackend.responsiveValueFill(align, devices, EasyblocksBackend.getDevicesWidths(devices))
+    align: ComponentBuilder.responsiveValueFill(align, devices, ComponentBuilder.getDevicesWidths(devices))
   }, values => {
     return {
       justifyContent: mapAlignmentToFlexAlignment(values.align),
       textAlign: values.align
     };
   }, devices);
-  const compiledStyles = EasyblocksBackend.compileBox(responsiveStyles, devices);
-  return EasyblocksBackend.getBoxStyles(compiledStyles, devices);
+  const compiledStyles = ComponentBuilder.compileBox(responsiveStyles, devices);
+  return ComponentBuilder.getBoxStyles(compiledStyles, devices);
 }
 function createTextSelectionDecorator(editor) {
   return _ref5 => {
@@ -1388,7 +1388,7 @@ function unwrapStringNodesContent(editor) {
 
 function useTextValue(value, onChange, locale, locales, defaultPlaceholder, normalize) {
   const isExternal = typeof value === "object" && value !== null;
-  const fallbackValue = isExternal ? EasyblocksBackend.getFallbackForLocale(value.value, locale, locales) : undefined;
+  const fallbackValue = isExternal ? ComponentBuilder.getFallbackForLocale(value.value, locale, locales) : undefined;
   const valueFromProps = (() => {
     if (isExternal) {
       let displayedValue = value.value?.[locale];
@@ -1464,7 +1464,7 @@ function useTextValue(value, onChange, locale, locales, defaultPlaceholder, norm
   return {
     onChange: handleChange,
     onBlur: handleBlur,
-    value: EasyblocksBackend.cleanString(localInputValue),
+    value: ComponentBuilder.cleanString(localInputValue),
     style,
     placeholder: defaultPlaceholder ?? "Enter text"
   };
@@ -1486,7 +1486,7 @@ function InlineTextarea(_ref) {
     locales
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
-  const value = EasyblocksBackend.dotNotationGet(form.values, valuePath);
+  const value = ComponentBuilder.dotNotationGet(form.values, valuePath);
   const inputProps = useTextValue(value, val => {
     form.change(valuePath, val);
   }, locale, locales, placeholder);
@@ -1558,7 +1558,7 @@ function TextEditor(props) {
     form
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
-  const configValue = EasyblocksBackend.dotNotationGet(form.values, valuePath);
+  const configValue = ComponentBuilder.dotNotationGet(form.values, valuePath);
   const isLocalTextReference = configValue?.id?.startsWith("local.");
   return /*#__PURE__*/React__default["default"].createElement(Text.type, _extends__default["default"]({}, Text.props, {
     as: "div"
@@ -1570,9 +1570,9 @@ function TextEditor(props) {
 }
 
 function buildText(x, editorContext) {
-  const defaultLocale = EasyblocksBackend.getDefaultLocale(editorContext.locales);
+  const defaultLocale = ComponentBuilder.getDefaultLocale(editorContext.locales);
   return {
-    id: "locale." + EasyblocksBackend.uniqueId(),
+    id: "locale." + ComponentBuilder.uniqueId(),
     value: {
       [defaultLocale.code]: x
     }
@@ -1592,6 +1592,241 @@ const buttonRequiredIconSchemaProp = {
   required: true
 };
 
+const AUTH_HEADER = "x-shopstory-access-token";
+class EasyblocksBackend {
+  constructor(args) {
+    this.accessToken = args.accessToken;
+    this.rootUrl = args.rootUrl ?? "https://app.easyblocks.io";
+  }
+  async init() {
+    // don't reinitialize
+    if (this.project) {
+      return;
+    }
+
+    // Set project!
+    const response = await this.get("/projects");
+    if (response.ok) {
+      const projects = await response.json();
+      if (projects.length === 0) {
+        throw new Error("Authorization error. Have you provided a correct access token?");
+      }
+      this.project = projects[0];
+    } else {
+      throw new Error("Initialization error in ApiClient");
+    }
+  }
+  async request(path, options) {
+    const apiRequestUrl = new URL(`${this.rootUrl}/api${path}`);
+    if (options.searchParams && Object.keys(options.searchParams).length > 0) {
+      for (const [key, value] of Object.entries(options.searchParams)) {
+        if (Array.isArray(value)) {
+          value.forEach(value => {
+            apiRequestUrl.searchParams.append(key, value);
+          });
+        } else {
+          apiRequestUrl.searchParams.set(key, value);
+        }
+      }
+    }
+    const headers = {
+      ...(path.includes("assets") ? {} : {
+        "Content-Type": "application/json"
+      }),
+      ...options.headers,
+      [AUTH_HEADER]: this.accessToken
+    };
+    const body = options.body ? typeof options.body === "object" && !(options.body instanceof FormData) ? JSON.stringify(options.body) : options.body : undefined;
+    return fetch(apiRequestUrl.toString(), {
+      method: options.method,
+      headers,
+      body
+    });
+  }
+  async get(path) {
+    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return this.request(path, {
+      ...options,
+      method: "GET"
+    });
+  }
+  async post(path) {
+    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return this.request(path, {
+      ...options,
+      method: "POST"
+    });
+  }
+  async put(path) {
+    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return this.request(path, {
+      ...options,
+      method: "PUT"
+    });
+  }
+  async delete(path) {
+    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return this.request(path, {
+      ...options,
+      method: "DELETE"
+    });
+  }
+  documents = {
+    get: async payload => {
+      await this.init();
+      const response = await this.get(`/projects/${this.project.id}/documents/${payload.id}`, {
+        searchParams: {
+          format: "full"
+        }
+      });
+      if (response.ok) {
+        return documentWithResolvedConfigDTOToDocument(await response.json());
+      }
+      throw new Error("Failed to get document");
+    },
+    create: async payload => {
+      await this.init();
+      const response = await this.post(`/projects/${this.project.id}/documents`, {
+        body: {
+          title: "Untitled",
+          config: payload.entry,
+          rootContainer: payload.entry._component
+        }
+      });
+      if (response.ok) {
+        return documentDTOToDocument(await response.json(), payload.entry);
+      }
+      if (response.status === 400) {
+        const errorData = await response.json();
+        throw new Error(errorData.error);
+      }
+      throw new Error("Failed to save document");
+    },
+    update: async payload => {
+      await this.init();
+      const response = await this.put(`/projects/${this.project.id}/documents/${payload.id}`, {
+        body: {
+          version: payload.version,
+          config: payload.entry
+        }
+      });
+      if (response.ok) {
+        return documentDTOToDocument(await response.json(), payload.entry);
+      }
+      if (response.status === 400) {
+        const errorData = await response.json();
+        throw new Error(errorData.error);
+      }
+      throw new Error("Failed to update document");
+    }
+  };
+  templates = {
+    get: async payload => {
+      await this.init();
+
+      // dummy inefficient implementation
+      const allTemplates = await this.templates.getAll();
+      const template = allTemplates.items.find(template => template.id === payload.id);
+      if (!template) {
+        throw new Error("Template not found");
+      }
+      return template;
+    },
+    getAll: async () => {
+      await this.init();
+      try {
+        const response = await this.get(`/projects/${this.project.id}/templates`);
+        const data = await response.json();
+        const templates = data.map(item => ({
+          id: item.id,
+          label: item.label,
+          entry: item.config.config,
+          isUserDefined: true,
+          width: item.width,
+          widthAuto: item.widthAuto
+        }));
+        return {
+          items: templates,
+          count: {}
+        };
+      } catch (error) {
+        console.error(error);
+        return {
+          items: [],
+          count: {}
+        };
+      }
+    },
+    create: async input => {
+      await this.init();
+      const payload = {
+        label: input.label,
+        config: input.entry,
+        masterTemplateIds: [],
+        width: input.width,
+        widthAuto: input.widthAuto
+      };
+      const response = await this.request(`/projects/${this.project.id}/templates`, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      if (response.status !== 200) {
+        throw new Error("couldn't create template");
+      }
+      const json = await response.json();
+      return {
+        id: json.id,
+        label: json.label,
+        entry: input.entry,
+        isUserDefined: true
+      };
+    },
+    update: async input => {
+      await this.init();
+      const payload = {
+        label: input.label,
+        masterTemplateIds: []
+      };
+      const response = await this.request(`/projects/${this.project.id}/templates/${input.id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+      const json = await response.json();
+      console.log("update template json", json);
+      if (response.status !== 200) {
+        throw new Error();
+      }
+      return {
+        id: json.id,
+        label: json.label,
+        isUserDefined: true
+      };
+    },
+    delete: async input => {
+      await this.init();
+      const response = await this.request(`/projects/${this.project.id}/templates/${input.id}`, {
+        method: "DELETE"
+      });
+      if (response.status !== 200) {
+        throw new Error();
+      }
+    }
+  };
+}
+function documentDTOToDocument(documentDTO, entry) {
+  if (!documentDTO.root_container) {
+    throw new Error("unexpected server error");
+  }
+  return {
+    id: documentDTO.id,
+    version: documentDTO.version,
+    entry
+  };
+}
+function documentWithResolvedConfigDTOToDocument(documentWithResolvedConfigDTO) {
+  return documentDTOToDocument(documentWithResolvedConfigDTO, documentWithResolvedConfigDTO.config.config);
+}
+
 function createFormMock() {
   let initialValues = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return {
@@ -1604,13 +1839,13 @@ function createFormMock() {
         this.values = value;
         return;
       }
-      EasyblocksBackend.dotNotationSet(this.values, path, value);
+      ComponentBuilder.dotNotationSet(this.values, path, value);
     }
   };
 }
 function createTestCompilationContext() {
-  return EasyblocksBackend.createCompilationContext({
-    backend: new EasyblocksBackend.EasyblocksBackend({
+  return ComponentBuilder.createCompilationContext({
+    backend: new EasyblocksBackend({
       accessToken: ""
     }),
     locales: [{
@@ -1626,46 +1861,46 @@ function createTestCompilationContext() {
   }, "TestComponent");
 }
 
-exports.CompilationCache = EasyblocksBackend.CompilationCache;
-exports.ComponentBuilder = EasyblocksBackend.ComponentBuilder;
-exports.EasyblocksMetadataProvider = EasyblocksBackend.EasyblocksMetadataProvider;
-exports.buildRichTextBlockElementComponentConfig = EasyblocksBackend.buildRichTextBlockElementComponentConfig;
-exports.buildRichTextBulletedListBlockElementComponentConfig = EasyblocksBackend.buildRichTextBulletedListBlockElementComponentConfig;
-exports.buildRichTextComponentConfig = EasyblocksBackend.buildRichTextComponentConfig;
-exports.buildRichTextLineElementComponentConfig = EasyblocksBackend.buildRichTextLineElementComponentConfig;
-exports.buildRichTextNoCodeEntry = EasyblocksBackend.buildRichTextNoCodeEntry;
-exports.buildRichTextParagraphBlockElementComponentConfig = EasyblocksBackend.buildRichTextParagraphBlockElementComponentConfig;
-exports.buildRichTextPartComponentConfig = EasyblocksBackend.buildRichTextPartComponentConfig;
-exports.compileBox = EasyblocksBackend.compileBox;
-exports.compileInternal = EasyblocksBackend.compileInternal;
-exports.componentPickerClosed = EasyblocksBackend.componentPickerClosed;
-exports.componentPickerOpened = EasyblocksBackend.componentPickerOpened;
-exports.configTraverse = EasyblocksBackend.configTraverse;
-exports.findComponentDefinition = EasyblocksBackend.findComponentDefinition;
-exports.findComponentDefinitionById = EasyblocksBackend.findComponentDefinitionById;
-exports.findPathOfFirstAncestorOfType = EasyblocksBackend.findPathOfFirstAncestorOfType;
-exports.getBoxStyles = EasyblocksBackend.getBoxStyles;
-exports.getSchemaDefinition = EasyblocksBackend.getSchemaDefinition;
-exports.isCustomSchemaProp = EasyblocksBackend.isCustomSchemaProp;
-exports.isExternalSchemaProp = EasyblocksBackend.isExternalSchemaProp;
-exports.isSchemaPropActionTextModifier = EasyblocksBackend.isSchemaPropActionTextModifier;
-exports.isSchemaPropCollection = EasyblocksBackend.isSchemaPropCollection;
-exports.isSchemaPropComponent = EasyblocksBackend.isSchemaPropComponent;
-exports.isSchemaPropComponentCollectionLocalised = EasyblocksBackend.isSchemaPropComponentCollectionLocalised;
-exports.isSchemaPropComponentOrComponentCollection = EasyblocksBackend.isSchemaPropComponentOrComponentCollection;
-exports.isSchemaPropTextModifier = EasyblocksBackend.isSchemaPropTextModifier;
-exports.itemInserted = EasyblocksBackend.itemInserted;
-exports.itemMoved = EasyblocksBackend.itemMoved;
-exports.normalize = EasyblocksBackend.normalize;
-exports.parsePath = EasyblocksBackend.parsePath;
-exports.richTextChangedEvent = EasyblocksBackend.richTextChangedEvent;
-exports.scalarizeConfig = EasyblocksBackend.scalarizeConfig;
-exports.selectionFramePositionChanged = EasyblocksBackend.selectionFramePositionChanged;
-exports.stripRichTextPartSelection = EasyblocksBackend.stripRichTextPartSelection;
-exports.textModifierSchemaProp = EasyblocksBackend.textModifierSchemaProp;
-exports.textStyles = EasyblocksBackend.textStyles;
-exports.traverseComponents = EasyblocksBackend.traverseComponents;
-exports.useEasyblocksMetadata = EasyblocksBackend.useEasyblocksMetadata;
+exports.CompilationCache = ComponentBuilder.CompilationCache;
+exports.ComponentBuilder = ComponentBuilder.ComponentBuilder;
+exports.EasyblocksMetadataProvider = ComponentBuilder.EasyblocksMetadataProvider;
+exports.buildRichTextBlockElementComponentConfig = ComponentBuilder.buildRichTextBlockElementComponentConfig;
+exports.buildRichTextBulletedListBlockElementComponentConfig = ComponentBuilder.buildRichTextBulletedListBlockElementComponentConfig;
+exports.buildRichTextComponentConfig = ComponentBuilder.buildRichTextComponentConfig;
+exports.buildRichTextLineElementComponentConfig = ComponentBuilder.buildRichTextLineElementComponentConfig;
+exports.buildRichTextNoCodeEntry = ComponentBuilder.buildRichTextNoCodeEntry;
+exports.buildRichTextParagraphBlockElementComponentConfig = ComponentBuilder.buildRichTextParagraphBlockElementComponentConfig;
+exports.buildRichTextPartComponentConfig = ComponentBuilder.buildRichTextPartComponentConfig;
+exports.compileBox = ComponentBuilder.compileBox;
+exports.compileInternal = ComponentBuilder.compileInternal;
+exports.componentPickerClosed = ComponentBuilder.componentPickerClosed;
+exports.componentPickerOpened = ComponentBuilder.componentPickerOpened;
+exports.configTraverse = ComponentBuilder.configTraverse;
+exports.findComponentDefinition = ComponentBuilder.findComponentDefinition;
+exports.findComponentDefinitionById = ComponentBuilder.findComponentDefinitionById;
+exports.findPathOfFirstAncestorOfType = ComponentBuilder.findPathOfFirstAncestorOfType;
+exports.getBoxStyles = ComponentBuilder.getBoxStyles;
+exports.getSchemaDefinition = ComponentBuilder.getSchemaDefinition;
+exports.isCustomSchemaProp = ComponentBuilder.isCustomSchemaProp;
+exports.isExternalSchemaProp = ComponentBuilder.isExternalSchemaProp;
+exports.isSchemaPropActionTextModifier = ComponentBuilder.isSchemaPropActionTextModifier;
+exports.isSchemaPropCollection = ComponentBuilder.isSchemaPropCollection;
+exports.isSchemaPropComponent = ComponentBuilder.isSchemaPropComponent;
+exports.isSchemaPropComponentCollectionLocalised = ComponentBuilder.isSchemaPropComponentCollectionLocalised;
+exports.isSchemaPropComponentOrComponentCollection = ComponentBuilder.isSchemaPropComponentOrComponentCollection;
+exports.isSchemaPropTextModifier = ComponentBuilder.isSchemaPropTextModifier;
+exports.itemInserted = ComponentBuilder.itemInserted;
+exports.itemMoved = ComponentBuilder.itemMoved;
+exports.normalize = ComponentBuilder.normalize;
+exports.parsePath = ComponentBuilder.parsePath;
+exports.richTextChangedEvent = ComponentBuilder.richTextChangedEvent;
+exports.scalarizeConfig = ComponentBuilder.scalarizeConfig;
+exports.selectionFramePositionChanged = ComponentBuilder.selectionFramePositionChanged;
+exports.stripRichTextPartSelection = ComponentBuilder.stripRichTextPartSelection;
+exports.textModifierSchemaProp = ComponentBuilder.textModifierSchemaProp;
+exports.textStyles = ComponentBuilder.textStyles;
+exports.traverseComponents = ComponentBuilder.traverseComponents;
+exports.useEasyblocksMetadata = ComponentBuilder.useEasyblocksMetadata;
 exports.RichTextEditor = RichTextEditor;
 exports.TextEditor = TextEditor;
 exports.buildText = buildText;

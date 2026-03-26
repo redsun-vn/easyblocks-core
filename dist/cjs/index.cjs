@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var EasyblocksBackend = require('./EasyblocksBackend-32c46b8f.js');
+var ComponentBuilder = require('./ComponentBuilder-e83869cd.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');
@@ -89,7 +89,7 @@ const box = (styles, tag) => {
 
 function responsiveValueSet(responsiveValue, deviceId, value, devices) {
   let trulyResponsive;
-  if (EasyblocksBackend.isTrulyResponsiveValue(responsiveValue)) {
+  if (ComponentBuilder.isTrulyResponsiveValue(responsiveValue)) {
     trulyResponsive = {
       ...responsiveValue
     };
@@ -143,7 +143,7 @@ function mergeDefinitions(definitions1, definitions2) {
 }
 
 function validate(input) {
-  const isValid = input === null || input === undefined || EasyblocksBackend.isDocument(input) || isLegacyInput(input);
+  const isValid = input === null || input === undefined || ComponentBuilder.isDocument(input) || isLegacyInput(input);
   if (!isValid) {
     return {
       isValid: false
@@ -155,14 +155,14 @@ function validate(input) {
   };
 }
 function isLegacyInput(input) {
-  return EasyblocksBackend.isComponentConfig(input);
+  return ComponentBuilder.isComponentConfig(input);
 }
 
 function normalizeInput(input) {
   if (isLegacyInput(input)) {
     return input;
   }
-  if (EasyblocksBackend.isDocument(input) && input.entry) {
+  if (ComponentBuilder.isDocument(input) && input.entry) {
     return input.entry;
   }
   throw new Error("Internal error: Can't obtain config from remote document.");
@@ -174,13 +174,13 @@ const compile = (content, config, contextParams) => {
     vars: {},
     code: {}
   };
-  const compilationContext = EasyblocksBackend.createCompilationContext(config, contextParams, content._component);
+  const compilationContext = ComponentBuilder.createCompilationContext(config, contextParams, content._component);
   const inputConfigComponent = normalizeInput(content);
   const {
     meta,
     compiled,
     configAfterAuto
-  } = EasyblocksBackend.compileInternal(inputConfigComponent, compilationContext);
+  } = ComponentBuilder.compileInternal(inputConfigComponent, compilationContext);
   resultMeta = mergeCompilationMeta(resultMeta, meta);
   return {
     compiled,
@@ -192,9 +192,9 @@ const compile = (content, config, contextParams) => {
 const findExternals = (input, config, contextParams) => {
   const inputConfigComponent = normalizeInput(input);
   const externalsWithSchemaProps = [];
-  const compilationContext = EasyblocksBackend.createCompilationContext(config, contextParams, input._component);
-  const normalizedConfig = EasyblocksBackend.normalize(inputConfigComponent, compilationContext);
-  EasyblocksBackend.configTraverse(normalizedConfig, compilationContext, _ref => {
+  const compilationContext = ComponentBuilder.createCompilationContext(config, contextParams, input._component);
+  const normalizedConfig = ComponentBuilder.normalize(inputConfigComponent, compilationContext);
+  ComponentBuilder.configTraverse(normalizedConfig, compilationContext, _ref => {
     let {
       config,
       value,
@@ -203,26 +203,26 @@ const findExternals = (input, config, contextParams) => {
     // This kinda tricky, because "text" is a special case. It can be either local or external.
     // To prevent false positives, we need to check if it's local text reference and make sure that we won't
     // treat "text" that's actually external as non external.
-    if (schemaProp.type === "text" && EasyblocksBackend.isLocalTextReference(value, "text") || schemaProp.type !== "text" && !EasyblocksBackend.isExternalSchemaProp(schemaProp, compilationContext.types)) {
+    if (schemaProp.type === "text" && ComponentBuilder.isLocalTextReference(value, "text") || schemaProp.type !== "text" && !ComponentBuilder.isExternalSchemaProp(schemaProp, compilationContext.types)) {
       return;
     }
     const hasInputComponentRootParams = compilationContext.definitions.components.some(c => c.id === normalizedConfig._component && c.rootParams !== undefined);
     const configId = normalizedConfig._id === config._id && hasInputComponentRootParams ? "$" : config._id;
-    if (EasyblocksBackend.isTrulyResponsiveValue(value)) {
-      EasyblocksBackend.responsiveValueEntries(value).forEach(_ref2 => {
+    if (ComponentBuilder.isTrulyResponsiveValue(value)) {
+      ComponentBuilder.responsiveValueEntries(value).forEach(_ref2 => {
         let [breakpoint, currentValue] = _ref2;
         if (currentValue === undefined) {
           return;
         }
         externalsWithSchemaProps.push({
-          id: EasyblocksBackend.getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
+          id: ComponentBuilder.getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
           schemaProp: schemaProp,
           externalReference: currentValue
         });
       });
     } else {
       externalsWithSchemaProps.push({
-        id: EasyblocksBackend.getExternalReferenceLocationKey(configId, schemaProp.prop),
+        id: ComponentBuilder.getExternalReferenceLocationKey(configId, schemaProp.prop),
         schemaProp: schemaProp,
         externalReference: value
       });
@@ -275,7 +275,7 @@ function findChangedExternalData(resourcesWithSchemaProps, externalData, isExter
     }
 
     // If id is a string and it's either local text reference or a reference to document's data, then it's not pending
-    if (typeof resource.externalId === "string" && (EasyblocksBackend.isLocalTextReference({
+    if (typeof resource.externalId === "string" && (ComponentBuilder.isLocalTextReference({
       id: resource.externalId
     }, type) || resource.externalId.startsWith("$."))) {
       return false;
@@ -500,7 +500,7 @@ async function buildDocument(_ref) {
   return {
     renderableDocument: {
       renderableContent,
-      meta: EasyblocksBackend.serialize(meta),
+      meta: ComponentBuilder.serialize(meta),
       configAfterAuto
     },
     externalData
@@ -593,7 +593,7 @@ function TextClient(props) {
   } = props;
 
   // We need to transform new lines into <br />
-  const lines = EasyblocksBackend.cleanString(value || "").split(/(?:\r\n|\r|\n)/g);
+  const lines = ComponentBuilder.cleanString(value || "").split(/(?:\r\n|\r|\n)/g);
   const elements = [];
   lines.forEach((line, index) => {
     elements.push(/*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, {
@@ -690,9 +690,9 @@ const builtinComponents = {
   "@easyblocks/rich-text.client": RichTextClient,
   "@easyblocks/rich-text-block-element": RichTextBlockElementClient,
   "@easyblocks/rich-text-line-element": RichTextLineElementClient,
-  "@easyblocks/rich-text-part": EasyblocksBackend.RichTextPartClient,
+  "@easyblocks/rich-text-part": ComponentBuilder.RichTextPartClient,
   "@easyblocks/text.client": TextClient,
-  "EditableComponentBuilder.client": EasyblocksBackend.ComponentBuilder
+  "EditableComponentBuilder.client": ComponentBuilder.ComponentBuilder
 };
 function Easyblocks(_ref) {
   let {
@@ -715,11 +715,11 @@ function Easyblocks(_ref) {
       renderableContent.components[componentProp] = [componentOverride];
     });
   }
-  return /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.EasyblocksMetadataProvider, {
+  return /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.EasyblocksMetadataProvider, {
     meta: renderableDocument.meta
-  }, /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.EasyblocksExternalDataProvider, {
+  }, /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.EasyblocksExternalDataProvider, {
     externalData: externalData ?? {}
-  }, /*#__PURE__*/React__default["default"].createElement(EasyblocksBackend.ComponentBuilder, {
+  }, /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.ComponentBuilder, {
     compiled: renderableContent,
     path: "",
     components: {
@@ -759,56 +759,54 @@ const globalSectionGroups = [{
   name: "Footers"
 }];
 
-exports.CompilationCache = EasyblocksBackend.CompilationCache;
-exports.EasyblocksBackend = EasyblocksBackend.EasyblocksBackend;
-exports.buildRichTextNoCodeEntry = EasyblocksBackend.buildRichTextNoCodeEntry;
-exports.compileInternal = EasyblocksBackend.compileInternal;
-exports.createCompilationContext = EasyblocksBackend.createCompilationContext;
-exports.easyblocksGetCssText = EasyblocksBackend.easyblocksGetCssText;
-exports.easyblocksGetStyleTag = EasyblocksBackend.easyblocksGetStyleTag;
-exports.getDefaultLocale = EasyblocksBackend.getDefaultLocale;
-exports.getDevicesWidths = EasyblocksBackend.getDevicesWidths;
-exports.getExternalReferenceLocationKey = EasyblocksBackend.getExternalReferenceLocationKey;
-exports.getExternalValue = EasyblocksBackend.getExternalValue;
-exports.getFallbackForLocale = EasyblocksBackend.getFallbackForLocale;
-exports.getFallbackLocaleForLocale = EasyblocksBackend.getFallbackLocaleForLocale;
-exports.getResolvedExternalDataValue = EasyblocksBackend.getResolvedExternalDataValue;
-exports.getSchemaDefinition = EasyblocksBackend.getSchemaDefinition;
-exports.isComponentConfig = EasyblocksBackend.isComponentConfig;
-exports.isCompoundExternalDataValue = EasyblocksBackend.isCompoundExternalDataValue;
-exports.isDocument = EasyblocksBackend.isDocument;
-exports.isEmptyExternalReference = EasyblocksBackend.isEmptyExternalReference;
-exports.isEmptyRenderableContent = EasyblocksBackend.isEmptyRenderableContent;
-exports.isIdReferenceToDocumentExternalValue = EasyblocksBackend.isIdReferenceToDocumentExternalValue;
-exports.isLocalTextReference = EasyblocksBackend.isLocalTextReference;
-exports.isLocalValue = EasyblocksBackend.isLocalValue;
-exports.isNonEmptyRenderableContent = EasyblocksBackend.isNonEmptyRenderableContent;
-exports.isRenderableContent = EasyblocksBackend.isRenderableContent;
-exports.isResolvedCompoundExternalDataValue = EasyblocksBackend.isResolvedCompoundExternalDataValue;
-exports.isTrulyResponsiveValue = EasyblocksBackend.isTrulyResponsiveValue;
-exports.normalize = EasyblocksBackend.normalize;
-exports.parseSpacing = EasyblocksBackend.parseSpacing;
-exports.resolveExternalValue = EasyblocksBackend.resolveExternalValue;
-exports.resolveLocalisedValue = EasyblocksBackend.resolveLocalisedValue;
-exports.responsiveValueAt = EasyblocksBackend.responsiveValueAt;
-exports.responsiveValueEntries = EasyblocksBackend.responsiveValueEntries;
-exports.responsiveValueFill = EasyblocksBackend.responsiveValueFill;
-exports.responsiveValueFindDeviceWithDefinedValue = EasyblocksBackend.responsiveValueFindDeviceWithDefinedValue;
-exports.responsiveValueFindHigherDeviceWithDefinedValue = EasyblocksBackend.responsiveValueFindHigherDeviceWithDefinedValue;
-exports.responsiveValueFindLowerDeviceWithDefinedValue = EasyblocksBackend.responsiveValueFindLowerDeviceWithDefinedValue;
-exports.responsiveValueFlatten = EasyblocksBackend.responsiveValueFlatten;
-exports.responsiveValueForceGet = EasyblocksBackend.responsiveValueForceGet;
-exports.responsiveValueGet = EasyblocksBackend.responsiveValueGet;
-exports.responsiveValueGetDefinedValue = EasyblocksBackend.responsiveValueGetDefinedValue;
-exports.responsiveValueGetFirstHigherValue = EasyblocksBackend.responsiveValueGetFirstHigherValue;
-exports.responsiveValueGetFirstLowerValue = EasyblocksBackend.responsiveValueGetFirstLowerValue;
-exports.responsiveValueGetHighestDefinedDevice = EasyblocksBackend.responsiveValueGetHighestDefinedDevice;
-exports.responsiveValueMap = EasyblocksBackend.responsiveValueMap;
-exports.responsiveValueNormalize = EasyblocksBackend.responsiveValueNormalize;
-exports.responsiveValueReduce = EasyblocksBackend.responsiveValueReduce;
-exports.responsiveValueValues = EasyblocksBackend.responsiveValueValues;
-exports.spacingToPx = EasyblocksBackend.spacingToPx;
-exports.validateColor = EasyblocksBackend.validateColor;
+exports.buildRichTextNoCodeEntry = ComponentBuilder.buildRichTextNoCodeEntry;
+exports.compileInternal = ComponentBuilder.compileInternal;
+exports.createCompilationContext = ComponentBuilder.createCompilationContext;
+exports.easyblocksGetCssText = ComponentBuilder.easyblocksGetCssText;
+exports.easyblocksGetStyleTag = ComponentBuilder.easyblocksGetStyleTag;
+exports.getDefaultLocale = ComponentBuilder.getDefaultLocale;
+exports.getDevicesWidths = ComponentBuilder.getDevicesWidths;
+exports.getExternalReferenceLocationKey = ComponentBuilder.getExternalReferenceLocationKey;
+exports.getExternalValue = ComponentBuilder.getExternalValue;
+exports.getFallbackForLocale = ComponentBuilder.getFallbackForLocale;
+exports.getFallbackLocaleForLocale = ComponentBuilder.getFallbackLocaleForLocale;
+exports.getResolvedExternalDataValue = ComponentBuilder.getResolvedExternalDataValue;
+exports.getSchemaDefinition = ComponentBuilder.getSchemaDefinition;
+exports.isComponentConfig = ComponentBuilder.isComponentConfig;
+exports.isCompoundExternalDataValue = ComponentBuilder.isCompoundExternalDataValue;
+exports.isDocument = ComponentBuilder.isDocument;
+exports.isEmptyExternalReference = ComponentBuilder.isEmptyExternalReference;
+exports.isEmptyRenderableContent = ComponentBuilder.isEmptyRenderableContent;
+exports.isIdReferenceToDocumentExternalValue = ComponentBuilder.isIdReferenceToDocumentExternalValue;
+exports.isLocalTextReference = ComponentBuilder.isLocalTextReference;
+exports.isLocalValue = ComponentBuilder.isLocalValue;
+exports.isNonEmptyRenderableContent = ComponentBuilder.isNonEmptyRenderableContent;
+exports.isRenderableContent = ComponentBuilder.isRenderableContent;
+exports.isResolvedCompoundExternalDataValue = ComponentBuilder.isResolvedCompoundExternalDataValue;
+exports.isTrulyResponsiveValue = ComponentBuilder.isTrulyResponsiveValue;
+exports.normalize = ComponentBuilder.normalize;
+exports.parseSpacing = ComponentBuilder.parseSpacing;
+exports.resolveExternalValue = ComponentBuilder.resolveExternalValue;
+exports.resolveLocalisedValue = ComponentBuilder.resolveLocalisedValue;
+exports.responsiveValueAt = ComponentBuilder.responsiveValueAt;
+exports.responsiveValueEntries = ComponentBuilder.responsiveValueEntries;
+exports.responsiveValueFill = ComponentBuilder.responsiveValueFill;
+exports.responsiveValueFindDeviceWithDefinedValue = ComponentBuilder.responsiveValueFindDeviceWithDefinedValue;
+exports.responsiveValueFindHigherDeviceWithDefinedValue = ComponentBuilder.responsiveValueFindHigherDeviceWithDefinedValue;
+exports.responsiveValueFindLowerDeviceWithDefinedValue = ComponentBuilder.responsiveValueFindLowerDeviceWithDefinedValue;
+exports.responsiveValueFlatten = ComponentBuilder.responsiveValueFlatten;
+exports.responsiveValueForceGet = ComponentBuilder.responsiveValueForceGet;
+exports.responsiveValueGet = ComponentBuilder.responsiveValueGet;
+exports.responsiveValueGetDefinedValue = ComponentBuilder.responsiveValueGetDefinedValue;
+exports.responsiveValueGetFirstHigherValue = ComponentBuilder.responsiveValueGetFirstHigherValue;
+exports.responsiveValueGetFirstLowerValue = ComponentBuilder.responsiveValueGetFirstLowerValue;
+exports.responsiveValueGetHighestDefinedDevice = ComponentBuilder.responsiveValueGetHighestDefinedDevice;
+exports.responsiveValueMap = ComponentBuilder.responsiveValueMap;
+exports.responsiveValueNormalize = ComponentBuilder.responsiveValueNormalize;
+exports.responsiveValueReduce = ComponentBuilder.responsiveValueReduce;
+exports.responsiveValueValues = ComponentBuilder.responsiveValueValues;
+exports.spacingToPx = ComponentBuilder.spacingToPx;
+exports.validateColor = ComponentBuilder.validateColor;
 exports.Easyblocks = Easyblocks;
 exports.box = box;
 exports.buildDocument = buildDocument;
