@@ -371,9 +371,11 @@ function getFontWeights() {
     id: "400",
     value: "400",
     label: "Normal (400)"
-  },
-  // { id: "500", value: "500", label: "Medium (500)" },
-  {
+  }, {
+    id: "500",
+    value: "500",
+    label: "Medium (500)"
+  }, {
     id: "600",
     value: "600",
     label: "Semi Bold (600)"
@@ -381,8 +383,11 @@ function getFontWeights() {
     id: "700",
     value: "700",
     label: "Bold (700)"
+  }, {
+    id: "800",
+    value: "800",
+    label: "Extra Bold (800)"
   }
-  // { id: "800", value: "800", label: "Extra Bold (800)" },
   // { id: "900", value: "900", label: "Black (900)" },
   ];
 }
