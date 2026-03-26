@@ -23,9 +23,9 @@ export {
   normalize,
   normalizeInput,
   validate,
+  CompilationCache,
 } from "./compiler";
 export type {
-  CompilationCache,
   CompilationCacheItemValue,
   SchemaPropDefinitionProviders,
   TemplateQueryType,

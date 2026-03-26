@@ -759,6 +759,7 @@ const globalSectionGroups = [{
   name: "Footers"
 }];
 
+exports.CompilationCache = ComponentBuilder.CompilationCache;
 exports.buildRichTextNoCodeEntry = ComponentBuilder.buildRichTextNoCodeEntry;
 exports.compileInternal = ComponentBuilder.compileInternal;
 exports.createCompilationContext = ComponentBuilder.createCompilationContext;
