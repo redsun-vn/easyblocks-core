@@ -440,7 +440,7 @@ async function loadGoogleFonts(fonts) {
     const WebFont = await import('webfontloader');
     WebFont.load({
       google: {
-        families: (fonts ?? fontFamilies).map(font => `${font}:300,400,600,700&display=swap`)
+        families: (fonts ?? fontFamilies).map(font => `${font}:300,400,500,600,700,800&display=swap`)
       }
     });
   }
