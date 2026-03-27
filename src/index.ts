@@ -14,6 +14,7 @@ export {
 } from "./checkers";
 
 export {
+  CompilationCache,
   compile,
   compileInternal,
   createCompilationContext,
@@ -23,23 +24,20 @@ export {
   normalize,
   normalizeInput,
   validate,
-  CompilationCache,
-} from "./compiler";
-export type {
-  CompilationCacheItemValue,
-  SchemaPropDefinitionProviders,
-  TemplateQueryType,
-  TGlobalSectionChange,
+  type CompilationCacheItemValue,
+  type SchemaPropDefinitionProviders,
+  type TemplateQueryType,
+  type TGlobalSectionChange,
 } from "./compiler";
 
 export { buildRichTextNoCodeEntry } from "./compiler/builtins/$richText/builders";
 export { resolveLocalisedValue } from "./compiler/definitions";
 export { getDevicesWidths } from "./compiler/devices";
 export { validateColor } from "./compiler/validate-color";
-export { Easyblocks } from "./components/Easyblocks";
-export type {
-  ComponentOverrides,
-  EasyblocksProps,
+export {
+  Easyblocks,
+  type ComponentOverrides,
+  type EasyblocksProps,
 } from "./components/Easyblocks";
 export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
 export type {
@@ -54,8 +52,8 @@ export {
   getDefaultLocale,
   getFallbackForLocale,
   getFallbackLocaleForLocale,
+  type Locale,
 } from "./locales";
-export type { Locale } from "./locales";
 
 export {
   getExternalReferenceLocationKey,
