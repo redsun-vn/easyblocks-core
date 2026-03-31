@@ -294,7 +294,7 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
       normalize,
       compile: (x) => x,
       getHash: (value) => {
-        return value.toString();
+        return value?.toString();
       },
     };
   },
@@ -345,7 +345,7 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
           return breakpointValue?.toString();
         }
 
-        return value.toString();
+        return value?.toString();
       },
     };
   },
@@ -886,6 +886,10 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
         );
       },
       getHash: (value, breakpointIndex) => {
+        if (value === undefined || value === null) {
+          return;
+        }
+
         function getTokenValue(value: TokenValue) {
           if (value.tokenId) {
             return value.tokenId;

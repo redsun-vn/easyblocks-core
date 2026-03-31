@@ -814,13 +814,18 @@ function flattenItemProps(
     | ComponentCollectionLocalisedSchemaProp,
   itemsSchemas: Array<SchemaProp>
 ) {
+  const collectionItemProps =
+    config._itemProps?.[componentDefinition.id]?.[collectionSchemaProp.prop];
+
+  if (!collectionItemProps) {
+    return {};
+  }
+
   const itemProps = Object.fromEntries(
     itemsSchemas.map((itemSchemaProp) => {
       return [
         itemSchemaProp.prop,
-        config._itemProps[componentDefinition.id][collectionSchemaProp.prop][
-          itemSchemaProp.prop
-        ],
+        collectionItemProps[itemSchemaProp.prop],
       ];
     })
   );
@@ -1059,6 +1064,10 @@ function itemFieldsForEach(
             const itemPath = `${path}.${index}.${itemSchemaProp.prop}`;
             const itemValue = dotNotationGet(config, itemPath);
 
+            if (itemValue === undefined) {
+              return;
+            }
+
             callback({
               collectionSchemaProp: schemaProp,
               itemIndex: index,
@@ -1234,7 +1243,7 @@ function buildDefaultEditingInfo(
   definition.schema.forEach((schemaProp) => {
     if (isSchemaPropCollection(schemaProp)) {
       editingInfo.components[schemaProp.prop] = {
-        items: scalarizedConfig[schemaProp.prop].map(
+        items: (scalarizedConfig[schemaProp.prop] ?? []).map(
           (x: any, index: number) => ({
             fields: (schemaProp.itemFields ?? []).map((itemSchemaProp) =>
               getDefaultFieldDefinition(
