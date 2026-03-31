@@ -814,12 +814,8 @@ function flattenItemProps(
     | ComponentCollectionLocalisedSchemaProp,
   itemsSchemas: Array<SchemaProp>
 ) {
-  console.log("component definition", componentDefinition);
-  console.log("collection schema prop", collectionSchemaProp);
-  console.log("config item prop", config._itemProps);
   const collectionItemProps =
     config._itemProps?.[componentDefinition.id]?.[collectionSchemaProp.prop];
-  console.log("collection item props", collectionItemProps);
 
   if (!collectionItemProps) {
     return {};

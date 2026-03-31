@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var ComponentBuilder = require('./ComponentBuilder-5e907044.js');
+var ComponentBuilder = require('./ComponentBuilder-770d7e0f.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');
