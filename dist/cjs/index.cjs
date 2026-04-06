@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var ComponentBuilder = require('./ComponentBuilder-e3106276.js');
+var ComponentBuilder = require('./ComponentBuilder-97eaa5a6.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');
@@ -471,7 +471,7 @@ async function loadGoogleFonts(fonts) {
     const WebFont = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('webfontloader')); });
     WebFont.load({
       google: {
-        families: (fonts ?? fontFamilies).map(font => `${font}:300,400,500,600,700,800&display=swap`)
+        families: (fonts ?? fontFamilies).map(font => `${font}:300,400,500,600,700,800`)
       }
     });
   }

@@ -332,7 +332,7 @@ export async function loadGoogleFonts(fonts?: string[]): Promise<void> {
     WebFont.load({
       google: {
         families: (fonts ?? fontFamilies).map(
-          (font) => `${font}:300,400,500,600,700,800&display=swap`,
+          (font) => `${font}:300,400,500,600,700,800`,
         ),
       },
     });
