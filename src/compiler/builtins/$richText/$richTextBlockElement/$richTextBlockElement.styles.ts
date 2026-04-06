@@ -81,11 +81,17 @@ export function richTextBlockElementStyles({
       : numberedListMarkerStyles),
   };
 
-  const colorStyles = {
-    background: mainColor,
-    backgroundClip: "text",
-    color: "transparent",
-  };
+  const isGradient = mainColor.toLowerCase().includes("gradient");
+
+  const colorStyles = isGradient
+    ? {
+      background: mainColor,
+      backgroundClip: "text",
+      color: "transparent",
+    }
+    : {
+      color: mainColor,
+    };
 
   const listStyles = {
     counterSet: "list-item",
