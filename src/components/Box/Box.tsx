@@ -11,6 +11,9 @@ const boxStyles = {
   listStyle: "none",
 };
 
+// Module-level cache: hash → generated CSS class names, avoids redundant stitches.css() calls
+const classCache = new Map<string, { boxClassName: string; componentClassName: string }>();
+
 type BoxProps = {
   __compiled: any;
   __name?: string;
@@ -38,24 +41,29 @@ const Box = React.forwardRef<HTMLElement, BoxProps>((props, ref) => {
   const { as, itemWrappers, className, ...restPassedProps } = realProps;
 
   const { boxClassName, componentClassName } = useMemo(() => {
+    const hash = styles.__hash;
+
+    const cached = classCache.get(hash);
+    if (cached) return cached;
+
     /**
-     * Why parse+stringify?
+     * Why structuredClone (previously parse+stringify)?
      *
-     * Because if we remove them some nested objects in styles (like media queries etc) don't work (although they exist in the object).
-     * Why? My bet is this: Stitches uses CSSOM to inject styles. Maybe (for some weird reason, maybe even browser bug) if some part of the object is not in iframe scope but in parent window scope then it's somehow ignored? Absolutely no idea right now, happy this works.
+     * Because if we pass the raw object, some nested objects in styles (like media queries etc) don't work.
+     * My bet: Stitches uses CSSOM to inject styles. If part of the object is not in iframe scope but in
+     * parent window scope it gets ignored. structuredClone produces a fresh same-realm copy.
      */
-    const correctedStyles = getBoxStyles(
-      JSON.parse(JSON.stringify(styles)),
-      devices,
-    );
+    const correctedStyles = getBoxStyles(structuredClone(styles), devices);
 
     const generateBoxClass = stitches.css(boxStyles);
     const generateClassName = stitches.css(correctedStyles);
 
-    return {
-      boxClassName: generateBoxClass(),
-      componentClassName: generateClassName(),
+    const result = {
+      boxClassName: generateBoxClass().className,
+      componentClassName: generateClassName().className,
     };
+    classCache.set(hash, result);
+    return result;
   }, [styles.__hash]);
 
   return React.createElement(

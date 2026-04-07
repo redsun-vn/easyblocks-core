@@ -7,10 +7,29 @@ import {
 
 type AnyContextWithDefinitions = { definitions: InternalComponentDefinitions };
 
+// WeakMap cache: builds a Map<id, definition> per context for O(1) lookups
+const contextMapCache = new WeakMap<
+  AnyContextWithDefinitions,
+  Map<string, InternalComponentDefinition>
+>();
+
 function allDefs(
   context?: AnyContextWithDefinitions
 ): InternalComponentDefinition[] {
   return context?.definitions.components || [];
+}
+
+function getDefMap(
+  context?: AnyContextWithDefinitions
+): Map<string, InternalComponentDefinition> {
+  if (!context) return new Map();
+
+  let map = contextMapCache.get(context);
+  if (!map) {
+    map = new Map(allDefs(context).map((def) => [def.id, def]));
+    contextMapCache.set(context, map);
+  }
+  return map;
 }
 
 /**
@@ -59,5 +78,5 @@ function $findComponentDefinitionById(
   id: string,
   context?: AnyContextWithDefinitions
 ): InternalComponentDefinition | undefined {
-  return allDefs(context).find((component) => component.id === id);
+  return getDefMap(context).get(id);
 }

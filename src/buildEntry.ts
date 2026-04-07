@@ -57,11 +57,7 @@ function buildEntry({
 
   const contextParams = { locale };
   const compilationResult = compiler.compile(entry, config, contextParams);
-  const resourcesWithSchemaProps = compiler.findExternals(
-    entry,
-    config,
-    contextParams
-  );
+  const resourcesWithSchemaProps = compilationResult.externals;
 
   const pendingExternalData = findChangedExternalData(
     resourcesWithSchemaProps,

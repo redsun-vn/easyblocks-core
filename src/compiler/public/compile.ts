@@ -3,6 +3,10 @@ import { CompilationMetadata, CompilerModule } from "../../types";
 import { compileInternal } from "../compileInternal";
 import { createCompilationContext } from "../createCompilationContext";
 import { normalizeInput } from "../normalizeInput";
+import { PersistentCompilationCache } from "../persistent-compilation-cache";
+
+// Module-level cache — survives across buildEntry calls (page navigations)
+const persistentCache = new PersistentCompilationCache();
 
 export const compile: CompilerModule["compile"] = (
   content,
@@ -23,9 +27,10 @@ export const compile: CompilerModule["compile"] = (
 
   const inputConfigComponent = normalizeInput(content);
 
-  const { meta, compiled, configAfterAuto } = compileInternal(
+  const { meta, compiled, configAfterAuto, externals } = compileInternal(
     inputConfigComponent,
-    compilationContext
+    compilationContext,
+    persistentCache
   );
 
   resultMeta = mergeCompilationMeta(resultMeta, meta);
@@ -34,5 +39,6 @@ export const compile: CompilerModule["compile"] = (
     compiled,
     configAfterAuto,
     meta: resultMeta,
+    externals,
   };
 };

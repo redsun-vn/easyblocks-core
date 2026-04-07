@@ -912,6 +912,7 @@ export type CompilerModule = {
     compiled: CompiledShopstoryComponentConfig;
     configAfterAuto?: any;
     meta: CompilationMetadata;
+    externals: ExternalWithSchemaProp[];
   };
   /**
    * We need findResources function that also comes from the cloud.
