@@ -440,14 +440,29 @@ function getFontSizes() {
     label: s.label ?? ""
   }));
 }
-async function loadGoogleFonts(fonts) {
+const loadedFonts = new Set();
+async function loadGoogleFonts() {
+  let {
+    fonts,
+    waitFontReady
+  } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   if (typeof window === "undefined") return;
-  const selectedFonts = fonts ?? fontFamilies;
+  const selectedFonts = (fonts ?? fontFamilies).filter(f => !loadedFonts.has(f));
+  if (!selectedFonts.length) {
+    if (waitFontReady) {
+      await document.fonts.ready;
+    }
+    return;
+  }
+  selectedFonts.forEach(f => loadedFonts.add(f));
   const families = selectedFonts.map(f => `${f.replace(/ /g, "+")}:300,400,500,600,700,800`).join("|");
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = `https://fonts.googleapis.com/css?family=${families}&display=swap`;
   document.head.appendChild(link);
+  if (waitFontReady) {
+    await document.fonts.ready;
+  }
 }
 
 async function buildDocument(_ref) {
@@ -464,17 +479,19 @@ async function buildDocument(_ref) {
     locale
   });
   const fonts = extractFonts(entry);
-  await loadGoogleFonts(fonts);
-  const {
+  const [{
     meta,
     externalData,
     renderableContent,
     configAfterAuto
-  } = buildEntry({
+  }] = await Promise.all([buildEntry({
     entry,
     config,
     locale
-  });
+  }), loadGoogleFonts({
+    fonts,
+    waitFontReady: true
+  })]);
   return {
     renderableDocument: {
       renderableContent,

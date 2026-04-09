@@ -28,15 +28,12 @@ async function buildDocument({
   });
 
   const fonts = extractFonts(entry);
-  await loadGoogleFonts(fonts);
 
-  const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
-    {
-      entry,
-      config,
-      locale,
-    },
-  );
+  const [{ meta, externalData, renderableContent, configAfterAuto }] =
+    await Promise.all([
+      buildEntry({ entry, config, locale }),
+      loadGoogleFonts({ fonts, waitFontReady: true }),
+    ]);
 
   return {
     renderableDocument: {

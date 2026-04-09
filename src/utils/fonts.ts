@@ -325,10 +325,30 @@ export function getFontSizes(): IFont[] {
     }));
 }
 
-export async function loadGoogleFonts(fonts?: string[]): Promise<void> {
+const loadedFonts = new Set<string>();
+
+export async function loadGoogleFonts({
+  fonts,
+  waitFontReady,
+}: {
+  fonts?: string[];
+  waitFontReady?: boolean;
+} = {}): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const selectedFonts = fonts ?? fontFamilies;
+  const selectedFonts = (fonts ?? fontFamilies).filter(
+    (f) => !loadedFonts.has(f),
+  );
+
+  if (!selectedFonts.length) {
+    if (waitFontReady) {
+      await document.fonts.ready;
+    }
+    return;
+  }
+
+  selectedFonts.forEach((f) => loadedFonts.add(f));
+
   const families = selectedFonts
     .map((f) => `${f.replace(/ /g, "+")}:300,400,500,600,700,800`)
     .join("|");
@@ -337,4 +357,8 @@ export async function loadGoogleFonts(fonts?: string[]): Promise<void> {
   link.rel = "stylesheet";
   link.href = `https://fonts.googleapis.com/css?family=${families}&display=swap`;
   document.head.appendChild(link);
+
+  if (waitFontReady) {
+    await document.fonts.ready;
+  }
 }
