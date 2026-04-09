@@ -442,22 +442,12 @@ function getFontSizes() {
 }
 async function loadGoogleFonts(fonts) {
   if (typeof window === "undefined") return;
-  const WebFont = await import('webfontloader');
-  const allFonts = fonts ?? fontFamilies;
-  const batchSize = 20;
-  for (let i = 0; i < allFonts.length; i += batchSize) {
-    const batch = allFonts.slice(i, i + batchSize);
-    const families = batch.map(f => `family=${f.replace(/ /g, "+")}:wght@300..800`).join("&");
-    WebFont.load({
-      custom: {
-        families: batch,
-        urls: [`https://fonts.googleapis.com/css2?${families}&display=swap`]
-      },
-      fontinactive: familyName => {
-        console.warn(`Font failed to load: ${familyName}`);
-      }
-    });
-  }
+  const selectedFonts = fonts ?? fontFamilies;
+  const families = selectedFonts.map(f => `${f.replace(/ /g, "+")}:300,400,500,600,700,800`).join("|");
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css?family=${families}&display=swap`;
+  document.head.appendChild(link);
 }
 
 async function buildDocument(_ref) {
