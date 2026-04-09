@@ -467,11 +467,20 @@ function getFontSizes() {
   }));
 }
 async function loadGoogleFonts(fonts) {
-  if (typeof window !== "undefined") {
-    const WebFont = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('webfontloader')); });
+  if (typeof window === "undefined") return;
+  const WebFont = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('webfontloader')); });
+  const allFonts = fonts ?? fontFamilies;
+  const batchSize = 20;
+  for (let i = 0; i < allFonts.length; i += batchSize) {
+    const batch = allFonts.slice(i, i + batchSize);
+    const families = batch.map(f => `family=${f.replace(/ /g, "+")}:wght@300..800`).join("&");
     WebFont.load({
-      google: {
-        families: (fonts ?? fontFamilies).map(font => `${font}:300,400,500,600,700,800`)
+      custom: {
+        families: batch,
+        urls: [`https://fonts.googleapis.com/css2?${families}&display=swap`]
+      },
+      fontinactive: familyName => {
+        console.warn(`Font failed to load: ${familyName}`);
       }
     });
   }
