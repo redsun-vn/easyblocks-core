@@ -28,14 +28,14 @@ async function buildDocument({
   });
 
   const fonts = extractFonts(entry);
-  loadGoogleFonts(fonts);
+  await loadGoogleFonts(fonts);
 
   const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
     {
       entry,
       config,
       locale,
-    }
+    },
   );
 
   return {

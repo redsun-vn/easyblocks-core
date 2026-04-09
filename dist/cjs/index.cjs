@@ -472,7 +472,7 @@ async function buildDocument(_ref) {
     locale
   });
   const fonts = extractFonts(entry);
-  loadGoogleFonts(fonts);
+  await loadGoogleFonts(fonts);
   const {
     meta,
     externalData,
