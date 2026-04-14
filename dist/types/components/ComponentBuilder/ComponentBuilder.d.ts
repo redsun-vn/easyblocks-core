@@ -1,4 +1,4 @@
-import { ComponentType, ReactElement } from "react";
+import React, { ComponentType } from "react";
 import { CompiledComponentConfig, NoCodeComponentProps } from "../../types";
 export type ComponentBuilderProps = {
     path: string;
@@ -23,6 +23,6 @@ export type InternalNoCodeComponentProps = NoCodeComponentProps & {
         runtime: any;
     };
 };
-declare function ComponentBuilder(props: ComponentBuilderProps): ReactElement | null;
+declare const ComponentBuilder: React.NamedExoticComponent<ComponentBuilderProps>;
 export { ComponentBuilder };
 //# sourceMappingURL=ComponentBuilder.d.ts.map

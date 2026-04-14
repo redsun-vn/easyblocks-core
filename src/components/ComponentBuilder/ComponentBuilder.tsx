@@ -1,4 +1,4 @@
-import React, { ComponentType, Fragment, ReactElement } from "react";
+import React, { ComponentType, Fragment, ReactElement, useMemo } from "react";
 import { findComponentDefinitionById } from "../../compiler/findComponentDefinition";
 import {
   isSchemaPropComponent,
@@ -50,11 +50,11 @@ function buildBoxes(
   compiled: any,
   name: string,
   actionWrappers: { [key: string]: any },
-  meta: any
+  meta: any,
 ): any {
   if (Array.isArray(compiled)) {
     return compiled.map((x: any, index: number) =>
-      buildBoxes(x, `${name}.${index}`, actionWrappers, meta)
+      buildBoxes(x, `${name}.${index}`, actionWrappers, meta),
     );
   } else if (typeof compiled === "object" && compiled !== null) {
     if (compiled.__isBox) {
@@ -80,103 +80,9 @@ function buildBoxes(
 
 function getComponentDefinition(
   compiled: CompiledComponentConfig,
-  runtimeContext: any
+  runtimeContext: any,
 ) {
   return findComponentDefinitionById(compiled._component, runtimeContext);
-}
-
-/**
- * Checks whether:
- * 1. component is renderable (if all non-optional externals are defined)
- * 2. is data loading...
- * 3. gets fields that are not defined
- *
- * @param compiled
- * @param runtimeContext
- * @param rendererContext
- */
-
-type RenderabilityStatus = {
-  renderable: boolean;
-  isLoading: boolean;
-  fieldsRequiredToRender: Set<string>;
-};
-
-function getRenderabilityStatus(
-  compiled: CompiledComponentConfig,
-  meta: CompilationMetadata,
-  externalData: ExternalData
-): RenderabilityStatus {
-  const status: RenderabilityStatus = {
-    renderable: true,
-    isLoading: false,
-    fieldsRequiredToRender: new Set<string>(),
-  };
-
-  const componentDefinition = getComponentDefinition(compiled, {
-    definitions: meta.vars.definitions,
-  });
-
-  if (!componentDefinition) {
-    return {
-      renderable: false,
-      isLoading: false,
-      fieldsRequiredToRender: new Set<string>(),
-    };
-  }
-
-  const requiredExternalFields = componentDefinition.schema.filter(
-    (schemaProp): schemaProp is ExternalSchemaProp => {
-      if (schemaProp.type === "text") {
-        return false;
-      }
-
-      const propValue = compiled.props[schemaProp.prop];
-
-      if (
-        typeof propValue === "object" &&
-        propValue !== null &&
-        "id" in propValue &&
-        "widgetId" in propValue
-      ) {
-        if ("optional" in schemaProp) {
-          return !schemaProp.optional;
-        }
-
-        return true;
-      }
-
-      return false;
-    }
-  );
-
-  if (requiredExternalFields.length === 0) {
-    return status;
-  }
-
-  for (const resourceSchemaProp of requiredExternalFields) {
-    const externalReference: ResponsiveValue<ExternalReference> =
-      compiled.props[resourceSchemaProp.prop];
-
-    const fieldStatus = getFieldStatus(
-      externalReference,
-      externalData,
-      compiled._id,
-      resourceSchemaProp.prop,
-      meta.vars.devices
-    );
-
-    status.isLoading = status.isLoading || fieldStatus.isLoading;
-    status.renderable = status.renderable && fieldStatus.renderable;
-
-    if (!fieldStatus.renderable && !fieldStatus.isLoading) {
-      status.fieldsRequiredToRender.add(
-        resourceSchemaProp.label || resourceSchemaProp.prop
-      );
-    }
-  }
-
-  return status;
 }
 
 function getCompiledSubcomponents(
@@ -190,7 +96,7 @@ function getCompiledSubcomponents(
   path: string,
   meta: CompilationMetadata,
   isEditing: boolean,
-  components: ComponentBuilderProps["components"]
+  components: ComponentBuilderProps["components"],
 ) {
   const originalPath = path;
 
@@ -208,7 +114,7 @@ function getCompiledSubcomponents(
         />
       ) : (
         compiledChild
-      )
+      ),
     );
 
     if (isSchemaPropComponent(schemaProp)) {
@@ -233,7 +139,7 @@ function getCompiledSubcomponents(
       />
     ) : (
       compiledChild
-    )
+    ),
   );
 
   const Placeholder = components["Placeholder"];
@@ -257,14 +163,14 @@ function getCompiledSubcomponents(
         appearance={(schemaProp as ComponentSchemaProp).placeholderAppearance}
         onClick={() => {
           function handleComponentPickerCloseMessage(
-            event: ComponentPickerClosedEvent
+            event: ComponentPickerClosedEvent,
           ) {
             if (
               event.data.type === "@easyblocks-editor/component-picker-closed"
             ) {
               window.removeEventListener(
                 "message",
-                handleComponentPickerCloseMessage
+                handleComponentPickerCloseMessage,
               );
 
               if (event.data.payload.config) {
@@ -273,7 +179,7 @@ function getCompiledSubcomponents(
                     name: path,
                     index: 0,
                     block: event.data.payload.config,
-                  })
+                  }),
                 );
               }
             }
@@ -319,7 +225,9 @@ export type InternalNoCodeComponentProps = NoCodeComponentProps & {
   };
 };
 
-function ComponentBuilder(props: ComponentBuilderProps): ReactElement | null {
+const ComponentBuilder = React.memo(function ComponentBuilder(
+  props: ComponentBuilderProps,
+): ReactElement | null {
   const { compiled, passedProps, path, components, ...restProps } = props;
 
   const allPassedProps: Record<string, any> = {
@@ -370,45 +278,27 @@ function ComponentBuilder(props: ComponentBuilderProps): ReactElement | null {
 
   const Component = component;
 
-  const renderabilityStatus = getRenderabilityStatus(
-    compiled,
-    meta,
-    externalData
-  );
-
-  // if (!renderabilityStatus.renderable) {
-  //   const fieldsRequiredToRender = Array.from(
-  //     renderabilityStatus.fieldsRequiredToRender
-  //   );
-
-  //   return (
-  //     <MissingComponent component={componentDefinition}>
-  //       {`Fill following fields to render the component: ${fieldsRequiredToRender.join(
-  //         ", "
-  //       )}`}
-
-  //       {renderabilityStatus.isLoading && (
-  //         <Fragment>
-  //           <br />
-  //           <br />
-  //           Loading data...
-  //         </Fragment>
-  //       )}
-  //     </MissingComponent>
-  //   );
-  // }
-
   const shopstoryCompiledConfig = compiled as CompiledShopstoryComponentConfig;
 
-  // Shopstory component
-  const styled: { [key: string]: any } = buildBoxes(
-    shopstoryCompiledConfig.styled,
-    "",
-    {},
-    meta
+  // Memoize the runtime object — it only depends on meta which is stable per render tree.
+  const runtime = useMemo(
+    () => ({
+      stitches: meta.stitches,
+      resop: resop,
+      devices: meta.vars.devices,
+    }),
+    [meta.stitches, meta.vars.devices],
   );
 
-  // Styled
+  // Memoize buildBoxes — only recompute when the compiled styled tree changes.
+  const styledBoxes = useMemo(
+    () => buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta),
+    [shopstoryCompiledConfig.styled, meta],
+  );
+
+  // Build subcomponents into a new styled object (must include both boxes and subcomponents).
+  const styled: { [key: string]: any } = { ...styledBoxes };
+
   componentDefinition.schema.forEach((schemaProp) => {
     if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
       const contextProps =
@@ -425,7 +315,7 @@ function ComponentBuilder(props: ComponentBuilderProps): ReactElement | null {
         `${path}${pathSeparator}${schemaProp.prop}`,
         meta,
         isEditing,
-        components
+        components,
       );
     }
   });
@@ -433,39 +323,49 @@ function ComponentBuilder(props: ComponentBuilderProps): ReactElement | null {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { ref, __isSelected, ...restPassedProps } = allPassedProps || {};
 
-  const runtime = {
-    stitches: meta.stitches,
-    resop: resop,
-    devices: meta.vars.devices,
-  };
+  // Memoize the easyblocks prop — only changes when the component instance or selection changes.
+  const easyblocksProp: InternalNoCodeComponentProps["__easyblocks"] = useMemo(
+    () => ({
+      id: shopstoryCompiledConfig._id,
+      isEditing,
+      path,
+      runtime,
+      isSelected: __isSelected,
+    }),
+    [shopstoryCompiledConfig._id, isEditing, path, runtime, __isSelected],
+  );
 
-  const easyblocksProp: InternalNoCodeComponentProps["__easyblocks"] = {
-    id: shopstoryCompiledConfig._id,
-    isEditing,
-    path,
-    runtime,
-    isSelected: __isSelected,
-  };
-
-  const componentProps = {
-    ...restPassedProps,
-    ...mapExternalProps(
+  // Memoize external props — only changes when compiled props or external data changes.
+  const externalProps = useMemo(
+    () =>
+      mapExternalProps(
+        shopstoryCompiledConfig.props,
+        shopstoryCompiledConfig._id,
+        componentDefinition,
+        externalData,
+      ),
+    [
       shopstoryCompiledConfig.props,
       shopstoryCompiledConfig._id,
       componentDefinition,
-      externalData
-    ),
+      externalData,
+    ],
+  );
+
+  const componentProps = {
+    ...restPassedProps,
+    ...externalProps,
     ...styled,
     __easyblocks: easyblocksProp,
   };
 
   return <Component {...componentProps} />;
-}
+});
 
 function getComponent(
   componentDefinition: InternalComponentDefinition,
   components: ComponentBuilderProps["components"],
-  isEditing: boolean
+  isEditing: boolean,
 ) {
   let component: any;
 
@@ -487,18 +387,35 @@ function getComponent(
   return component;
 }
 
+/**
+ * Lazily-built Map cache for O(1) schema prop lookup by prop name.
+ * Keyed on the schema array reference — rebuilt only when the schema array changes.
+ */
+const _schemaMapCache = new WeakMap<
+  InternalComponentDefinition["schema"],
+  Map<string, InternalComponentDefinition["schema"][number]>
+>();
+
+function getSchemaPropMap(schema: InternalComponentDefinition["schema"]) {
+  let map = _schemaMapCache.get(schema);
+  if (!map) {
+    map = new Map(schema.map((s) => [s.prop, s]));
+    _schemaMapCache.set(schema, map);
+  }
+  return map;
+}
+
 function mapExternalProps(
   props: Record<string, unknown>,
   configId: string,
   componentDefinition: InternalComponentDefinition,
-  externalData: ExternalData
+  externalData: ExternalData,
 ) {
   const resultsProps: Record<string, unknown> = {};
+  const schemaMap = getSchemaPropMap(componentDefinition.schema);
 
   for (const propName in props) {
-    const schemaProp = componentDefinition.schema.find(
-      (currentSchema) => currentSchema.prop === propName
-    );
+    const schemaProp = schemaMap.get(propName);
 
     if (schemaProp) {
       const propValue = props[propName] as ResponsiveValue<
@@ -526,14 +443,14 @@ function mapExternalProps(
               v &&
               "id" in v &&
               "widgetId" in v &&
-              !("value" in v)
+              !("value" in v),
           ))
       ) {
         resultsProps[propName] = resolveExternalValue(
           propValue,
           configId,
           schemaProp as ExternalSchemaProp,
-          externalData
+          externalData,
         );
       } else {
         resultsProps[propName] = props[propName];
@@ -553,7 +470,7 @@ function getFieldStatus(
   externalData: ExternalData,
   configId: string,
   fieldName: string,
-  devices: Devices
+  devices: Devices,
 ) {
   return responsiveValueReduce(
     externalReference,
@@ -570,7 +487,7 @@ function getFieldStatus(
           externalData,
           configId,
           fieldName,
-          value
+          value,
         );
 
         return {
@@ -589,7 +506,7 @@ function getFieldStatus(
       const externalReferenceValue = responsiveValueGetDefinedValue(
         value,
         deviceId,
-        devices
+        devices,
       );
 
       if (!externalReferenceValue || externalReferenceValue.id === null) {
@@ -603,7 +520,7 @@ function getFieldStatus(
         externalData,
         configId,
         fieldName,
-        externalReferenceValue
+        externalReferenceValue,
       );
 
       return {
@@ -617,7 +534,7 @@ function getFieldStatus(
       };
     },
     { renderable: true, isLoading: false },
-    devices
+    devices,
   );
 }
 

@@ -1,3 +1,5 @@
+import type { ExtractedFont } from "./extractFonts";
+
 interface IFont {
   id: string;
   value: string;
@@ -325,40 +327,144 @@ export function getFontSizes(): IFont[] {
     }));
 }
 
-const loadedFonts = new Set<string>();
+// ---------------------------------------------------------------------------
+// loadGoogleFonts
+// ---------------------------------------------------------------------------
 
+/** Tracks which family+weight combos are already injected. */
+const loadedFontWeights = new Map<string, Set<number>>();
+
+/** Default weights to load when only family names (no weights) are provided. */
+const DEFAULT_WEIGHTS = [400];
+
+/** All weights loaded in editor mode. */
+const EDITOR_WEIGHTS = [300, 400, 500, 600, 700, 800];
+
+/**
+ * Builds a Google Fonts API v1 URL.
+ *
+ * v1 format: `css?family=Open+Sans:300,400|Roboto:400,700`
+ */
+function buildGoogleFontsUrl(
+  fonts: { family: string; weights: number[] }[],
+): string {
+  const params = fonts
+    .map(({ family, weights }) => {
+      return `${family.replace(/ /g, "+")}:${weights.join(",")}`;
+    })
+    .join("|");
+
+  return `https://fonts.googleapis.com/css?family=${params}&display=swap`;
+}
+
+/**
+ * Filters out font+weight combos that are already loaded.
+ * Returns only the new combos, and marks them as loaded.
+ */
+function filterNewFontWeights(
+  fonts: { family: string; weights: number[] }[],
+): { family: string; weights: number[] }[] {
+  const result: { family: string; weights: number[] }[] = [];
+
+  for (const { family, weights } of fonts) {
+    let existing = loadedFontWeights.get(family);
+
+    const newWeights = weights.filter((w) => !existing?.has(w));
+
+    if (newWeights.length === 0) continue;
+
+    if (!existing) {
+      existing = new Set<number>();
+      loadedFontWeights.set(family, existing);
+    }
+
+    for (const w of newWeights) {
+      existing.add(w);
+    }
+
+    result.push({ family, weights: newWeights });
+  }
+
+  return result;
+}
+
+type LoadGoogleFontsOptions = {
+  /** Font families to load (legacy: string[], new: ExtractedFont[]). */
+  fonts?: string[] | ExtractedFont[];
+  /** If true, waits for fonts to actually render-ready before resolving. */
+  waitFontReady?: boolean;
+  /**
+   * Editor mode: loads ALL font families with ALL weights (300–800).
+   * Production mode (default): loads only the fonts + weights actually used.
+   */
+  editor?: boolean;
+};
+
+/**
+ * Injects a `<link>` stylesheet and waits for it to load.
+ */
+function injectLink(url: string): Promise<void> {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = url;
+
+  return new Promise<void>((resolve, reject) => {
+    link.onload = () => resolve();
+    link.onerror = () =>
+      reject(new Error(`Failed to load Google Fonts: ${url}`));
+    document.head.appendChild(link);
+  });
+}
+
+/**
+ * Loads Google Fonts by injecting a `<link>` into `<head>`.
+ *
+ * Two modes:
+ * - **Editor** (`editor: true`): loads all font families with weights 300–800.
+ * - **Production** (default): loads only the fonts + weights actually used.
+ */
 export async function loadGoogleFonts({
   fonts,
   waitFontReady,
-}: {
-  fonts?: string[];
-  waitFontReady?: boolean;
-} = {}): Promise<void> {
+  editor,
+}: LoadGoogleFontsOptions = {}): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const selectedFonts = (fonts ?? fontFamilies).filter(
-    (f) => !loadedFonts.has(f),
-  );
+  let requested: { family: string; weights: number[] }[];
 
-  if (!selectedFonts.length) {
-    if (waitFontReady) {
-      await document.fonts.ready;
-    }
+  if (editor) {
+    // Editor: all families with full weight range 300–800.
+    const families =
+      fonts && fonts.length > 0 && typeof fonts[0] === "string"
+        ? (fonts as string[])
+        : fontFamilies;
+
+    requested = families.map((f) => ({
+      family: f,
+      weights: EDITOR_WEIGHTS,
+    }));
+  } else if (!fonts) {
+    requested = fontFamilies.map((f) => ({
+      family: f,
+      weights: DEFAULT_WEIGHTS,
+    }));
+  } else if (fonts.length > 0 && typeof fonts[0] === "string") {
+    requested = (fonts as string[]).map((f) => ({
+      family: f,
+      weights: DEFAULT_WEIGHTS,
+    }));
+  } else {
+    requested = fonts as ExtractedFont[];
+  }
+
+  const newFonts = filterNewFontWeights(requested);
+
+  if (newFonts.length === 0) {
+    if (waitFontReady) await document.fonts.ready;
     return;
   }
 
-  selectedFonts.forEach((f) => loadedFonts.add(f));
+  await injectLink(buildGoogleFontsUrl(newFonts));
 
-  const families = selectedFonts
-    .map((f) => `${f.replace(/ /g, "+")}:300,400,500,600,700,800`)
-    .join("|");
-
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = `https://fonts.googleapis.com/css?family=${families}&display=swap`;
-  document.head.appendChild(link);
-
-  if (waitFontReady) {
-    await document.fonts.ready;
-  }
+  if (waitFontReady) await document.fonts.ready;
 }

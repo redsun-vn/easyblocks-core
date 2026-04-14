@@ -10,8 +10,17 @@ function traverse(obj: any, visitor: (node: any) => void) {
   }
 }
 
-export const extractFonts = (entry: any) => {
-  const fonts = new Map<string, undefined>();
+export type ExtractedFont = {
+  family: string;
+  weights: number[];
+};
+
+/**
+ * Walks the entry tree and collects every `{ fontFamily, fontWeight? }` pair.
+ * Returns deduplicated fonts with only the weights actually used.
+ */
+export function extractFontsWithWeights(entry: any): ExtractedFont[] {
+  const map = new Map<string, Set<number>>();
 
   traverse(entry, (node) => {
     if (
@@ -22,12 +31,27 @@ export const extractFonts = (entry: any) => {
       typeof node.value.fontFamily === "string"
     ) {
       const family = node.value.fontFamily;
+      const weight =
+        typeof node.value.fontWeight === "number" ? node.value.fontWeight : 400;
 
-      if (!fonts.has(family)) {
-        fonts.set(family, undefined);
+      let weights = map.get(family);
+      if (!weights) {
+        weights = new Set<number>();
+        map.set(family, weights);
       }
+      weights.add(weight);
     }
   });
 
-  return Array.from(fonts.keys());
+  return Array.from(map.entries()).map(([family, weights]) => ({
+    family,
+    weights: Array.from(weights).sort((a, b) => a - b),
+  }));
+}
+
+/**
+ * Backwards-compatible: returns just the font family strings.
+ */
+export const extractFonts = (entry: any): string[] => {
+  return extractFontsWithWeights(entry).map((f) => f.family);
 };

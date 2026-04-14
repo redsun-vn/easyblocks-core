@@ -6,7 +6,7 @@ import type {
   RenderableDocument,
   RequestedExternalData,
 } from "./types";
-import { extractFonts } from "./utils/extractFonts";
+import { extractFontsWithWeights } from "./utils/extractFonts";
 import { loadGoogleFonts } from "./utils/fonts";
 
 async function buildDocument({
@@ -27,7 +27,7 @@ async function buildDocument({
     locale,
   });
 
-  const fonts = extractFonts(entry);
+  const fonts = extractFontsWithWeights(entry);
 
   const [{ meta, externalData, renderableContent, configAfterAuto }] =
     await Promise.all([

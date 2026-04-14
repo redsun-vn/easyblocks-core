@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var ComponentBuilder = require('./ComponentBuilder-97eaa5a6.js');
+var ComponentBuilder = require('./ComponentBuilder-5cf08a52.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
 require('js-xxhash');
@@ -87,6 +87,21 @@ function responsiveValueSet(responsiveValue, deviceId, value, devices) {
     ...trulyResponsive,
     [deviceId]: value
   };
+}
+
+function responsiveValueReduce(resVal, reducer, initialValue, devices) {
+  if (!ComponentBuilder.isTrulyResponsiveValue(resVal)) {
+    return reducer(initialValue, resVal);
+  }
+  let result = initialValue;
+  for (let i = 0; i < devices.length; i++) {
+    const key = devices[i].id;
+    if (resVal[key] === undefined) {
+      continue;
+    }
+    result = reducer(result, resVal[key], key);
+  }
+  return result;
 }
 
 function mergeCompilationMeta(meta1, meta2) {
@@ -314,18 +329,32 @@ function traverse(obj, visitor) {
     Object.values(obj).forEach(value => traverse(value, visitor));
   }
 }
-const extractFonts = entry => {
-  const fonts = new Map();
+/**
+ * Walks the entry tree and collects every `{ fontFamily, fontWeight? }` pair.
+ * Returns deduplicated fonts with only the weights actually used.
+ */
+function extractFontsWithWeights(entry) {
+  const map = new Map();
   traverse(entry, node => {
     if (node && typeof node === "object" && node.value && typeof node.value === "object" && typeof node.value.fontFamily === "string") {
       const family = node.value.fontFamily;
-      if (!fonts.has(family)) {
-        fonts.set(family, undefined);
+      const weight = typeof node.value.fontWeight === "number" ? node.value.fontWeight : 400;
+      let weights = map.get(family);
+      if (!weights) {
+        weights = new Set();
+        map.set(family, weights);
       }
+      weights.add(weight);
     }
   });
-  return Array.from(fonts.keys());
-};
+  return Array.from(map.entries()).map(_ref => {
+    let [family, weights] = _ref;
+    return {
+      family,
+      weights: Array.from(weights).sort((a, b) => a - b)
+    };
+  });
+}
 
 const defaultFontFamily = "Roboto";
 const defaultFontSize = 16;
@@ -448,29 +477,119 @@ function getFontSizes() {
     label: s.label ?? ""
   }));
 }
-const loadedFonts = new Set();
+
+// ---------------------------------------------------------------------------
+// loadGoogleFonts
+// ---------------------------------------------------------------------------
+
+/** Tracks which family+weight combos are already injected. */
+const loadedFontWeights = new Map();
+
+/** Default weights to load when only family names (no weights) are provided. */
+const DEFAULT_WEIGHTS = [400];
+
+/** All weights loaded in editor mode. */
+const EDITOR_WEIGHTS = [300, 400, 500, 600, 700, 800];
+
+/**
+ * Builds a Google Fonts API v1 URL.
+ *
+ * v1 format: `css?family=Open+Sans:300,400|Roboto:400,700`
+ */
+function buildGoogleFontsUrl(fonts) {
+  const params = fonts.map(_ref => {
+    let {
+      family,
+      weights
+    } = _ref;
+    return `${family.replace(/ /g, "+")}:${weights.join(",")}`;
+  }).join("|");
+  return `https://fonts.googleapis.com/css?family=${params}&display=swap`;
+}
+
+/**
+ * Filters out font+weight combos that are already loaded.
+ * Returns only the new combos, and marks them as loaded.
+ */
+function filterNewFontWeights(fonts) {
+  const result = [];
+  for (const {
+    family,
+    weights
+  } of fonts) {
+    let existing = loadedFontWeights.get(family);
+    const newWeights = weights.filter(w => !existing?.has(w));
+    if (newWeights.length === 0) continue;
+    if (!existing) {
+      existing = new Set();
+      loadedFontWeights.set(family, existing);
+    }
+    for (const w of newWeights) {
+      existing.add(w);
+    }
+    result.push({
+      family,
+      weights: newWeights
+    });
+  }
+  return result;
+}
+/**
+ * Injects a `<link>` stylesheet and waits for it to load.
+ */
+function injectLink(url) {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = url;
+  return new Promise((resolve, reject) => {
+    link.onload = () => resolve();
+    link.onerror = () => reject(new Error(`Failed to load Google Fonts: ${url}`));
+    document.head.appendChild(link);
+  });
+}
+
+/**
+ * Loads Google Fonts by injecting a `<link>` into `<head>`.
+ *
+ * Two modes:
+ * - **Editor** (`editor: true`): loads all font families with weights 300–800.
+ * - **Production** (default): loads only the fonts + weights actually used.
+ */
 async function loadGoogleFonts() {
   let {
     fonts,
-    waitFontReady
+    waitFontReady,
+    editor
   } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   if (typeof window === "undefined") return;
-  const selectedFonts = (fonts ?? fontFamilies).filter(f => !loadedFonts.has(f));
-  if (!selectedFonts.length) {
-    if (waitFontReady) {
-      await document.fonts.ready;
-    }
+  let requested;
+  if (editor) {
+    // Editor: all families with full weight range 300–800.
+    const families = fonts && fonts.length > 0 && typeof fonts[0] === "string" ? fonts : fontFamilies;
+    requested = families.map(f => ({
+      family: f,
+      weights: EDITOR_WEIGHTS
+    }));
+  } else if (!fonts) {
+    requested = fontFamilies.map(f => ({
+      family: f,
+      weights: DEFAULT_WEIGHTS
+    }));
+  } else if (fonts.length > 0 && typeof fonts[0] === "string") {
+    requested = fonts.map(f => ({
+      family: f,
+      weights: DEFAULT_WEIGHTS
+    }));
+  } else {
+    requested = fonts;
+  }
+  const newFonts = filterNewFontWeights(requested);
+  if (newFonts.length === 0) {
+    if (waitFontReady) await document.fonts.ready;
     return;
   }
-  selectedFonts.forEach(f => loadedFonts.add(f));
-  const families = selectedFonts.map(f => `${f.replace(/ /g, "+")}:300,400,500,600,700,800`).join("|");
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = `https://fonts.googleapis.com/css?family=${families}&display=swap`;
-  document.head.appendChild(link);
-  if (waitFontReady) {
-    await document.fonts.ready;
-  }
+  await injectLink(buildGoogleFontsUrl(newFonts));
+  if (waitFontReady) await document.fonts.ready;
 }
 
 async function buildDocument(_ref) {
@@ -486,7 +605,7 @@ async function buildDocument(_ref) {
     config,
     locale
   });
-  const fonts = extractFonts(entry);
+  const fonts = extractFontsWithWeights(entry);
   const [{
     meta,
     externalData,
@@ -807,7 +926,6 @@ exports.responsiveValueGetFirstLowerValue = ComponentBuilder.responsiveValueGetF
 exports.responsiveValueGetHighestDefinedDevice = ComponentBuilder.responsiveValueGetHighestDefinedDevice;
 exports.responsiveValueMap = ComponentBuilder.responsiveValueMap;
 exports.responsiveValueNormalize = ComponentBuilder.responsiveValueNormalize;
-exports.responsiveValueReduce = ComponentBuilder.responsiveValueReduce;
 exports.responsiveValueValues = ComponentBuilder.responsiveValueValues;
 exports.spacingToPx = ComponentBuilder.spacingToPx;
 exports.validateColor = ComponentBuilder.validateColor;
@@ -832,5 +950,6 @@ exports.isNoCodeComponentOfType = isNoCodeComponentOfType;
 exports.loadGoogleFonts = loadGoogleFonts;
 exports.mergeCompilationMeta = mergeCompilationMeta;
 exports.normalizeInput = normalizeInput;
+exports.responsiveValueReduce = responsiveValueReduce;
 exports.responsiveValueSet = responsiveValueSet;
 exports.validate = validate;

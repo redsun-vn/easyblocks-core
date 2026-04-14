@@ -14,6 +14,27 @@ function allDefs(
 }
 
 /**
+ * Lazily-built Map cache for O(1) definition lookup by id.
+ * Keyed on the definitions.components array reference — rebuilt only when the array changes.
+ */
+const _defMapCache = new WeakMap<
+  InternalComponentDefinition[],
+  Map<string, InternalComponentDefinition>
+>();
+
+function getDefMap(
+  context?: AnyContextWithDefinitions
+): Map<string, InternalComponentDefinition> {
+  const defs = allDefs(context);
+  let map = _defMapCache.get(defs);
+  if (!map) {
+    map = new Map(defs.map((d) => [d.id, d]));
+    _defMapCache.set(defs, map);
+  }
+  return map;
+}
+
+/**
  * Versions with context and custom components sweep
  */
 
@@ -59,5 +80,5 @@ function $findComponentDefinitionById(
   id: string,
   context?: AnyContextWithDefinitions
 ): InternalComponentDefinition | undefined {
-  return allDefs(context).find((component) => component.id === id);
+  return getDefMap(context).get(id);
 }
