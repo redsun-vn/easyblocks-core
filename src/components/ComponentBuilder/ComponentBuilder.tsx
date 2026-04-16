@@ -14,14 +14,11 @@ import {
   itemInserted,
 } from "../../events";
 import {
-  getResolvedExternalDataValue,
   isLocalTextReference,
   resolveExternalValue,
 } from "../../resourcesUtils";
 import {
   isTrulyResponsiveValue,
-  responsiveValueGetDefinedValue,
-  responsiveValueReduce,
   responsiveValueValues,
 } from "../../responsiveness";
 import { resop } from "../../responsiveness/resop";
@@ -33,7 +30,6 @@ import {
   ComponentCollectionLocalisedSchemaProp,
   ComponentCollectionSchemaProp,
   ComponentSchemaProp,
-  Devices,
   ExternalData,
   ExternalReference,
   ExternalSchemaProp,
@@ -41,10 +37,12 @@ import {
   LocalTextReference,
   NoCodeComponentProps,
   ResponsiveValue,
+  SchemaProp,
 } from "../../types";
 import { Box } from "../Box/Box";
 import { useEasyblocksExternalData } from "../EasyblocksExternalDataProvider";
 import { useEasyblocksMetadata } from "../EasyblocksMetadataProvider";
+import { progressiveElements } from "../ProgressiveList";
 
 function buildBoxes(
   compiled: any,
@@ -78,11 +76,39 @@ function buildBoxes(
   return compiled;
 }
 
-function getComponentDefinition(
-  compiled: CompiledComponentConfig,
-  runtimeContext: any,
+/**
+ * Cached lookup: for a given definitions object, reuse the same wrapper
+ * so findComponentDefinitionById's internal WeakMap hits every time.
+ */
+const _defContextCache = new WeakMap<
+  CompilationMetadata["vars"]["definitions"],
+  { definitions: CompilationMetadata["vars"]["definitions"] }
+>();
+
+function getDefinitionsContext(
+  definitions: CompilationMetadata["vars"]["definitions"],
 ) {
-  return findComponentDefinitionById(compiled._component, runtimeContext);
+  let ctx = _defContextCache.get(definitions);
+  if (!ctx) {
+    ctx = { definitions };
+    _defContextCache.set(definitions, ctx);
+  }
+  return ctx;
+}
+
+/**
+ * Cache which schema props are component/component-collection slots.
+ * Avoids re-filtering the full schema array on every render.
+ */
+const _componentSlotsCache = new WeakMap<SchemaProp[], SchemaProp[]>();
+
+function getComponentSlots(schema: SchemaProp[]): SchemaProp[] {
+  let slots = _componentSlotsCache.get(schema);
+  if (!slots) {
+    slots = schema.filter(isSchemaPropComponentOrComponentCollection);
+    _componentSlotsCache.set(schema, slots);
+  }
+  return slots;
 }
 
 function getCompiledSubcomponents(
@@ -108,6 +134,7 @@ function getCompiledSubcomponents(
     const elements = compiledArray.map((compiledChild, index) =>
       "_component" in compiledChild ? (
         <ComponentBuilder
+          key={(compiledChild as CompiledComponentConfig)._id}
           path={`${path}.${index}`}
           compiled={compiledChild}
           components={components}
@@ -131,6 +158,7 @@ function getCompiledSubcomponents(
   let elements = compiledArray.map((compiledChild, index) =>
     "_component" in compiledChild ? (
       <EditableComponentBuilder
+        key={(compiledChild as CompiledComponentConfig)._id}
         compiled={compiledChild}
         index={index}
         length={compiledArray.length}
@@ -157,6 +185,7 @@ function getCompiledSubcomponents(
 
     elements = [
       <Placeholder
+        key="placeholder"
         id={id}
         path={path}
         type={type}
@@ -196,9 +225,21 @@ function getCompiledSubcomponents(
 
   if (isSchemaPropComponent(schemaProp)) {
     return elements[0] ?? <Fragment></Fragment>;
-  } else {
-    return elements;
   }
+
+  // For collections: render progressively when there are many children.
+  // In editing mode, render all at once (editor needs all items visible immediately).
+  if (!isEditing && elements.length > 3) {
+    return progressiveElements(
+      elements.map((el, i) =>
+        React.isValidElement(el) ? el : <Fragment key={i}>{el}</Fragment>,
+      ),
+      3,
+      2,
+    );
+  }
+
+  return elements;
 }
 export type ComponentBuilderProps = {
   path: string;
@@ -246,10 +287,12 @@ const ComponentBuilder = React.memo(function ComponentBuilder(
   const isEditing = compiled.__editing !== undefined;
   const pathSeparator = path === "" ? "" : ".";
 
-  // Here we know we must render just component, without any wrappers
-  const componentDefinition = getComponentDefinition(compiled, {
-    definitions: meta.vars.definitions,
-  })!;
+  // Reuse a stable wrapper so findComponentDefinitionById's WeakMap cache hits.
+  const defContext = getDefinitionsContext(meta.vars.definitions);
+  const componentDefinition = findComponentDefinitionById(
+    compiled._component,
+    defContext,
+  )!;
 
   const component = getComponent(componentDefinition, components, isEditing);
   const isMissingComponent =
@@ -296,29 +339,35 @@ const ComponentBuilder = React.memo(function ComponentBuilder(
     [shopstoryCompiledConfig.styled, meta],
   );
 
+  // Use cached slot list instead of filtering every schema prop on each render.
+  const componentSlots = getComponentSlots(componentDefinition.schema);
+
   // Build subcomponents into a new styled object (must include both boxes and subcomponents).
   const styled: { [key: string]: any } = { ...styledBoxes };
 
-  componentDefinition.schema.forEach((schemaProp) => {
-    if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
-      const contextProps =
-        shopstoryCompiledConfig.__editing?.components?.[schemaProp.prop] || {};
+  for (let i = 0; i < componentSlots.length; i++) {
+    const schemaProp = componentSlots[i] as
+      | ComponentSchemaProp
+      | ComponentCollectionSchemaProp
+      | ComponentCollectionLocalisedSchemaProp;
 
-      const compiledChildren =
-        shopstoryCompiledConfig.components[schemaProp.prop];
+    const contextProps =
+      shopstoryCompiledConfig.__editing?.components?.[schemaProp.prop] || {};
 
-      styled[schemaProp.prop] = getCompiledSubcomponents(
-        compiled._id,
-        compiledChildren,
-        contextProps,
-        schemaProp,
-        `${path}${pathSeparator}${schemaProp.prop}`,
-        meta,
-        isEditing,
-        components,
-      );
-    }
-  });
+    const compiledChildren =
+      shopstoryCompiledConfig.components[schemaProp.prop];
+
+    styled[schemaProp.prop] = getCompiledSubcomponents(
+      compiled._id,
+      compiledChildren,
+      contextProps,
+      schemaProp,
+      `${path}${pathSeparator}${schemaProp.prop}`,
+      meta,
+      isEditing,
+      components,
+    );
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { ref, __isSelected, ...restPassedProps } = allPassedProps || {};
@@ -464,79 +513,6 @@ function mapExternalProps(
 }
 
 export { ComponentBuilder };
-
-function getFieldStatus(
-  externalReference: ResponsiveValue<ExternalReference>,
-  externalData: ExternalData,
-  configId: string,
-  fieldName: string,
-  devices: Devices,
-) {
-  return responsiveValueReduce(
-    externalReference,
-    (currentStatus, value: any, deviceId) => {
-      if (!deviceId) {
-        if (!value.id) {
-          return {
-            isLoading: false,
-            renderable: false,
-          };
-        }
-
-        const externalValue = getResolvedExternalDataValue(
-          externalData,
-          configId,
-          fieldName,
-          value,
-        );
-
-        return {
-          isLoading: currentStatus.isLoading || externalValue === undefined,
-          renderable:
-            currentStatus.renderable &&
-            externalValue !== undefined &&
-            (externalValue.type === "object" ? value.key !== undefined : true),
-        };
-      }
-
-      if (currentStatus.isLoading || !currentStatus.renderable) {
-        return currentStatus;
-      }
-
-      const externalReferenceValue = responsiveValueGetDefinedValue(
-        value,
-        deviceId,
-        devices,
-      );
-
-      if (!externalReferenceValue || externalReferenceValue.id === null) {
-        return {
-          isLoading: false,
-          renderable: false,
-        };
-      }
-
-      const externalValue = getResolvedExternalDataValue(
-        externalData,
-        configId,
-        fieldName,
-        externalReferenceValue,
-      );
-
-      return {
-        isLoading: currentStatus.isLoading || externalValue === undefined,
-        renderable:
-          currentStatus.renderable &&
-          externalValue !== undefined &&
-          (externalValue.type === "object"
-            ? externalReferenceValue.key !== undefined
-            : true),
-      };
-    },
-    { renderable: true, isLoading: false },
-    devices,
-  );
-}
 
 function getComponentMainType(componentTypes: string[]) {
   let type;

@@ -39,15 +39,16 @@ const Box = React.forwardRef<HTMLElement, BoxProps>((props, ref) => {
 
   const { boxClassName, componentClassName } = useMemo(() => {
     /**
-     * Why parse+stringify?
-     *
-     * Because if we remove them some nested objects in styles (like media queries etc) don't work (although they exist in the object).
-     * Why? My bet is this: Stitches uses CSSOM to inject styles. Maybe (for some weird reason, maybe even browser bug) if some part of the object is not in iframe scope but in parent window scope then it's somehow ignored? Absolutely no idea right now, happy this works.
+     * We need styles to be "owned" by the current JS realm for Stitches/CSSOM.
+     * structuredClone is faster than JSON.parse(JSON.stringify()) and handles
+     * the same cross-realm object issue. Fall back to JSON round-trip if
+     * structuredClone isn't available (older browsers).
      */
-    const correctedStyles = getBoxStyles(
-      JSON.parse(JSON.stringify(styles)),
-      devices,
-    );
+    const cloned =
+      typeof structuredClone === "function"
+        ? structuredClone(styles)
+        : JSON.parse(JSON.stringify(styles));
+    const correctedStyles = getBoxStyles(cloned, devices);
 
     const generateBoxClass = stitches.css(boxStyles);
     const generateClassName = stitches.css(correctedStyles);

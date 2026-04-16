@@ -527,21 +527,6 @@ function responsiveValueValues(value) {
   return values;
 }
 
-function responsiveValueReduce(resVal, reducer, initialValue, devices) {
-  if (!isTrulyResponsiveValue$1(resVal)) {
-    return reducer(initialValue, resVal);
-  }
-  let result = initialValue;
-  for (let i = 0; i < devices.length; i++) {
-    const key = devices[i].id;
-    if (resVal[key] === undefined) {
-      continue;
-    }
-    result = reducer(result, resVal[key], key);
-  }
-  return result;
-}
-
 function responsiveValueNormalize$1(arg, devices) {
   if (!isTrulyResponsiveValue$1(arg)) {
     return arg;
@@ -1034,6 +1019,21 @@ function allDefs(context) {
 }
 
 /**
+ * Lazily-built Map cache for O(1) definition lookup by id.
+ * Keyed on the definitions.components array reference — rebuilt only when the array changes.
+ */
+const _defMapCache = new WeakMap();
+function getDefMap(context) {
+  const defs = allDefs(context);
+  let map = _defMapCache.get(defs);
+  if (!map) {
+    map = new Map(defs.map(d => [d.id, d]));
+    _defMapCache.set(defs, map);
+  }
+  return map;
+}
+
+/**
  * Versions with context and custom components sweep
  */
 
@@ -1058,7 +1058,7 @@ function $findComponentDefinition(config, context) {
   return $findComponentDefinitionById(config._component, context);
 }
 function $findComponentDefinitionById(id, context) {
-  return allDefs(context).find(component => component.id === id);
+  return getDefMap(context).get(id);
 }
 
 /**
@@ -1143,7 +1143,9 @@ function richTextPartStyles(_ref) {
   const hasTextWrapper = TextWrapper.length > 0;
   const textStyles = {
     __as: "span",
-    color,
+    background: color,
+    backgroundClip: "text",
+    color: "transparent",
     ...fontWithDefaults
   };
   if (hasTextWrapper && !isEditing) {
@@ -6212,8 +6214,12 @@ function createOwnComponentProps(_ref4) {
   };
 }
 function flattenItemProps(config, componentDefinition, collectionSchemaProp, itemsSchemas) {
+  const collectionItemProps = config._itemProps?.[componentDefinition.id]?.[collectionSchemaProp.prop];
+  if (!collectionItemProps) {
+    return {};
+  }
   const itemProps = Object.fromEntries(itemsSchemas.map(itemSchemaProp => {
-    return [itemSchemaProp.prop, config._itemProps[componentDefinition.id][collectionSchemaProp.prop][itemSchemaProp.prop]];
+    return [itemSchemaProp.prop, collectionItemProps[itemSchemaProp.prop]];
   }));
   return itemProps;
 }
@@ -6336,6 +6342,9 @@ function itemFieldsForEach(config, compilationContext, callback) {
           itemFields.forEach(itemSchemaProp => {
             const itemPath = `${path}.${index}.${itemSchemaProp.prop}`;
             const itemValue = dotNotationGet(config, itemPath);
+            if (itemValue === undefined) {
+              return;
+            }
             callback({
               collectionSchemaProp: schemaProp,
               itemIndex: index,
@@ -6445,7 +6454,7 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
   definition.schema.forEach(schemaProp => {
     if (isSchemaPropCollection(schemaProp)) {
       editingInfo.components[schemaProp.prop] = {
-        items: scalarizedConfig[schemaProp.prop].map((x, index) => ({
+        items: (scalarizedConfig[schemaProp.prop] ?? []).map((x, index) => ({
           fields: (schemaProp.itemFields ?? []).map(itemSchemaProp => getDefaultFieldDefinition(itemSchemaProp, `${configPrefix}${configPrefix === "" ? "" : "."}${schemaProp.prop}.${index}._itemProps.${definition.id}.${schemaProp.prop}`, definition, editorContext, scalarizedConfig))
         }))
       };
@@ -6859,7 +6868,7 @@ const schemaPropDefinitions = {
       normalize,
       compile: x => x,
       getHash: value => {
-        return value.toString();
+        return value?.toString();
       }
     };
   },
@@ -6886,7 +6895,7 @@ const schemaPropDefinitions = {
           const breakpointValue = responsiveValueAt(value, breakpointIndex);
           return breakpointValue?.toString();
         }
-        return value.toString();
+        return value?.toString();
       }
     };
   },
@@ -7200,6 +7209,9 @@ const schemaPropDefinitions = {
         return responsiveValueFill(flattened, compilationContext.devices, getDevicesWidths(compilationContext.devices));
       },
       getHash: (value, breakpointIndex) => {
+        if (value === undefined || value === null) {
+          return;
+        }
         function getTokenValue(value) {
           if (value.tokenId) {
             return value.tokenId;
@@ -7516,7 +7528,7 @@ function traverseComponents(config, context, callback) {
   traverseComponentsInternal(config, context, callback, "");
 }
 function traverseComponentsArray(array, context, callback, path) {
-  array.forEach((config, index) => {
+  array?.forEach((config, index) => {
     traverseComponentsInternal(config, context, callback, `${path}.${index}`);
   });
 }
@@ -7536,7 +7548,9 @@ function traverseComponentsInternal(componentConfig, context, callback, path) {
       traverseComponentsArray(componentConfig[schemaProp.prop], context, callback, `${pathPrefix}${schemaProp.prop}`);
     } else if (schemaProp.type === "component-collection-localised") {
       for (const locale in componentConfig[schemaProp.prop]) {
-        traverseComponentsArray(componentConfig[schemaProp.prop][locale], context, callback, `${pathPrefix}${schemaProp.prop}.${locale}`);
+        if (locale !== "__localized") {
+          traverseComponentsArray(componentConfig[schemaProp.prop][locale], context, callback, `${pathPrefix}${schemaProp.prop}.${locale}`);
+        }
       }
     }
   });
@@ -7694,17 +7708,28 @@ function richTextBlockElementStyles(_ref) {
     fontSize: mainFontSize,
     ...(type === "bulleted-list" ? bulletedListMarkerStyles : numberedListMarkerStyles)
   };
+  const isGradient = mainColor.toLowerCase().includes("gradient");
+  const colorStyles = isGradient ? {
+    background: mainColor,
+    backgroundClip: "text",
+    color: "transparent"
+  } : {
+    color: mainColor
+  };
   const listStyles = {
     counterSet: "list-item",
     paddingLeft: 0,
     listStyle: "none",
-    color: mainColor,
+    ...colorStyles,
     ...mainFont,
     "& > li": {
-      color: mainColor,
+      ...colorStyles,
       ...mainFont,
       // Instead of using ::marker pseudo-element, we use ::before because it gives us more control over its appearance.
-      "&::before": markerStyles
+      "&::before": {
+        ...markerStyles,
+        ...colorStyles
+      }
     }
   };
   return {
@@ -7927,6 +7952,9 @@ function textStyles(_ref) {
   } = _ref;
   const align = params.passedAlign || "left";
   const fontWithDefaults = {
+    background: values.color,
+    backgroundClip: "text",
+    color: "transparent",
     fontWeight: "initial",
     fontStyle: "initial",
     ...values.font
@@ -7936,7 +7964,6 @@ function textStyles(_ref) {
       Text: {
         ...fontWithDefaults,
         __as: values.accessibilityRole,
-        color: values.color,
         textAlign: align,
         "& textarea::placeholder": {
           color: "currentColor",
@@ -7944,8 +7971,7 @@ function textStyles(_ref) {
         },
         "& textarea": {
           // This is important when textarea is globally set in project, here we'll override any global styles.
-          ...fontWithDefaults,
-          color: values.color
+          ...fontWithDefaults
         },
         border: values.value === "" ? "1px dotted grey" : "none"
       }
@@ -8121,24 +8147,18 @@ const validateHTMLColorLab = color => {
   }
   return false;
 };
-function validateLinearGradient(input) {
+function validateGradient(input) {
   if (typeof input !== "string") return false;
   const value = input.trim();
-  if (!value.startsWith("linear-gradient(") || !value.endsWith(")")) {
-    return false;
-  }
-  const inside = value.slice(16, -1);
+  const gradientTypes = ["linear-gradient(", "radial-gradient(", "conic-gradient("];
+  const type = gradientTypes.find(g => value.startsWith(g));
+  if (!type || !value.endsWith(")")) return false;
+  const inside = value.slice(type.length, -1);
   const stops = inside.split(",");
   return stops.length >= 2;
 }
 const validateColor = color => {
-  // Former validation - source: https://www.regextester.com/103656
-  // if (isString(color)) {
-  //   const regex = /^#([\da-f]{3}){1,2}$|^#([\da-f]{4}){1,2}$|(rgb|hsl)a?\((\s*-?\d+%?\s*,){2}(\s*-?\d+%?\s*,?\s*\)?)(,\s*(0?\.\d+)?|1|0)?\)$/i;
-  //   return color && regex.test(color);
-  // }
-  // New validation
-  if (color && validateHTMLColorHex(color) || validateHTMLColorName(color) || validateHTMLColorSpecialName(color) || validateHTMLColorRgb(color) || validateHTMLColorHsl(color) || validateHTMLColorHwb(color) || validateHTMLColorLab(color) || validateLinearGradient(color)) {
+  if (color && validateHTMLColorHex(color) || validateHTMLColorName(color) || validateHTMLColorSpecialName(color) || validateHTMLColorRgb(color) || validateHTMLColorHsl(color) || validateHTMLColorHwb(color) || validateHTMLColorLab(color) || validateGradient(color)) {
     return true;
   }
   return false;
@@ -8403,7 +8423,8 @@ function createBuiltinTypes() {
       responsiveness: "always",
       defaultValue: {
         value: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
-      }
+      },
+      allowCustom: true
     },
     icon: {
       type: "token",
@@ -8479,7 +8500,9 @@ function configTraverseInternal(config, context, callback, path) {
         schemaProp
       });
       for (const locale in config[schemaProp.prop]) {
-        configTraverseArray(config[schemaProp.prop][locale], context, callback, `${pathPrefix}${schemaProp.prop}.${locale}`);
+        if (locale !== "__localized") {
+          configTraverseArray(config[schemaProp.prop][locale], context, callback, `${pathPrefix}${schemaProp.prop}.${locale}`);
+        }
       }
     } else {
       const currentPath = `${pathPrefix}${schemaProp.prop}`;
@@ -8800,12 +8823,13 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
     componentClassName
   } = React.useMemo(() => {
     /**
-     * Why parse+stringify?
-     *
-     * Because if we remove them some nested objects in styles (like media queries etc) don't work (although they exist in the object).
-     * Why? My bet is this: Stitches uses CSSOM to inject styles. Maybe (for some weird reason, maybe even browser bug) if some part of the object is not in iframe scope but in parent window scope then it's somehow ignored? Absolutely no idea right now, happy this works.
+     * We need styles to be "owned" by the current JS realm for Stitches/CSSOM.
+     * structuredClone is faster than JSON.parse(JSON.stringify()) and handles
+     * the same cross-realm object issue. Fall back to JSON round-trip if
+     * structuredClone isn't available (older browsers).
      */
-    const correctedStyles = getBoxStyles(JSON.parse(JSON.stringify(styles)), devices);
+    const cloned = typeof structuredClone === "function" ? structuredClone(styles) : JSON.parse(JSON.stringify(styles));
+    const correctedStyles = getBoxStyles(cloned, devices);
     const generateBoxClass = stitches.css(boxStyles);
     const generateClassName = stitches.css(correctedStyles);
     return {
@@ -8820,6 +8844,7 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
     "data-testid": __name
   }, props.children);
 });
+Box.displayName = "Box";
 
 const EasyblocksExternalDataContext = /*#__PURE__*/React.createContext(null);
 function useEasyblocksExternalData() {
@@ -8877,6 +8902,64 @@ function useEasyblocksMetadata() {
   return context;
 }
 
+/**
+ * Wraps a single child and defers its rendering by `delay` animation frames.
+ * Uses `startTransition` so React treats the reveal as non-urgent.
+ *
+ * - delay=1 → appears after 1 rAF (~16ms)
+ * - delay=2 → appears after 2 rAFs (~32ms)
+ *
+ * Renders `null` until revealed, so the parent array contract is preserved.
+ */
+function DeferredChild(_ref) {
+  let {
+    children,
+    delay
+  } = _ref;
+  const [show, setShow] = React.useState(false);
+  const rafRef = React.useRef(0);
+  React.useEffect(() => {
+    let frame = 0;
+    const tick = () => {
+      frame++;
+      if (frame >= delay) {
+        React.startTransition(() => setShow(true));
+      } else {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [delay]);
+  return show ? children : null;
+}
+
+/**
+ * Takes an array of elements and returns a new array where:
+ * - The first `initialCount` elements are returned as-is (rendered immediately).
+ * - Remaining elements are wrapped in `<DeferredChild>` with staggered delays.
+ *
+ * The result is still a `ReactElement[]` — same type as the input.
+ * Parent components can `.map()`, `.length`, or iterate over it normally.
+ *
+ * @param elements     All children to render.
+ * @param initialCount How many to render synchronously (default 3).
+ * @param batchSize    How many to reveal per animation frame (default 2).
+ */
+function progressiveElements(elements) {
+  let initialCount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+  let batchSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
+  if (elements.length <= initialCount) return elements;
+  return elements.map((el, i) => {
+    if (i < initialCount) return el;
+    const delay = Math.ceil((i - initialCount + 1) / batchSize);
+    return /*#__PURE__*/React__default["default"].createElement(DeferredChild, {
+      key: el.key ?? i,
+      delay: delay
+    }, el);
+  });
+}
+
 function buildBoxes(compiled, name, actionWrappers, meta) {
   if (Array.isArray(compiled)) {
     return compiled.map((x, index) => buildBoxes(x, `${name}.${index}`, actionWrappers, meta));
@@ -8898,63 +8981,35 @@ function buildBoxes(compiled, name, actionWrappers, meta) {
   }
   return compiled;
 }
-function getComponentDefinition(compiled, runtimeContext) {
-  return findComponentDefinitionById(compiled._component, runtimeContext);
+
+/**
+ * Cached lookup: for a given definitions object, reuse the same wrapper
+ * so findComponentDefinitionById's internal WeakMap hits every time.
+ */
+const _defContextCache = new WeakMap();
+function getDefinitionsContext(definitions) {
+  let ctx = _defContextCache.get(definitions);
+  if (!ctx) {
+    ctx = {
+      definitions
+    };
+    _defContextCache.set(definitions, ctx);
+  }
+  return ctx;
 }
 
 /**
- * Checks whether:
- * 1. component is renderable (if all non-optional externals are defined)
- * 2. is data loading...
- * 3. gets fields that are not defined
- *
- * @param compiled
- * @param runtimeContext
- * @param rendererContext
+ * Cache which schema props are component/component-collection slots.
+ * Avoids re-filtering the full schema array on every render.
  */
-
-function getRenderabilityStatus(compiled, meta, externalData) {
-  const status = {
-    renderable: true,
-    isLoading: false,
-    fieldsRequiredToRender: new Set()
-  };
-  const componentDefinition = getComponentDefinition(compiled, {
-    definitions: meta.vars.definitions
-  });
-  if (!componentDefinition) {
-    return {
-      renderable: false,
-      isLoading: false,
-      fieldsRequiredToRender: new Set()
-    };
+const _componentSlotsCache = new WeakMap();
+function getComponentSlots(schema) {
+  let slots = _componentSlotsCache.get(schema);
+  if (!slots) {
+    slots = schema.filter(isSchemaPropComponentOrComponentCollection);
+    _componentSlotsCache.set(schema, slots);
   }
-  const requiredExternalFields = componentDefinition.schema.filter(schemaProp => {
-    if (schemaProp.type === "text") {
-      return false;
-    }
-    const propValue = compiled.props[schemaProp.prop];
-    if (typeof propValue === "object" && propValue !== null && "id" in propValue && "widgetId" in propValue) {
-      if ("optional" in schemaProp) {
-        return !schemaProp.optional;
-      }
-      return true;
-    }
-    return false;
-  });
-  if (requiredExternalFields.length === 0) {
-    return status;
-  }
-  for (const resourceSchemaProp of requiredExternalFields) {
-    const externalReference = compiled.props[resourceSchemaProp.prop];
-    const fieldStatus = getFieldStatus(externalReference, externalData, compiled._id, resourceSchemaProp.prop, meta.vars.devices);
-    status.isLoading = status.isLoading || fieldStatus.isLoading;
-    status.renderable = status.renderable && fieldStatus.renderable;
-    if (!fieldStatus.renderable && !fieldStatus.isLoading) {
-      status.fieldsRequiredToRender.add(resourceSchemaProp.label || resourceSchemaProp.prop);
-    }
-  }
-  return status;
+  return slots;
 }
 function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, path, meta, isEditing, components) {
   const originalPath = path;
@@ -8963,6 +9018,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   }
   if (schemaProp.noInline) {
     const elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React__default["default"].createElement(ComponentBuilder, {
+      key: compiledChild._id,
       path: `${path}.${index}`,
       compiled: compiledChild,
       components: components
@@ -8975,6 +9031,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   }
   const EditableComponentBuilder = isEditing ? components["EditableComponentBuilder.editor"] : components["EditableComponentBuilder.client"];
   let elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React__default["default"].createElement(EditableComponentBuilder, {
+    key: compiledChild._id,
     compiled: compiledChild,
     index: index,
     length: compiledArray.length,
@@ -8989,6 +9046,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   schemaProp.type !== "component-collection-localised") {
     const type = getComponentMainType(schemaProp.accepts);
     elements = [/*#__PURE__*/React__default["default"].createElement(Placeholder, {
+      key: "placeholder",
       id: id,
       path: path,
       type: type,
@@ -9014,11 +9072,18 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   }
   if (isSchemaPropComponent(schemaProp)) {
     return elements[0] ?? /*#__PURE__*/React__default["default"].createElement(React.Fragment, null);
-  } else {
-    return elements;
   }
+
+  // For collections: render progressively when there are many children.
+  // In editing mode, render all at once (editor needs all items visible immediately).
+  if (!isEditing && elements.length > 3) {
+    return progressiveElements(elements.map((el, i) => /*#__PURE__*/React__default["default"].isValidElement(el) ? el : /*#__PURE__*/React__default["default"].createElement(React.Fragment, {
+      key: i
+    }, el)), 3, 2);
+  }
+  return elements;
 }
-function ComponentBuilder(props) {
+const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function ComponentBuilder(props) {
   const {
     compiled,
     passedProps,
@@ -9041,10 +9106,9 @@ function ComponentBuilder(props) {
   const isEditing = compiled.__editing !== undefined;
   const pathSeparator = path === "" ? "" : ".";
 
-  // Here we know we must render just component, without any wrappers
-  const componentDefinition = getComponentDefinition(compiled, {
-    definitions: meta.vars.definitions
-  });
+  // Reuse a stable wrapper so findComponentDefinitionById's WeakMap cache hits.
+  const defContext = getDefinitionsContext(meta.vars.definitions);
+  const componentDefinition = findComponentDefinitionById(compiled._component, defContext);
   const component = getComponent(componentDefinition, components, isEditing);
   const isMissingComponent = compiled._component === "@easyblocks/missing-component";
   const isMissingInstance = component === undefined;
@@ -9067,43 +9131,31 @@ function ComponentBuilder(props) {
     }
   }
   const Component = component;
-  getRenderabilityStatus(compiled, meta, externalData);
-
-  // if (!renderabilityStatus.renderable) {
-  //   const fieldsRequiredToRender = Array.from(
-  //     renderabilityStatus.fieldsRequiredToRender
-  //   );
-
-  //   return (
-  //     <MissingComponent component={componentDefinition}>
-  //       {`Fill following fields to render the component: ${fieldsRequiredToRender.join(
-  //         ", "
-  //       )}`}
-
-  //       {renderabilityStatus.isLoading && (
-  //         <Fragment>
-  //           <br />
-  //           <br />
-  //           Loading data...
-  //         </Fragment>
-  //       )}
-  //     </MissingComponent>
-  //   );
-  // }
-
   const shopstoryCompiledConfig = compiled;
 
-  // Shopstory component
-  const styled = buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta);
+  // Memoize the runtime object — it only depends on meta which is stable per render tree.
+  const runtime = React.useMemo(() => ({
+    stitches: meta.stitches,
+    resop: resop,
+    devices: meta.vars.devices
+  }), [meta.stitches, meta.vars.devices]);
 
-  // Styled
-  componentDefinition.schema.forEach(schemaProp => {
-    if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
-      const contextProps = shopstoryCompiledConfig.__editing?.components?.[schemaProp.prop] || {};
-      const compiledChildren = shopstoryCompiledConfig.components[schemaProp.prop];
-      styled[schemaProp.prop] = getCompiledSubcomponents(compiled._id, compiledChildren, contextProps, schemaProp, `${path}${pathSeparator}${schemaProp.prop}`, meta, isEditing, components);
-    }
-  });
+  // Memoize buildBoxes — only recompute when the compiled styled tree changes.
+  const styledBoxes = React.useMemo(() => buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta), [shopstoryCompiledConfig.styled, meta]);
+
+  // Use cached slot list instead of filtering every schema prop on each render.
+  const componentSlots = getComponentSlots(componentDefinition.schema);
+
+  // Build subcomponents into a new styled object (must include both boxes and subcomponents).
+  const styled = {
+    ...styledBoxes
+  };
+  for (let i = 0; i < componentSlots.length; i++) {
+    const schemaProp = componentSlots[i];
+    const contextProps = shopstoryCompiledConfig.__editing?.components?.[schemaProp.prop] || {};
+    const compiledChildren = shopstoryCompiledConfig.components[schemaProp.prop];
+    styled[schemaProp.prop] = getCompiledSubcomponents(compiled._id, compiledChildren, contextProps, schemaProp, `${path}${pathSeparator}${schemaProp.prop}`, meta, isEditing, components);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {
@@ -9111,26 +9163,26 @@ function ComponentBuilder(props) {
     __isSelected,
     ...restPassedProps
   } = allPassedProps || {};
-  const runtime = {
-    stitches: meta.stitches,
-    resop: resop,
-    devices: meta.vars.devices
-  };
-  const easyblocksProp = {
+
+  // Memoize the easyblocks prop — only changes when the component instance or selection changes.
+  const easyblocksProp = React.useMemo(() => ({
     id: shopstoryCompiledConfig._id,
     isEditing,
     path,
     runtime,
     isSelected: __isSelected
-  };
+  }), [shopstoryCompiledConfig._id, isEditing, path, runtime, __isSelected]);
+
+  // Memoize external props — only changes when compiled props or external data changes.
+  const externalProps = React.useMemo(() => mapExternalProps(shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData), [shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData]);
   const componentProps = {
     ...restPassedProps,
-    ...mapExternalProps(shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData),
+    ...externalProps,
     ...styled,
     __easyblocks: easyblocksProp
   };
   return /*#__PURE__*/React__default["default"].createElement(Component, componentProps);
-}
+});
 function getComponent(componentDefinition, components, isEditing) {
   let component;
 
@@ -9149,10 +9201,25 @@ function getComponent(componentDefinition, components, isEditing) {
   }
   return component;
 }
+
+/**
+ * Lazily-built Map cache for O(1) schema prop lookup by prop name.
+ * Keyed on the schema array reference — rebuilt only when the schema array changes.
+ */
+const _schemaMapCache = new WeakMap();
+function getSchemaPropMap(schema) {
+  let map = _schemaMapCache.get(schema);
+  if (!map) {
+    map = new Map(schema.map(s => [s.prop, s]));
+    _schemaMapCache.set(schema, map);
+  }
+  return map;
+}
 function mapExternalProps(props, configId, componentDefinition, externalData) {
   const resultsProps = {};
+  const schemaMap = getSchemaPropMap(componentDefinition.schema);
   for (const propName in props) {
-    const schemaProp = componentDefinition.schema.find(currentSchema => currentSchema.prop === propName);
+    const schemaProp = schemaMap.get(propName);
     if (schemaProp) {
       const propValue = props[propName];
       if (schemaProp.type === "text" && isLocalTextReference(propValue, "text")) {
@@ -9169,41 +9236,6 @@ function mapExternalProps(props, configId, componentDefinition, externalData) {
     }
   }
   return resultsProps;
-}
-function getFieldStatus(externalReference, externalData, configId, fieldName, devices) {
-  return responsiveValueReduce(externalReference, (currentStatus, value, deviceId) => {
-    if (!deviceId) {
-      if (!value.id) {
-        return {
-          isLoading: false,
-          renderable: false
-        };
-      }
-      const externalValue = getResolvedExternalDataValue(externalData, configId, fieldName, value);
-      return {
-        isLoading: currentStatus.isLoading || externalValue === undefined,
-        renderable: currentStatus.renderable && externalValue !== undefined && (externalValue.type === "object" ? value.key !== undefined : true)
-      };
-    }
-    if (currentStatus.isLoading || !currentStatus.renderable) {
-      return currentStatus;
-    }
-    const externalReferenceValue = responsiveValueGetDefinedValue(value, deviceId, devices);
-    if (!externalReferenceValue || externalReferenceValue.id === null) {
-      return {
-        isLoading: false,
-        renderable: false
-      };
-    }
-    const externalValue = getResolvedExternalDataValue(externalData, configId, fieldName, externalReferenceValue);
-    return {
-      isLoading: currentStatus.isLoading || externalValue === undefined,
-      renderable: currentStatus.renderable && externalValue !== undefined && (externalValue.type === "object" ? externalReferenceValue.key !== undefined : true)
-    };
-  }, {
-    renderable: true,
-    isLoading: false
-  }, devices);
 }
 function getComponentMainType(componentTypes) {
   let type;
@@ -9229,245 +9261,9 @@ function getComponentMainType(componentTypes) {
   return type;
 }
 
-const AUTH_HEADER = "x-shopstory-access-token";
-class EasyblocksBackend {
-  constructor(args) {
-    this.accessToken = args.accessToken;
-    this.rootUrl = args.rootUrl ?? "https://app.easyblocks.io";
-  }
-  async init() {
-    // don't reinitialize
-    if (this.project) {
-      return;
-    }
-
-    // Set project!
-    const response = await this.get("/projects");
-    if (response.ok) {
-      const projects = await response.json();
-      if (projects.length === 0) {
-        throw new Error("Authorization error. Have you provided a correct access token?");
-      }
-      this.project = projects[0];
-    } else {
-      throw new Error("Initialization error in ApiClient");
-    }
-  }
-  async request(path, options) {
-    const apiRequestUrl = new URL(`${this.rootUrl}/api${path}`);
-    if (options.searchParams && Object.keys(options.searchParams).length > 0) {
-      for (const [key, value] of Object.entries(options.searchParams)) {
-        if (Array.isArray(value)) {
-          value.forEach(value => {
-            apiRequestUrl.searchParams.append(key, value);
-          });
-        } else {
-          apiRequestUrl.searchParams.set(key, value);
-        }
-      }
-    }
-    const headers = {
-      ...(path.includes("assets") ? {} : {
-        "Content-Type": "application/json"
-      }),
-      ...options.headers,
-      [AUTH_HEADER]: this.accessToken
-    };
-    const body = options.body ? typeof options.body === "object" && !(options.body instanceof FormData) ? JSON.stringify(options.body) : options.body : undefined;
-    return fetch(apiRequestUrl.toString(), {
-      method: options.method,
-      headers,
-      body
-    });
-  }
-  async get(path) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return this.request(path, {
-      ...options,
-      method: "GET"
-    });
-  }
-  async post(path) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return this.request(path, {
-      ...options,
-      method: "POST"
-    });
-  }
-  async put(path) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return this.request(path, {
-      ...options,
-      method: "PUT"
-    });
-  }
-  async delete(path) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    return this.request(path, {
-      ...options,
-      method: "DELETE"
-    });
-  }
-  documents = {
-    get: async payload => {
-      await this.init();
-      const response = await this.get(`/projects/${this.project.id}/documents/${payload.id}`, {
-        searchParams: {
-          format: "full"
-        }
-      });
-      if (response.ok) {
-        return documentWithResolvedConfigDTOToDocument(await response.json());
-      }
-      throw new Error("Failed to get document");
-    },
-    create: async payload => {
-      await this.init();
-      const response = await this.post(`/projects/${this.project.id}/documents`, {
-        body: {
-          title: "Untitled",
-          config: payload.entry,
-          rootContainer: payload.entry._component
-        }
-      });
-      if (response.ok) {
-        return documentDTOToDocument(await response.json(), payload.entry);
-      }
-      if (response.status === 400) {
-        const errorData = await response.json();
-        throw new Error(errorData.error);
-      }
-      throw new Error("Failed to save document");
-    },
-    update: async payload => {
-      await this.init();
-      const response = await this.put(`/projects/${this.project.id}/documents/${payload.id}`, {
-        body: {
-          version: payload.version,
-          config: payload.entry
-        }
-      });
-      if (response.ok) {
-        return documentDTOToDocument(await response.json(), payload.entry);
-      }
-      if (response.status === 400) {
-        const errorData = await response.json();
-        throw new Error(errorData.error);
-      }
-      throw new Error("Failed to update document");
-    }
-  };
-  templates = {
-    get: async payload => {
-      await this.init();
-
-      // dummy inefficient implementation
-      const allTemplates = await this.templates.getAll();
-      const template = allTemplates.items.find(template => template.id === payload.id);
-      if (!template) {
-        throw new Error("Template not found");
-      }
-      return template;
-    },
-    getAll: async () => {
-      await this.init();
-      try {
-        const response = await this.get(`/projects/${this.project.id}/templates`);
-        const data = await response.json();
-        const templates = data.map(item => ({
-          id: item.id,
-          label: item.label,
-          entry: item.config.config,
-          isUserDefined: true,
-          width: item.width,
-          widthAuto: item.widthAuto
-        }));
-        return {
-          items: templates,
-          count: {}
-        };
-      } catch (error) {
-        console.error(error);
-        return {
-          items: [],
-          count: {}
-        };
-      }
-    },
-    create: async input => {
-      await this.init();
-      const payload = {
-        label: input.label,
-        config: input.entry,
-        masterTemplateIds: [],
-        width: input.width,
-        widthAuto: input.widthAuto
-      };
-      const response = await this.request(`/projects/${this.project.id}/templates`, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      if (response.status !== 200) {
-        throw new Error("couldn't create template");
-      }
-      const json = await response.json();
-      return {
-        id: json.id,
-        label: json.label,
-        entry: input.entry,
-        isUserDefined: true
-      };
-    },
-    update: async input => {
-      await this.init();
-      const payload = {
-        label: input.label,
-        masterTemplateIds: []
-      };
-      const response = await this.request(`/projects/${this.project.id}/templates/${input.id}`, {
-        method: "PUT",
-        body: JSON.stringify(payload)
-      });
-      const json = await response.json();
-      console.log("update template json", json);
-      if (response.status !== 200) {
-        throw new Error();
-      }
-      return {
-        id: json.id,
-        label: json.label,
-        isUserDefined: true
-      };
-    },
-    delete: async input => {
-      await this.init();
-      const response = await this.request(`/projects/${this.project.id}/templates/${input.id}`, {
-        method: "DELETE"
-      });
-      if (response.status !== 200) {
-        throw new Error();
-      }
-    }
-  };
-}
-function documentDTOToDocument(documentDTO, entry) {
-  if (!documentDTO.root_container) {
-    throw new Error("unexpected server error");
-  }
-  return {
-    id: documentDTO.id,
-    version: documentDTO.version,
-    entry
-  };
-}
-function documentWithResolvedConfigDTOToDocument(documentWithResolvedConfigDTO) {
-  return documentDTOToDocument(documentWithResolvedConfigDTO, documentWithResolvedConfigDTO.config.config);
-}
-
 exports.Box = Box;
 exports.CompilationCache = CompilationCache;
 exports.ComponentBuilder = ComponentBuilder;
-exports.EasyblocksBackend = EasyblocksBackend;
 exports.EasyblocksExternalDataProvider = EasyblocksExternalDataProvider;
 exports.EasyblocksMetadataProvider = EasyblocksMetadataProvider;
 exports.RichTextPartClient = RichTextPartClient;
@@ -9546,7 +9342,6 @@ exports.responsiveValueGetFirstLowerValue = responsiveValueGetFirstLowerValue;
 exports.responsiveValueGetHighestDefinedDevice = responsiveValueGetHighestDefinedDevice;
 exports.responsiveValueMap = responsiveValueMap;
 exports.responsiveValueNormalize = responsiveValueNormalize$1;
-exports.responsiveValueReduce = responsiveValueReduce;
 exports.responsiveValueValues = responsiveValueValues;
 exports.richTextChangedEvent = richTextChangedEvent;
 exports.scalarizeConfig = scalarizeConfig$1;

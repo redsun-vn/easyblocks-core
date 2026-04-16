@@ -5,7 +5,7 @@
   "description": "No-code ecommerce builder for headless CMS",
   "scripts": {
     "dev": "cross-env NODE_ENV=development concurrently -n bundle,emit-declarations 'rollup -c rollup.config.js --watch' 'tsc --watch --preserveWatchOutput'",
-    "build": "npm run bundle && npm run emit-declarations",
+    "build": "rm -rf ./dist && npm run bundle && npm run emit-declarations",
     "bundle": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "emit-declarations": "tsc",
     "bundle-declarations": "api-extractor run --local",
