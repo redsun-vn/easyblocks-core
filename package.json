@@ -69,6 +69,11 @@
       "types": "./dist/types/_internals.d.ts",
       "import": "./dist/es/_internals.js",
       "require": "./dist/cjs/_internals.cjs"
+    },
+    "./buildDocument": {
+      "types": "./dist/types/buildDocument.d.ts",
+      "import": "./dist/es/buildDocument.js",
+      "require": "./dist/cjs/buildDocument.cjs"
     }
   },
   "sideEffects": false,

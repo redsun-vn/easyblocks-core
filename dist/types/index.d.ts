@@ -1,5 +1,4 @@
 export { box } from "./box";
-export { buildDocument } from "./buildDocument";
 export { buildEntry } from "./buildEntry";
 export { isComponentConfig, isDocument, isEmptyExternalReference, isEmptyRenderableContent, isIdReferenceToDocumentExternalValue, isLocalValue, isNonEmptyRenderableContent, isRenderableContent, isResolvedCompoundExternalDataValue, } from "./checkers";
 export { CompilationCache, compile, compileInternal, createCompilationContext, findExternals, getSchemaDefinition, mergeCompilationMeta, normalize, normalizeInput, validate, type CompilationCacheItemValue, type SchemaPropDefinitionProviders, type TemplateQueryType, type TGlobalSectionChange, } from "./compiler";

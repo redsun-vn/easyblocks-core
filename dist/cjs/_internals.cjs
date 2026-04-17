@@ -3,18 +3,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var ComponentBuilder = require('./ComponentBuilder-3f7cfcd1.js');
+var configTraverse = require('./configTraverse-fbcc69f3.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
+var ComponentBuilder = require('./ComponentBuilder-00ece901.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
-require('postcss-value-parser');
 require('zod');
+require('postcss-value-parser');
 require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -39,24 +40,24 @@ function keys(o) {
 
 function duplicateConfig(inputConfig, compilationContext) {
   // deep copy first
-  const config = ComponentBuilder.deepClone(inputConfig);
+  const config = configTraverse.deepClone(inputConfig);
 
   // refresh component ids
-  ComponentBuilder.traverseComponents(config, compilationContext, _ref => {
+  configTraverse.traverseComponents(config, compilationContext, _ref => {
     let {
       componentConfig
     } = _ref;
-    componentConfig._id = ComponentBuilder.uniqueId();
+    componentConfig._id = configTraverse.uniqueId();
   });
 
   // every text must get new local id
-  ComponentBuilder.configTraverse(config, compilationContext, _ref2 => {
+  configTraverse.configTraverse(config, compilationContext, _ref2 => {
     let {
       value,
       schemaProp
     } = _ref2;
     if (schemaProp.type === "text") {
-      value.id = "local." + ComponentBuilder.uniqueId();
+      value.id = "local." + configTraverse.uniqueId();
     }
   });
   return config;
@@ -84,9 +85,9 @@ function convertEditorValueToRichTextElements(editorValue) {
   });
 }
 function convertEditorElementToRichTextLineElement(editorElement) {
-  const lineElement = ComponentBuilder.buildRichTextLineElementComponentConfig({
+  const lineElement = configTraverse.buildRichTextLineElementComponentConfig({
     elements: editorElement.children.map(child => {
-      return ComponentBuilder.buildRichTextPartComponentConfig({
+      return configTraverse.buildRichTextPartComponentConfig({
         value: ComponentBuilder.cleanString(child.text),
         color: child.color,
         font: child.font,
@@ -99,14 +100,14 @@ function convertEditorElementToRichTextLineElement(editorElement) {
   return lineElement;
 }
 function convertEditorListElementToRichTextListBlockElement(type, editorElement) {
-  const listBlockElement = ComponentBuilder.buildRichTextBlockElementComponentConfig(type, editorElement.children.map(child => {
+  const listBlockElement = configTraverse.buildRichTextBlockElementComponentConfig(type, editorElement.children.map(child => {
     return convertEditorElementToRichTextLineElement(child);
   }));
   listBlockElement._id = editorElement.id;
   return listBlockElement;
 }
 function convertEditorParagraphElementToRichTextParagraphBlockElement(editorElement) {
-  const paragraphBlockElement = ComponentBuilder.buildRichTextBlockElementComponentConfig("paragraph", editorElement.children.map(child => {
+  const paragraphBlockElement = configTraverse.buildRichTextBlockElementComponentConfig("paragraph", editorElement.children.map(child => {
     return convertEditorElementToRichTextLineElement(child);
   }));
   paragraphBlockElement._id = editorElement.id;
@@ -217,7 +218,7 @@ function updateSelection(editor, key) {
     const selectedTextNodesRanges = selectedTextNodeEntries.map(_ref => {
       let [, textNodePath] = _ref;
       return slate.Range.intersection(editor.selection, slate.Editor.range(editor, textNodePath));
-    }).filter(ComponentBuilder.nonNullable());
+    }).filter(configTraverse.nonNullable());
     slate.Editor.withoutNormalizing(editor, () => {
       selectedTextNodesRanges.reverse().forEach((range, index) => {
         slate.Transforms.setNodes(editor, {
@@ -294,13 +295,13 @@ function convertRichTextBlockElementComponentConfigToEditorElement(blockElementC
 }
 function getPlaceholderRichTextElements() {
   return [{
-    id: ComponentBuilder.uniqueId(),
+    id: configTraverse.uniqueId(),
     type: "paragraph",
     children: [{
-      id: ComponentBuilder.uniqueId(),
+      id: configTraverse.uniqueId(),
       type: "text-line",
       children: [{
-        id: ComponentBuilder.uniqueId(),
+        id: configTraverse.uniqueId(),
         color: {
           tokenId: "black",
           value: "black",
@@ -430,7 +431,7 @@ function updateNonUniqueIds(editor, entry) {
   const [node, path] = entry;
   if (slate.Text.isText(node) || slate.Element.isElement(node)) {
     if (USED_IDS.has(node.id)) {
-      const newId = ComponentBuilder.uniqueId();
+      const newId = configTraverse.uniqueId();
       NORMALIZED_IDS_TO_IDS.set(newId, node.id);
       slate.Transforms.setNodes(editor, {
         id: newId
@@ -559,7 +560,7 @@ function compareText(text1, text2) {
     const key = part1Keys[index];
     const part1Value = text1[key];
     const part2Value = text2[key];
-    const areValuesEqual = ComponentBuilder.deepCompare(part1Value, part2Value);
+    const areValuesEqual = configTraverse.deepCompare(part1Value, part2Value);
     if (!areValuesEqual) {
       areEqual = false;
       break;
@@ -642,7 +643,7 @@ function getEditorSelectionFromFocusedFields(focusedFields, form) {
         path: parsedAnchorField.path
       },
       focus: {
-        offset: parsedFocusedField.range ? parsedFocusedField.range[1] : ComponentBuilder.dotNotationGet(form.values, focusFocusedField).value.length,
+        offset: parsedFocusedField.range ? parsedFocusedField.range[1] : configTraverse.dotNotationGet(form.values, focusFocusedField).value.length,
         path: parsedFocusedField.path
       }
     };
@@ -685,7 +686,7 @@ function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, edito
     }
   };
   focussedField.forEach(focusedField => {
-    const textPartConfig = ComponentBuilder.dotNotationGet(form.values, stripRichTextPartSelection(focusedField));
+    const textPartConfig = configTraverse.dotNotationGet(form.values, stripRichTextPartSelection(focusedField));
     const {
       path,
       range
@@ -700,23 +701,23 @@ function getRichTextComponentConfigFragment(sourceRichTextComponentConfig, edito
       if (index === 0) {
         currentConfigPath += `.${pathIndex}`;
       } else {
-        const parentConfig = ComponentBuilder.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
+        const parentConfig = configTraverse.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
         currentConfigPath += `.elements.${Math.min(parentConfig.elements.length, pathIndex)}`;
       }
-      const currentConfig = ComponentBuilder.dotNotationGet(newRichTextComponentConfig, currentConfigPath);
+      const currentConfig = configTraverse.dotNotationGet(newRichTextComponentConfig, currentConfigPath);
       if (!currentConfig) {
         const sourceConfigPath = lastParentConfigPath + (index === 0 ? `.${pathIndex}` : `.elements.${pathIndex}`);
-        const sourceConfig = ComponentBuilder.dotNotationGet(sourceRichTextComponentConfig, sourceConfigPath);
+        const sourceConfig = configTraverse.dotNotationGet(sourceRichTextComponentConfig, sourceConfigPath);
         const configCopy = {
           ...sourceConfig,
           elements: []
         };
-        ComponentBuilder.dotNotationSet(newRichTextComponentConfig, currentConfigPath, configCopy);
+        configTraverse.dotNotationSet(newRichTextComponentConfig, currentConfigPath, configCopy);
       }
       lastParentConfigPath = currentConfigPath;
     });
-    const textPartParentConfig = ComponentBuilder.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
-    ComponentBuilder.dotNotationSet(newRichTextComponentConfig, lastParentConfigPath, {
+    const textPartParentConfig = configTraverse.dotNotationGet(newRichTextComponentConfig, lastParentConfigPath);
+    configTraverse.dotNotationSet(newRichTextComponentConfig, lastParentConfigPath, {
       ...textPartParentConfig,
       elements: [...textPartParentConfig.elements, newTextPartConfig]
     });
@@ -747,10 +748,10 @@ function RichTextEditor(props) {
     },
     align
   } = props;
-  let richTextConfig = ComponentBuilder.dotNotationGet(form.values, path);
+  let richTextConfig = configTraverse.dotNotationGet(form.values, path);
   const [editor] = React.useState(() => withEasyblocks(slateReact.withReact(slate.createEditor())));
   const localizedRichTextElements = richTextConfig.elements[contextParams.locale];
-  const fallbackRichTextElements = ComponentBuilder.getFallbackForLocale(richTextConfig.elements, contextParams.locale, locales);
+  const fallbackRichTextElements = configTraverse.getFallbackForLocale(richTextConfig.elements, contextParams.locale, locales);
   const richTextElements = localizedRichTextElements ?? fallbackRichTextElements;
   const richTextElementsConfigPath = `${path}.elements.${contextParams.locale}`;
   const [editorValue, setEditorValue] = React.useState(() => convertRichTextElementsToEditorValue(richTextElements));
@@ -760,7 +761,7 @@ function RichTextEditor(props) {
   if (richTextElements.length === 0 && !fallbackRichTextElements) {
     // We only want to show rich text for default config within this component, we don't want to update raw content
     // To prevent implicit update of raw content we make a deep copy.
-    richTextConfig = ComponentBuilder.deepClone(richTextConfig);
+    richTextConfig = configTraverse.deepClone(richTextConfig);
     richTextConfig.elements[contextParams.locale] = convertEditorValueToRichTextElements(editorValue);
   }
 
@@ -854,7 +855,7 @@ function RichTextEditor(props) {
       // When value for current locale is empty we want to show value from fallback value instead of placeholder
       // if the fallback value is present.
       if (isSlateValueEmpty && fallbackRichTextElements !== undefined) {
-        const nextRichTextElement = ComponentBuilder.deepClone(richTextConfig);
+        const nextRichTextElement = configTraverse.deepClone(richTextConfig);
         delete nextRichTextElement.elements[contextParams.locale];
         editor.children = convertRichTextElementsToEditorValue(fallbackRichTextElements);
         form.change(path, nextRichTextElement);
@@ -1058,7 +1059,7 @@ function RichTextEditor(props) {
       lastChangeReason.current = "text-input";
       return;
     }
-    const isValueSame = ComponentBuilder.deepCompare(value, editorValue);
+    const isValueSame = configTraverse.deepCompare(value, editorValue);
 
     // Slate runs `onChange` callback on any change, even when the text haven't changed.
     // If value haven't changed, it must be a selection change.
@@ -1270,7 +1271,7 @@ function isEditorValueEmpty(editorValue) {
   return editorValue.length === 1 && editorValue[0].children.length === 1 && editorValue[0].children[0].children.length === 1 && slate.Text.isText(editorValue[0].children[0].children[0]) && editorValue[0].children[0].children[0].text === "";
 }
 function isConfigEqual(newConfig, oldConfig) {
-  return ComponentBuilder.deepCompare(newConfig, oldConfig);
+  return configTraverse.deepCompare(newConfig, oldConfig);
 }
 function mapResponsiveAlignmentToStyles(align, _ref4) {
   let {
@@ -1287,15 +1288,15 @@ function mapResponsiveAlignmentToStyles(align, _ref4) {
     return "flex-start";
   }
   const responsiveStyles = resop({
-    align: ComponentBuilder.responsiveValueFill(align, devices, ComponentBuilder.getDevicesWidths(devices))
+    align: configTraverse.responsiveValueFill(align, devices, configTraverse.getDevicesWidths(devices))
   }, values => {
     return {
       justifyContent: mapAlignmentToFlexAlignment(values.align),
       textAlign: values.align
     };
   }, devices);
-  const compiledStyles = ComponentBuilder.compileBox(responsiveStyles, devices);
-  return ComponentBuilder.getBoxStyles(compiledStyles, devices);
+  const compiledStyles = configTraverse.compileBox(responsiveStyles, devices);
+  return configTraverse.getBoxStyles(compiledStyles, devices);
 }
 function createTextSelectionDecorator(editor) {
   return _ref5 => {
@@ -1388,7 +1389,7 @@ function unwrapStringNodesContent(editor) {
 
 function useTextValue(value, onChange, locale, locales, defaultPlaceholder, normalize) {
   const isExternal = typeof value === "object" && value !== null;
-  const fallbackValue = isExternal ? ComponentBuilder.getFallbackForLocale(value.value, locale, locales) : undefined;
+  const fallbackValue = isExternal ? configTraverse.getFallbackForLocale(value.value, locale, locales) : undefined;
   const valueFromProps = (() => {
     if (isExternal) {
       let displayedValue = value.value?.[locale];
@@ -1486,7 +1487,7 @@ function InlineTextarea(_ref) {
     locales
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
-  const value = ComponentBuilder.dotNotationGet(form.values, valuePath);
+  const value = configTraverse.dotNotationGet(form.values, valuePath);
   const inputProps = useTextValue(value, val => {
     form.change(valuePath, val);
   }, locale, locales, placeholder);
@@ -1558,7 +1559,7 @@ function TextEditor(props) {
     form
   } = window.parent.editorWindowAPI.editorContext;
   const valuePath = `${path}.value`;
-  const configValue = ComponentBuilder.dotNotationGet(form.values, valuePath);
+  const configValue = configTraverse.dotNotationGet(form.values, valuePath);
   const isLocalTextReference = configValue?.id?.startsWith("local.");
   return /*#__PURE__*/React__default["default"].createElement(Text.type, _extends__default["default"]({}, Text.props, {
     as: "div"
@@ -1570,9 +1571,9 @@ function TextEditor(props) {
 }
 
 function buildText(x, editorContext) {
-  const defaultLocale = ComponentBuilder.getDefaultLocale(editorContext.locales);
+  const defaultLocale = configTraverse.getDefaultLocale(editorContext.locales);
   return {
-    id: "locale." + ComponentBuilder.uniqueId(),
+    id: "locale." + configTraverse.uniqueId(),
     value: {
       [defaultLocale.code]: x
     }
@@ -1839,12 +1840,12 @@ function createFormMock() {
         this.values = value;
         return;
       }
-      ComponentBuilder.dotNotationSet(this.values, path, value);
+      configTraverse.dotNotationSet(this.values, path, value);
     }
   };
 }
 function createTestCompilationContext() {
-  return ComponentBuilder.createCompilationContext({
+  return configTraverse.createCompilationContext({
     backend: new EasyblocksBackend({
       accessToken: ""
     }),
@@ -1861,45 +1862,45 @@ function createTestCompilationContext() {
   }, "TestComponent");
 }
 
-exports.CompilationCache = ComponentBuilder.CompilationCache;
+exports.CompilationCache = configTraverse.CompilationCache;
+exports.buildRichTextBlockElementComponentConfig = configTraverse.buildRichTextBlockElementComponentConfig;
+exports.buildRichTextBulletedListBlockElementComponentConfig = configTraverse.buildRichTextBulletedListBlockElementComponentConfig;
+exports.buildRichTextComponentConfig = configTraverse.buildRichTextComponentConfig;
+exports.buildRichTextLineElementComponentConfig = configTraverse.buildRichTextLineElementComponentConfig;
+exports.buildRichTextNoCodeEntry = configTraverse.buildRichTextNoCodeEntry;
+exports.buildRichTextParagraphBlockElementComponentConfig = configTraverse.buildRichTextParagraphBlockElementComponentConfig;
+exports.buildRichTextPartComponentConfig = configTraverse.buildRichTextPartComponentConfig;
+exports.compileBox = configTraverse.compileBox;
+exports.compileInternal = configTraverse.compileInternal;
+exports.configTraverse = configTraverse.configTraverse;
+exports.findComponentDefinition = configTraverse.findComponentDefinition;
+exports.findComponentDefinitionById = configTraverse.findComponentDefinitionById;
+exports.findPathOfFirstAncestorOfType = configTraverse.findPathOfFirstAncestorOfType;
+exports.getBoxStyles = configTraverse.getBoxStyles;
+exports.getSchemaDefinition = configTraverse.getSchemaDefinition;
+exports.isCustomSchemaProp = configTraverse.isCustomSchemaProp;
+exports.isExternalSchemaProp = configTraverse.isExternalSchemaProp;
+exports.isSchemaPropActionTextModifier = configTraverse.isSchemaPropActionTextModifier;
+exports.isSchemaPropCollection = configTraverse.isSchemaPropCollection;
+exports.isSchemaPropComponent = configTraverse.isSchemaPropComponent;
+exports.isSchemaPropComponentCollectionLocalised = configTraverse.isSchemaPropComponentCollectionLocalised;
+exports.isSchemaPropComponentOrComponentCollection = configTraverse.isSchemaPropComponentOrComponentCollection;
+exports.isSchemaPropTextModifier = configTraverse.isSchemaPropTextModifier;
+exports.normalize = configTraverse.normalize;
+exports.parsePath = configTraverse.parsePath;
+exports.scalarizeConfig = configTraverse.scalarizeConfig;
+exports.stripRichTextPartSelection = configTraverse.stripRichTextPartSelection;
+exports.textModifierSchemaProp = configTraverse.textModifierSchemaProp;
+exports.textStyles = configTraverse.textStyles;
+exports.traverseComponents = configTraverse.traverseComponents;
 exports.ComponentBuilder = ComponentBuilder.ComponentBuilder;
 exports.EasyblocksMetadataProvider = ComponentBuilder.EasyblocksMetadataProvider;
-exports.buildRichTextBlockElementComponentConfig = ComponentBuilder.buildRichTextBlockElementComponentConfig;
-exports.buildRichTextBulletedListBlockElementComponentConfig = ComponentBuilder.buildRichTextBulletedListBlockElementComponentConfig;
-exports.buildRichTextComponentConfig = ComponentBuilder.buildRichTextComponentConfig;
-exports.buildRichTextLineElementComponentConfig = ComponentBuilder.buildRichTextLineElementComponentConfig;
-exports.buildRichTextNoCodeEntry = ComponentBuilder.buildRichTextNoCodeEntry;
-exports.buildRichTextParagraphBlockElementComponentConfig = ComponentBuilder.buildRichTextParagraphBlockElementComponentConfig;
-exports.buildRichTextPartComponentConfig = ComponentBuilder.buildRichTextPartComponentConfig;
-exports.compileBox = ComponentBuilder.compileBox;
-exports.compileInternal = ComponentBuilder.compileInternal;
 exports.componentPickerClosed = ComponentBuilder.componentPickerClosed;
 exports.componentPickerOpened = ComponentBuilder.componentPickerOpened;
-exports.configTraverse = ComponentBuilder.configTraverse;
-exports.findComponentDefinition = ComponentBuilder.findComponentDefinition;
-exports.findComponentDefinitionById = ComponentBuilder.findComponentDefinitionById;
-exports.findPathOfFirstAncestorOfType = ComponentBuilder.findPathOfFirstAncestorOfType;
-exports.getBoxStyles = ComponentBuilder.getBoxStyles;
-exports.getSchemaDefinition = ComponentBuilder.getSchemaDefinition;
-exports.isCustomSchemaProp = ComponentBuilder.isCustomSchemaProp;
-exports.isExternalSchemaProp = ComponentBuilder.isExternalSchemaProp;
-exports.isSchemaPropActionTextModifier = ComponentBuilder.isSchemaPropActionTextModifier;
-exports.isSchemaPropCollection = ComponentBuilder.isSchemaPropCollection;
-exports.isSchemaPropComponent = ComponentBuilder.isSchemaPropComponent;
-exports.isSchemaPropComponentCollectionLocalised = ComponentBuilder.isSchemaPropComponentCollectionLocalised;
-exports.isSchemaPropComponentOrComponentCollection = ComponentBuilder.isSchemaPropComponentOrComponentCollection;
-exports.isSchemaPropTextModifier = ComponentBuilder.isSchemaPropTextModifier;
 exports.itemInserted = ComponentBuilder.itemInserted;
 exports.itemMoved = ComponentBuilder.itemMoved;
-exports.normalize = ComponentBuilder.normalize;
-exports.parsePath = ComponentBuilder.parsePath;
 exports.richTextChangedEvent = ComponentBuilder.richTextChangedEvent;
-exports.scalarizeConfig = ComponentBuilder.scalarizeConfig;
 exports.selectionFramePositionChanged = ComponentBuilder.selectionFramePositionChanged;
-exports.stripRichTextPartSelection = ComponentBuilder.stripRichTextPartSelection;
-exports.textModifierSchemaProp = ComponentBuilder.textModifierSchemaProp;
-exports.textStyles = ComponentBuilder.textStyles;
-exports.traverseComponents = ComponentBuilder.traverseComponents;
 exports.useEasyblocksMetadata = ComponentBuilder.useEasyblocksMetadata;
 exports.RichTextEditor = RichTextEditor;
 exports.TextEditor = TextEditor;

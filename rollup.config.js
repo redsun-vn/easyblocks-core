@@ -66,7 +66,7 @@ function createRollupConfigs({
   const onwarn = (warning, warn) => {
     if (
       warning.message.includes(
-        "Module level directives cause errors when bundled, 'use client' was ignored."
+        "Module level directives cause errors when bundled, 'use client' was ignored.",
       )
     ) {
       return;
@@ -75,7 +75,7 @@ function createRollupConfigs({
     // parser file is automatically generated and we don't have control over it
     if (
       warning.message.includes(
-        `Entry module "../reduce-css-calc/src/parser.js" is implicitly using "default" export mode`
+        `Entry module "../reduce-css-calc/src/parser.js" is implicitly using "default" export mode`,
       )
     ) {
       return;
@@ -96,7 +96,7 @@ function createRollupConfigs({
     plugins: [
       ...getPlugins(
         path.join(baseStatOutputDir, "es/index.html"),
-        isFullBundle
+        isFullBundle,
       ),
       alias({
         entries: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
@@ -119,7 +119,7 @@ function createRollupConfigs({
     plugins: [
       ...getPlugins(
         path.join(baseStatOutputDir, "cjs/index.html"),
-        isFullBundle
+        isFullBundle,
       ),
       alias({
         entries: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
@@ -133,7 +133,11 @@ function createRollupConfigs({
 }
 
 export default createRollupConfigs({
-  inputFile: ["./src/index.ts", "./src/_internals.ts"],
+  inputFile: [
+    "./src/index.ts",
+    "./src/_internals.ts",
+    "./src/buildDocument.ts",
+  ],
   baseOutputDir: "dist",
   baseStatOutputDir: "stats",
 });
