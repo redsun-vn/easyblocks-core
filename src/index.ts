@@ -1,4 +1,5 @@
 export { box } from "./box";
+export { buildDocument } from "./buildDocument";
 export { buildEntry } from "./buildEntry";
 export {
   isComponentConfig,

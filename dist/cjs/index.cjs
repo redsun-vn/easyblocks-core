@@ -3,11 +3,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var fonts = require('./fonts-ae304abc.js');
-var configTraverse = require('./configTraverse-fbcc69f3.js');
+var buildDocument = require('./buildDocument-3f248560.js');
+var configTraverse = require('./configTraverse-1e446f53.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
-var ComponentBuilder = require('./ComponentBuilder-00ece901.js');
+var ComponentBuilder = require('./ComponentBuilder-116057b0.js');
 require('js-xxhash');
 require('zod');
 require('postcss-value-parser');
@@ -339,22 +339,23 @@ const globalSectionGroups = [{
   name: "Footers"
 }];
 
-exports.buildEntry = fonts.buildEntry;
-exports.compile = fonts.compile;
-exports.defaultFontFamily = fonts.defaultFontFamily;
-exports.defaultFontSize = fonts.defaultFontSize;
-exports.defaultFontWeight = fonts.defaultFontWeight;
-exports.defaultLineHeight = fonts.defaultLineHeight;
-exports.findExternals = fonts.findExternals;
-exports.fontFamilies = fonts.fontFamilies;
-exports.getFontFamilies = fonts.getFontFamilies;
-exports.getFontSizes = fonts.getFontSizes;
-exports.getFontWeights = fonts.getFontWeights;
-exports.getLineHeights = fonts.getLineHeights;
-exports.loadGoogleFonts = fonts.loadGoogleFonts;
-exports.mergeCompilationMeta = fonts.mergeCompilationMeta;
-exports.normalizeInput = fonts.normalizeInput;
-exports.validate = fonts.validate;
+exports.buildDocument = buildDocument.buildDocument;
+exports.buildEntry = buildDocument.buildEntry;
+exports.compile = buildDocument.compile;
+exports.defaultFontFamily = buildDocument.defaultFontFamily;
+exports.defaultFontSize = buildDocument.defaultFontSize;
+exports.defaultFontWeight = buildDocument.defaultFontWeight;
+exports.defaultLineHeight = buildDocument.defaultLineHeight;
+exports.findExternals = buildDocument.findExternals;
+exports.fontFamilies = buildDocument.fontFamilies;
+exports.getFontFamilies = buildDocument.getFontFamilies;
+exports.getFontSizes = buildDocument.getFontSizes;
+exports.getFontWeights = buildDocument.getFontWeights;
+exports.getLineHeights = buildDocument.getLineHeights;
+exports.loadGoogleFonts = buildDocument.loadGoogleFonts;
+exports.mergeCompilationMeta = buildDocument.mergeCompilationMeta;
+exports.normalizeInput = buildDocument.normalizeInput;
+exports.validate = buildDocument.validate;
 exports.CompilationCache = configTraverse.CompilationCache;
 exports.buildRichTextNoCodeEntry = configTraverse.buildRichTextNoCodeEntry;
 exports.compileInternal = configTraverse.compileInternal;

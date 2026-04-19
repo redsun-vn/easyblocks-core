@@ -9,6 +9,154 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var valueParser__default = /*#__PURE__*/_interopDefaultLegacy(valueParser);
 
+function bubbleDown(matcher, items) {
+  const originalOrder = [];
+  const bubbledDown = [];
+  items.forEach(item => {
+    if (matcher(item)) {
+      bubbledDown.push(item);
+    } else {
+      originalOrder.push(item);
+    }
+  });
+  return [...originalOrder, ...bubbledDown];
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+function toArray(scalarOrCollection) {
+  if (Array.isArray(scalarOrCollection)) {
+    return scalarOrCollection;
+  }
+  return [scalarOrCollection];
+}
+
+function range(start, end) {
+  const itemsCount = start === end ? 1 : end - start + 1;
+  return Array.from({
+    length: itemsCount
+  }, (_, index) => {
+    return start + index;
+  });
+}
+
+/**
+ * Returns a new function that filters nullable elements to be used as callback of `.filter` method.
+ * It's useful because it has already defined guard which otherwise would be repeated in many places
+ * and also it automatically changes the return value of filter function by extracting `null` and `undefined` types.
+ *
+ * Usage:
+ * ```
+ * const onlyNonNullable = nullableElements.filter<TypeOfCollectionItem>(nonNullable())
+ * ```
+ */
+function nonNullable() {
+  return function (value) {
+    return value != null;
+  };
+}
+
+function deepClone(source) {
+  return JSON.parse(JSON.stringify(source));
+}
+
+function deepCompare() {
+  for (let index = 0; index < arguments.length - 1; index++) {
+    const currentObject = sortObject(index < 0 || arguments.length <= index ? undefined : arguments[index]);
+    const nextObject = sortObject(index + 1 < 0 || arguments.length <= index + 1 ? undefined : arguments[index + 1]);
+    const areObjectsHashesEqual = JSON.stringify(currentObject) === JSON.stringify(nextObject);
+    if (!areObjectsHashesEqual) {
+      return false;
+    }
+  }
+  return true;
+}
+function sortObject(value) {
+  if (typeof value !== "object") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return [...value].sort();
+  }
+  if (value === null) {
+    return null;
+  }
+  const sortedObject = {};
+  const objectKeys = Object.keys(value).sort();
+  objectKeys.forEach(key => {
+    sortedObject[key] = sortObject(value[key]);
+  });
+  return sortedObject;
+}
+
+function dotNotationGet(obj, path) {
+  if (path === "") {
+    return obj;
+  }
+  return path.split(".").reduce((acc, curVal) => acc && acc[curVal], obj);
+}
+
+function dotNotationSet(obj, path, value) {
+  if (path === "") {
+    throw new Error("Path can't be empty in dotNotationSetter");
+  }
+  if (typeof obj !== "object" || obj === null) {
+    throw new Error("dotNotationSet - you're trying to set value for non-object");
+  }
+  const splitPath = typeof path === "string" ? path.split(".").map(x => {
+    if (typeof x === "string" && !isNaN(parseInt(x))) {
+      return parseInt(x);
+    }
+    return x;
+  }) : path;
+  if (splitPath.length === 1) {
+    obj[splitPath[0]] = value;
+  } else {
+    if (!obj[splitPath[0]]) {
+      if (typeof splitPath[1] === "number") {
+        obj[splitPath[0]] = [];
+      } else {
+        obj[splitPath[0]] = {};
+      }
+    }
+    dotNotationSet(obj[splitPath[0]], splitPath.slice(1), value);
+  }
+}
+
+/**
+ * `Object.entries` is badly typed for its reasons and this function just fixes it.
+ * https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript
+ */
+function entries(o) {
+  return Object.entries(o);
+}
+
+function serialize(value) {
+  if (value instanceof Error) {
+    return JSON.parse(JSON.stringify(value, Object.getOwnPropertyNames(value)));
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function uniqueId() {
+  const id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = Math.random() * 16 | 0,
+      v = c == "x" ? r : r & 0x3 | 0x8;
+    return v.toString(16);
+  });
+  return id;
+}
+
+function assertDefined(value, message) {
+  if (value === undefined) {
+    throw new Error(message ?? "Value is undefined");
+  }
+  return value;
+}
+
+function raiseError(errorMessage) {
+  throw new Error(errorMessage);
+}
+
 function isCompiledComponentConfig(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 arg) {
@@ -219,154 +367,6 @@ function responsiveValueGetDefinedValue(value, breakpoint, devices, widths) {
     return;
   }
   return value[definedDevice.id];
-}
-
-function bubbleDown(matcher, items) {
-  const originalOrder = [];
-  const bubbledDown = [];
-  items.forEach(item => {
-    if (matcher(item)) {
-      bubbledDown.push(item);
-    } else {
-      originalOrder.push(item);
-    }
-  });
-  return [...originalOrder, ...bubbledDown];
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-function toArray(scalarOrCollection) {
-  if (Array.isArray(scalarOrCollection)) {
-    return scalarOrCollection;
-  }
-  return [scalarOrCollection];
-}
-
-function range(start, end) {
-  const itemsCount = start === end ? 1 : end - start + 1;
-  return Array.from({
-    length: itemsCount
-  }, (_, index) => {
-    return start + index;
-  });
-}
-
-/**
- * Returns a new function that filters nullable elements to be used as callback of `.filter` method.
- * It's useful because it has already defined guard which otherwise would be repeated in many places
- * and also it automatically changes the return value of filter function by extracting `null` and `undefined` types.
- *
- * Usage:
- * ```
- * const onlyNonNullable = nullableElements.filter<TypeOfCollectionItem>(nonNullable())
- * ```
- */
-function nonNullable() {
-  return function (value) {
-    return value != null;
-  };
-}
-
-function deepClone(source) {
-  return JSON.parse(JSON.stringify(source));
-}
-
-function deepCompare() {
-  for (let index = 0; index < arguments.length - 1; index++) {
-    const currentObject = sortObject(index < 0 || arguments.length <= index ? undefined : arguments[index]);
-    const nextObject = sortObject(index + 1 < 0 || arguments.length <= index + 1 ? undefined : arguments[index + 1]);
-    const areObjectsHashesEqual = JSON.stringify(currentObject) === JSON.stringify(nextObject);
-    if (!areObjectsHashesEqual) {
-      return false;
-    }
-  }
-  return true;
-}
-function sortObject(value) {
-  if (typeof value !== "object") {
-    return value;
-  }
-  if (Array.isArray(value)) {
-    return [...value].sort();
-  }
-  if (value === null) {
-    return null;
-  }
-  const sortedObject = {};
-  const objectKeys = Object.keys(value).sort();
-  objectKeys.forEach(key => {
-    sortedObject[key] = sortObject(value[key]);
-  });
-  return sortedObject;
-}
-
-function dotNotationGet(obj, path) {
-  if (path === "") {
-    return obj;
-  }
-  return path.split(".").reduce((acc, curVal) => acc && acc[curVal], obj);
-}
-
-function dotNotationSet(obj, path, value) {
-  if (path === "") {
-    throw new Error("Path can't be empty in dotNotationSetter");
-  }
-  if (typeof obj !== "object" || obj === null) {
-    throw new Error("dotNotationSet - you're trying to set value for non-object");
-  }
-  const splitPath = typeof path === "string" ? path.split(".").map(x => {
-    if (typeof x === "string" && !isNaN(parseInt(x))) {
-      return parseInt(x);
-    }
-    return x;
-  }) : path;
-  if (splitPath.length === 1) {
-    obj[splitPath[0]] = value;
-  } else {
-    if (!obj[splitPath[0]]) {
-      if (typeof splitPath[1] === "number") {
-        obj[splitPath[0]] = [];
-      } else {
-        obj[splitPath[0]] = {};
-      }
-    }
-    dotNotationSet(obj[splitPath[0]], splitPath.slice(1), value);
-  }
-}
-
-/**
- * `Object.entries` is badly typed for its reasons and this function just fixes it.
- * https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript
- */
-function entries(o) {
-  return Object.entries(o);
-}
-
-function serialize(value) {
-  if (value instanceof Error) {
-    return JSON.parse(JSON.stringify(value, Object.getOwnPropertyNames(value)));
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
-function uniqueId() {
-  const id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0,
-      v = c == "x" ? r : r & 0x3 | 0x8;
-    return v.toString(16);
-  });
-  return id;
-}
-
-function assertDefined(value, message) {
-  if (value === undefined) {
-    throw new Error(message ?? "Value is undefined");
-  }
-  return value;
-}
-
-function raiseError(errorMessage) {
-  throw new Error(errorMessage);
 }
 
 function responsiveValueEntries(value) {
