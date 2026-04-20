@@ -1,14 +1,14 @@
 /* with love from shopstory */
-import { $ as deepClone, a0 as traverseComponents, T as configTraverse, a1 as uniqueId, a2 as buildRichTextBlockElementComponentConfig, a3 as buildRichTextLineElementComponentConfig, a4 as buildRichTextPartComponentConfig, a5 as nonNullable, a6 as deepCompare, a7 as dotNotationGet, a8 as dotNotationSet, s as getFallbackForLocale, E as responsiveValueFill, p as getDevicesWidths, a9 as compileBox, X as getBoxStyles, q as getDefaultLocale, l as createCompilationContext } from './configTraverse-7cd35882.js';
-export { C as CompilationCache, a2 as buildRichTextBlockElementComponentConfig, am as buildRichTextBulletedListBlockElementComponentConfig, an as buildRichTextComponentConfig, a3 as buildRichTextLineElementComponentConfig, o as buildRichTextNoCodeEntry, ao as buildRichTextParagraphBlockElementComponentConfig, a4 as buildRichTextPartComponentConfig, a9 as compileBox, k as compileInternal, T as configTraverse, ab as findComponentDefinition, Y as findComponentDefinitionById, af as findPathOfFirstAncestorOfType, X as getBoxStyles, m as getSchemaDefinition, ak as isCustomSchemaProp, U as isExternalSchemaProp, ai as isSchemaPropActionTextModifier, ah as isSchemaPropCollection, _ as isSchemaPropComponent, ag as isSchemaPropComponentCollectionLocalised, Z as isSchemaPropComponentOrComponentCollection, aj as isSchemaPropTextModifier, n as normalize, ae as parsePath, ac as scalarizeConfig, ad as stripRichTextPartSelection, al as textModifierSchemaProp, aa as textStyles, a0 as traverseComponents } from './configTraverse-7cd35882.js';
+import { $ as deepClone, a0 as traverseComponents, T as configTraverse, a1 as uniqueId, a2 as buildRichTextBlockElementComponentConfig, a3 as buildRichTextLineElementComponentConfig, a4 as buildRichTextPartComponentConfig, a5 as nonNullable, a6 as deepCompare, a7 as dotNotationGet, a8 as dotNotationSet, s as getFallbackForLocale, E as responsiveValueFill, p as getDevicesWidths, a9 as compileBox, X as getBoxStyles, q as getDefaultLocale, l as createCompilationContext } from './configTraverse-3dfeba14.js';
+export { C as CompilationCache, a2 as buildRichTextBlockElementComponentConfig, am as buildRichTextBulletedListBlockElementComponentConfig, an as buildRichTextComponentConfig, a3 as buildRichTextLineElementComponentConfig, o as buildRichTextNoCodeEntry, ao as buildRichTextParagraphBlockElementComponentConfig, a4 as buildRichTextPartComponentConfig, a9 as compileBox, k as compileInternal, T as configTraverse, ab as findComponentDefinition, Y as findComponentDefinitionById, af as findPathOfFirstAncestorOfType, X as getBoxStyles, m as getSchemaDefinition, ak as isCustomSchemaProp, U as isExternalSchemaProp, ai as isSchemaPropActionTextModifier, ah as isSchemaPropCollection, _ as isSchemaPropComponent, ag as isSchemaPropComponentCollectionLocalised, Z as isSchemaPropComponentOrComponentCollection, aj as isSchemaPropTextModifier, n as normalize, ae as parsePath, ac as scalarizeConfig, ad as stripRichTextPartSelection, al as textModifierSchemaProp, aa as textStyles, a0 as traverseComponents } from './configTraverse-3dfeba14.js';
 import _extends from '@babel/runtime/helpers/extends';
 import throttle from 'lodash/throttle';
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import { Element, Range, Editor, Text, Node, Transforms, createEditor } from 'slate';
 import { withReact, ReactEditor, Slate, Editable } from 'slate-react';
-import { c as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-3fd6eb16.js';
-export { C as ComponentBuilder, E as EasyblocksMetadataProvider, d as componentPickerClosed, f as componentPickerOpened, i as itemInserted, g as itemMoved, h as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-3fd6eb16.js';
+import { c as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-7078577e.js';
+export { C as ComponentBuilder, E as EasyblocksMetadataProvider, d as componentPickerClosed, f as componentPickerOpened, i as itemInserted, g as itemMoved, h as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-7078577e.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import debounce from 'lodash/debounce';
 import 'js-xxhash';
@@ -446,16 +446,50 @@ function mergeVisuallyTheSameOrEmptyTextNodes(editor, entry) {
         const [nextChildNode, nextChildPath] = textLineChildren[childIndex + 1];
         if (Text.isText(currentChildNode) && Text.isText(nextChildNode)) {
           if (compareText(currentChildNode, nextChildNode)) {
-            Transforms.mergeNodes(editor, {
-              at: nextChildPath,
-              match: node => Text.isText(node)
+            Editor.withoutNormalizing(editor, () => {
+              // Capture where cursor should land after merge
+              const mergeTargetPoint = {
+                path: currentChildPath,
+                offset: currentChildNode.text.length
+              };
+              Transforms.mergeNodes(editor, {
+                at: nextChildPath,
+                match: node => Text.isText(node)
+              });
+              // Re-anchor selection to the merged node so paths are valid
+              try {
+                if (editor.selection) {
+                  Transforms.setSelection(editor, {
+                    anchor: mergeTargetPoint,
+                    focus: mergeTargetPoint
+                  });
+                }
+              } catch {
+                Transforms.deselect(editor);
+              }
             });
             return true;
           }
           if (nextChildNode.text.trim() === "" && childIndex + 1 < textLineChildren.length - 1 && currentChildNode.TextWrapper.length === 0) {
-            Transforms.mergeNodes(editor, {
-              at: nextChildPath,
-              match: node => Text.isText(node)
+            Editor.withoutNormalizing(editor, () => {
+              const mergeTargetPoint = {
+                path: currentChildPath,
+                offset: currentChildNode.text.length
+              };
+              Transforms.mergeNodes(editor, {
+                at: nextChildPath,
+                match: node => Text.isText(node)
+              });
+              try {
+                if (editor.selection) {
+                  Transforms.setSelection(editor, {
+                    anchor: mergeTargetPoint,
+                    focus: mergeTargetPoint
+                  });
+                }
+              } catch {
+                Transforms.deselect(editor);
+              }
             });
             return true;
           }
@@ -775,6 +809,7 @@ function RichTextEditor(props) {
   const [isEnabled, setIsEnabled] = useState(false);
   const previousRichTextComponentConfig = useRef();
   const currentSelectionRef = useRef(null);
+  const pendingExternalUpdate = useRef(null);
   const isConfigChanged = !isConfigEqual(previousRichTextComponentConfig.current, richTextConfig);
   if (previousRichTextComponentConfig.current && isConfigChanged) {
     if (lastChangeReason.current !== "paste") {
@@ -786,24 +821,12 @@ function RichTextEditor(props) {
     // Doing it makes Slate always up-to date with the latest config if it's changed from outside.
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
     setEditorValue(nextEditorValue);
-    editor.children = nextEditorValue;
-    if (isEnabled) {
-      const newEditorSelection = getEditorSelectionFromFocusedFields(focussedField, form);
-      if (isDecorationActive) {
-        currentSelectionRef.current = newEditorSelection;
-      } else {
-        // Slate gives us two methods to update its selection:
-        // - `setSelection` updates current selection, so `editor.selection` must be not null
-        // - `select` sets the selection, so `editor.selection` must be null
-        if (newEditorSelection !== null && editor.selection !== null) {
-          Transforms.setSelection(editor, newEditorSelection);
-        } else if (newEditorSelection !== null && editor.selection === null) {
-          Transforms.select(editor, newEditorSelection);
-        } else {
-          Transforms.deselect(editor);
-        }
-      }
-    }
+
+    // Store for layout effect — never mutate editor during render
+    pendingExternalUpdate.current = {
+      nextEditorValue,
+      newEditorSelection: isEnabled ? getEditorSelectionFromFocusedFields(focussedField, form) : null
+    };
   }
   useLayoutEffect(() => {
     if (isDecorationActive && currentSelectionRef.current !== null && !Range.isCollapsed(currentSelectionRef.current)) {
@@ -813,6 +836,37 @@ function RichTextEditor(props) {
       };
     }
   }, [editor, isDecorationActive, richTextConfig]);
+  useLayoutEffect(() => {
+    if (!pendingExternalUpdate.current) return;
+    const {
+      nextEditorValue,
+      newEditorSelection
+    } = pendingExternalUpdate.current;
+    pendingExternalUpdate.current = null;
+    editor.children = nextEditorValue;
+    if (!isEnabled) return;
+    if (isDecorationActive) {
+      currentSelectionRef.current = newEditorSelection;
+      return;
+    }
+    try {
+      if (newEditorSelection !== null && editor.selection !== null) {
+        if (Editor.hasPath(editor, newEditorSelection.anchor.path) && Editor.hasPath(editor, newEditorSelection.focus.path)) {
+          Transforms.setSelection(editor, newEditorSelection);
+        }
+      } else if (newEditorSelection !== null && editor.selection === null) {
+        if (Editor.hasPath(editor, newEditorSelection.anchor.path) && Editor.hasPath(editor, newEditorSelection.focus.path)) {
+          Transforms.select(editor, newEditorSelection);
+        }
+      } else {
+        Transforms.deselect(editor);
+      }
+    } catch (e) {
+      try {
+        Transforms.deselect(editor);
+      } catch {}
+    }
+  });
   const isRichTextActive = focussedField.some(focusedField => focusedField.startsWith(path));
   useLayoutEffect(() => {
     // When rich text becomes inactive we want to restore all original [data-slate-string] nodes
