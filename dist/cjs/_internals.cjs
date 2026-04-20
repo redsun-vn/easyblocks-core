@@ -3,14 +3,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-1e446f53.js');
+var configTraverse = require('./configTraverse-5b9285d5.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-116057b0.js');
+var ComponentBuilder = require('./ComponentBuilder-8c1a33f3.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
@@ -456,16 +456,50 @@ function mergeVisuallyTheSameOrEmptyTextNodes(editor, entry) {
         const [nextChildNode, nextChildPath] = textLineChildren[childIndex + 1];
         if (slate.Text.isText(currentChildNode) && slate.Text.isText(nextChildNode)) {
           if (compareText(currentChildNode, nextChildNode)) {
-            slate.Transforms.mergeNodes(editor, {
-              at: nextChildPath,
-              match: node => slate.Text.isText(node)
+            slate.Editor.withoutNormalizing(editor, () => {
+              // Capture where cursor should land after merge
+              const mergeTargetPoint = {
+                path: currentChildPath,
+                offset: currentChildNode.text.length
+              };
+              slate.Transforms.mergeNodes(editor, {
+                at: nextChildPath,
+                match: node => slate.Text.isText(node)
+              });
+              // Re-anchor selection to the merged node so paths are valid
+              try {
+                if (editor.selection) {
+                  slate.Transforms.setSelection(editor, {
+                    anchor: mergeTargetPoint,
+                    focus: mergeTargetPoint
+                  });
+                }
+              } catch {
+                slate.Transforms.deselect(editor);
+              }
             });
             return true;
           }
           if (nextChildNode.text.trim() === "" && childIndex + 1 < textLineChildren.length - 1 && currentChildNode.TextWrapper.length === 0) {
-            slate.Transforms.mergeNodes(editor, {
-              at: nextChildPath,
-              match: node => slate.Text.isText(node)
+            slate.Editor.withoutNormalizing(editor, () => {
+              const mergeTargetPoint = {
+                path: currentChildPath,
+                offset: currentChildNode.text.length
+              };
+              slate.Transforms.mergeNodes(editor, {
+                at: nextChildPath,
+                match: node => slate.Text.isText(node)
+              });
+              try {
+                if (editor.selection) {
+                  slate.Transforms.setSelection(editor, {
+                    anchor: mergeTargetPoint,
+                    focus: mergeTargetPoint
+                  });
+                }
+              } catch {
+                slate.Transforms.deselect(editor);
+              }
             });
             return true;
           }
@@ -785,6 +819,7 @@ function RichTextEditor(props) {
   const [isEnabled, setIsEnabled] = React.useState(false);
   const previousRichTextComponentConfig = React.useRef();
   const currentSelectionRef = React.useRef(null);
+  const pendingExternalUpdate = React.useRef(null);
   const isConfigChanged = !isConfigEqual(previousRichTextComponentConfig.current, richTextConfig);
   if (previousRichTextComponentConfig.current && isConfigChanged) {
     if (lastChangeReason.current !== "paste") {
@@ -796,24 +831,12 @@ function RichTextEditor(props) {
     // Doing it makes Slate always up-to date with the latest config if it's changed from outside.
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
     setEditorValue(nextEditorValue);
-    editor.children = nextEditorValue;
-    if (isEnabled) {
-      const newEditorSelection = getEditorSelectionFromFocusedFields(focussedField, form);
-      if (isDecorationActive) {
-        currentSelectionRef.current = newEditorSelection;
-      } else {
-        // Slate gives us two methods to update its selection:
-        // - `setSelection` updates current selection, so `editor.selection` must be not null
-        // - `select` sets the selection, so `editor.selection` must be null
-        if (newEditorSelection !== null && editor.selection !== null) {
-          slate.Transforms.setSelection(editor, newEditorSelection);
-        } else if (newEditorSelection !== null && editor.selection === null) {
-          slate.Transforms.select(editor, newEditorSelection);
-        } else {
-          slate.Transforms.deselect(editor);
-        }
-      }
-    }
+
+    // Store for layout effect — never mutate editor during render
+    pendingExternalUpdate.current = {
+      nextEditorValue,
+      newEditorSelection: isEnabled ? getEditorSelectionFromFocusedFields(focussedField, form) : null
+    };
   }
   React.useLayoutEffect(() => {
     if (isDecorationActive && currentSelectionRef.current !== null && !slate.Range.isCollapsed(currentSelectionRef.current)) {
@@ -823,6 +846,37 @@ function RichTextEditor(props) {
       };
     }
   }, [editor, isDecorationActive, richTextConfig]);
+  React.useLayoutEffect(() => {
+    if (!pendingExternalUpdate.current) return;
+    const {
+      nextEditorValue,
+      newEditorSelection
+    } = pendingExternalUpdate.current;
+    pendingExternalUpdate.current = null;
+    editor.children = nextEditorValue;
+    if (!isEnabled) return;
+    if (isDecorationActive) {
+      currentSelectionRef.current = newEditorSelection;
+      return;
+    }
+    try {
+      if (newEditorSelection !== null && editor.selection !== null) {
+        if (slate.Editor.hasPath(editor, newEditorSelection.anchor.path) && slate.Editor.hasPath(editor, newEditorSelection.focus.path)) {
+          slate.Transforms.setSelection(editor, newEditorSelection);
+        }
+      } else if (newEditorSelection !== null && editor.selection === null) {
+        if (slate.Editor.hasPath(editor, newEditorSelection.anchor.path) && slate.Editor.hasPath(editor, newEditorSelection.focus.path)) {
+          slate.Transforms.select(editor, newEditorSelection);
+        }
+      } else {
+        slate.Transforms.deselect(editor);
+      }
+    } catch (e) {
+      try {
+        slate.Transforms.deselect(editor);
+      } catch {}
+    }
+  });
   const isRichTextActive = focussedField.some(focusedField => focusedField.startsWith(path));
   React.useLayoutEffect(() => {
     // When rich text becomes inactive we want to restore all original [data-slate-string] nodes
