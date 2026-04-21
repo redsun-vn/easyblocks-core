@@ -3,14 +3,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-5b9285d5.js');
+var configTraverse = require('./configTraverse-92d9b3eb.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-8c1a33f3.js');
+var ComponentBuilder = require('./ComponentBuilder-e7e66ff6.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
@@ -92,7 +92,8 @@ function convertEditorElementToRichTextLineElement(editorElement) {
         color: child.color,
         font: child.font,
         id: child.id,
-        TextWrapper: child.TextWrapper
+        TextWrapper: child.TextWrapper,
+        fontStyle: child.fontStyle ?? "normal"
       });
     })
   });

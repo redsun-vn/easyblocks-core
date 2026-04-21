@@ -1,13 +1,7 @@
 /* with love from shopstory */
-'use strict';
-
-var jsXxhash = require('js-xxhash');
-var zod = require('zod');
-var valueParser = require('postcss-value-parser');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-var valueParser__default = /*#__PURE__*/_interopDefaultLegacy(valueParser);
+import { xxHash32 } from 'js-xxhash';
+import { z } from 'zod';
+import valueParser from 'postcss-value-parser';
 
 function bubbleDown(matcher, items) {
   const originalOrder = [];
@@ -172,12 +166,12 @@ function isNonEmptyRenderableContent(input) {
 function isEmptyRenderableContent(input) {
   return typeof input === "object" && input !== null && "renderableContent" in input && input.renderableContent === null;
 }
-const documentSchema = zod.z.object({
-  documentId: zod.z.string(),
-  projectId: zod.z.string(),
-  rootContainer: zod.z.string().optional(),
-  preview: zod.z.object({}).optional(),
-  config: zod.z.optional(zod.z.object({}))
+const documentSchema = z.object({
+  documentId: z.string(),
+  projectId: z.string(),
+  rootContainer: z.string().optional(),
+  preview: z.object({}).optional(),
+  config: z.optional(z.object({}))
 });
 function isDocument(value) {
   return documentSchema.safeParse(value).success;
@@ -185,9 +179,9 @@ function isDocument(value) {
 function isComponentConfig(value) {
   return typeof value === "object" && typeof value?._component === "string" && typeof value?._id === "string";
 }
-const localValueSchema = zod.z.object({
-  value: zod.z.any(),
-  widgetId: zod.z.string()
+const localValueSchema = z.object({
+  value: z.any(),
+  widgetId: z.string()
 });
 function isLocalValue(value) {
   return localValueSchema.safeParse(value).success;
@@ -703,7 +697,8 @@ function buildRichTextNoCodeEntry(options) {
           color: colorTokenValue,
           font: fontTokenValue,
           value: text ?? "Lorem ipsum",
-          TextWrapper: []
+          TextWrapper: [],
+          fontStyle: "normal"
         })]
       })])]
     },
@@ -779,7 +774,8 @@ function buildRichTextPartComponentConfig(_ref5) {
     font,
     value,
     id,
-    TextWrapper
+    TextWrapper,
+    fontStyle
   } = _ref5;
   return {
     _id: id ?? uniqueId(),
@@ -787,7 +783,8 @@ function buildRichTextPartComponentConfig(_ref5) {
     color,
     font,
     value,
-    TextWrapper: TextWrapper ?? []
+    TextWrapper: TextWrapper ?? [],
+    fontStyle: fontStyle ?? "normal"
   };
 }
 
@@ -1115,7 +1112,8 @@ function richTextPartStyles(_ref) {
     values: {
       color,
       font,
-      TextWrapper
+      TextWrapper,
+      fontStyle
     },
     isEditing
   } = _ref;
@@ -1129,7 +1127,8 @@ function richTextPartStyles(_ref) {
     background: color,
     backgroundClip: "text",
     color: "transparent",
-    ...fontWithDefaults
+    ...fontWithDefaults,
+    fontStyle: fontStyle ?? "normal"
   };
   if (hasTextWrapper && !isEditing) {
     // Force pointer events to be enabled on the text when text wrapper is attached and we're not editing
@@ -1215,6 +1214,24 @@ const richTextPartEditableComponent = {
     prop: "color",
     label: "Color",
     type: "color",
+    group: "Text"
+  }, {
+    prop: "fontStyle",
+    label: "Font Style",
+    type: "select",
+    params: {
+      options: [{
+        value: "normal",
+        label: "Normal"
+      }, {
+        value: "italic",
+        label: "Italic"
+      }, {
+        value: "oblique",
+        label: "Oblique"
+      }]
+    },
+    defaultValue: "normal",
     group: "Text"
   }, {
     prop: "TextWrapper",
@@ -4837,12 +4854,12 @@ function calculateAllViewportValues(ast, map) {
 function reduceCSSCalc(value) {
   let precision = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
   let map = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  return valueParser__default["default"](value).walk(node => {
+  return valueParser(value).walk(node => {
     // skip anything which isn't a calc() function
     if (node.type !== "function" || !MATCH_CALC.test(node.value)) return;
 
     // stringify calc expression and produce an AST
-    const contents = valueParser__default["default"].stringify(node.nodes);
+    const contents = valueParser.stringify(node.nodes);
 
     // skip constant() and env()
     if (contents.indexOf("constant") >= 0 || contents.indexOf("env") >= 0) return;
@@ -6500,7 +6517,7 @@ function addStylesHash(styles) {
   if ("__hash" in styles) {
     delete styles["__hash"];
   }
-  const hash = jsXxhash.xxHash32(JSON.stringify(styles));
+  const hash = xxHash32(JSON.stringify(styles));
   styles.__hash = hash.toString();
   return styles;
 }
@@ -7841,6 +7858,9 @@ const editing = _ref => {
     } : null, richTextPartSources.length > 0 ? {
       type: "field",
       path: richTextPartSources.map(source => `${source}.color`)
+    } : null, richTextPartSources.length > 0 ? {
+      type: "field",
+      path: richTextPartSources.map(source => `${source}.fontStyle`)
     } : null, richTextBlockPath ? {
       type: "field",
       path: `${richTextBlockPath}.type`,
@@ -7946,6 +7966,7 @@ function textStyles(_ref) {
     styled: {
       Text: {
         ...fontWithDefaults,
+        fontStyle: values.fontStyle ?? "normal",
         __as: values.accessibilityRole,
         textAlign: align,
         "& textarea::placeholder": {
@@ -7954,7 +7975,8 @@ function textStyles(_ref) {
         },
         "& textarea": {
           // This is important when textarea is globally set in project, here we'll override any global styles.
-          ...fontWithDefaults
+          ...fontWithDefaults,
+          fontStyle: values.fontStyle ?? "normal"
         },
         border: values.value === "" ? "1px dotted grey" : "none"
       }
@@ -7980,6 +8002,23 @@ const textEditableComponent = {
     prop: "font",
     label: "Font",
     type: "font"
+  }, {
+    prop: "fontStyle",
+    label: "Font Style",
+    type: "select",
+    params: {
+      options: [{
+        value: "normal",
+        label: "Normal"
+      }, {
+        value: "italic",
+        label: "Italic"
+      }, {
+        value: "oblique",
+        label: "Oblique"
+      }]
+    },
+    defaultValue: "normal"
   }, {
     prop: "accessibilityRole",
     type: "select",
@@ -8499,82 +8538,4 @@ function configTraverseInternal(config, context, callback, path) {
   });
 }
 
-exports.CompilationCache = CompilationCache;
-exports.buildRichTextBlockElementComponentConfig = buildRichTextBlockElementComponentConfig;
-exports.buildRichTextBulletedListBlockElementComponentConfig = buildRichTextBulletedListBlockElementComponentConfig;
-exports.buildRichTextComponentConfig = buildRichTextComponentConfig;
-exports.buildRichTextLineElementComponentConfig = buildRichTextLineElementComponentConfig;
-exports.buildRichTextNoCodeEntry = buildRichTextNoCodeEntry;
-exports.buildRichTextParagraphBlockElementComponentConfig = buildRichTextParagraphBlockElementComponentConfig;
-exports.buildRichTextPartComponentConfig = buildRichTextPartComponentConfig;
-exports.compileBox = compileBox;
-exports.compileInternal = compileInternal;
-exports.configTraverse = configTraverse;
-exports.createCompilationContext = createCompilationContext;
-exports.deepClone = deepClone;
-exports.deepCompare = deepCompare;
-exports.dotNotationGet = dotNotationGet;
-exports.dotNotationSet = dotNotationSet;
-exports.entries = entries;
-exports.findComponentDefinition = findComponentDefinition;
-exports.findComponentDefinitionById = findComponentDefinitionById;
-exports.findPathOfFirstAncestorOfType = findPathOfFirstAncestorOfType;
-exports.getBoxStyles = getBoxStyles;
-exports.getDefaultLocale = getDefaultLocale;
-exports.getDevicesWidths = getDevicesWidths;
-exports.getExternalReferenceLocationKey = getExternalReferenceLocationKey;
-exports.getExternalValue = getExternalValue;
-exports.getFallbackForLocale = getFallbackForLocale;
-exports.getFallbackLocaleForLocale = getFallbackLocaleForLocale;
-exports.getResolvedExternalDataValue = getResolvedExternalDataValue;
-exports.getSchemaDefinition = getSchemaDefinition;
-exports.isComponentConfig = isComponentConfig;
-exports.isCompoundExternalDataValue = isCompoundExternalDataValue;
-exports.isCustomSchemaProp = isCustomSchemaProp;
-exports.isDocument = isDocument;
-exports.isEmptyExternalReference = isEmptyExternalReference;
-exports.isEmptyRenderableContent = isEmptyRenderableContent;
-exports.isExternalSchemaProp = isExternalSchemaProp;
-exports.isIdReferenceToDocumentExternalValue = isIdReferenceToDocumentExternalValue;
-exports.isLocalTextReference = isLocalTextReference;
-exports.isLocalValue = isLocalValue;
-exports.isNonEmptyRenderableContent = isNonEmptyRenderableContent;
-exports.isRenderableContent = isRenderableContent;
-exports.isResolvedCompoundExternalDataValue = isResolvedCompoundExternalDataValue;
-exports.isSchemaPropActionTextModifier = isSchemaPropActionTextModifier;
-exports.isSchemaPropCollection = isSchemaPropCollection;
-exports.isSchemaPropComponent = isSchemaPropComponent;
-exports.isSchemaPropComponentCollectionLocalised = isSchemaPropComponentCollectionLocalised;
-exports.isSchemaPropComponentOrComponentCollection = isSchemaPropComponentOrComponentCollection;
-exports.isSchemaPropTextModifier = isSchemaPropTextModifier;
-exports.isTrulyResponsiveValue = isTrulyResponsiveValue;
-exports.nonNullable = nonNullable;
-exports.normalize = normalize;
-exports.parsePath = parsePath;
-exports.parseSpacing = parseSpacing;
-exports.resolveExternalValue = resolveExternalValue;
-exports.resolveLocalisedValue = resolveLocalisedValue;
-exports.responsiveValueAt = responsiveValueAt;
-exports.responsiveValueEntries = responsiveValueEntries;
-exports.responsiveValueFill = responsiveValueFill;
-exports.responsiveValueFindDeviceWithDefinedValue = responsiveValueFindDeviceWithDefinedValue;
-exports.responsiveValueFindHigherDeviceWithDefinedValue = responsiveValueFindHigherDeviceWithDefinedValue;
-exports.responsiveValueFindLowerDeviceWithDefinedValue = responsiveValueFindLowerDeviceWithDefinedValue;
-exports.responsiveValueFlatten = responsiveValueFlatten;
-exports.responsiveValueForceGet = responsiveValueForceGet;
-exports.responsiveValueGet = responsiveValueGet;
-exports.responsiveValueGetDefinedValue = responsiveValueGetDefinedValue;
-exports.responsiveValueGetFirstHigherValue = responsiveValueGetFirstHigherValue;
-exports.responsiveValueGetFirstLowerValue = responsiveValueGetFirstLowerValue;
-exports.responsiveValueGetHighestDefinedDevice = responsiveValueGetHighestDefinedDevice;
-exports.responsiveValueMap = responsiveValueMap;
-exports.responsiveValueNormalize = responsiveValueNormalize;
-exports.scalarizeConfig = scalarizeConfig;
-exports.serialize = serialize;
-exports.spacingToPx = spacingToPx;
-exports.stripRichTextPartSelection = stripRichTextPartSelection;
-exports.textModifierSchemaProp = textModifierSchemaProp;
-exports.textStyles = textStyles;
-exports.traverseComponents = traverseComponents;
-exports.uniqueId = uniqueId;
-exports.validateColor = validateColor;
+export { deepClone as $, resolveExternalValue as A, responsiveValueAt as B, CompilationCache as C, responsiveValueEntries as D, responsiveValueFill as E, responsiveValueFindDeviceWithDefinedValue as F, responsiveValueFindHigherDeviceWithDefinedValue as G, responsiveValueFindLowerDeviceWithDefinedValue as H, responsiveValueFlatten as I, responsiveValueForceGet as J, responsiveValueGet as K, responsiveValueGetDefinedValue as L, responsiveValueGetFirstHigherValue as M, responsiveValueGetFirstLowerValue as N, responsiveValueGetHighestDefinedDevice as O, responsiveValueMap as P, responsiveValueNormalize as Q, parseSpacing as R, spacingToPx as S, configTraverse as T, isExternalSchemaProp as U, serialize as V, entries as W, getBoxStyles as X, findComponentDefinitionById as Y, isSchemaPropComponentOrComponentCollection as Z, isSchemaPropComponent as _, isComponentConfig as a, traverseComponents as a0, uniqueId as a1, buildRichTextBlockElementComponentConfig as a2, buildRichTextLineElementComponentConfig as a3, buildRichTextPartComponentConfig as a4, nonNullable as a5, deepCompare as a6, dotNotationGet as a7, dotNotationSet as a8, compileBox as a9, textStyles as aa, findComponentDefinition as ab, scalarizeConfig as ac, stripRichTextPartSelection as ad, parsePath as ae, findPathOfFirstAncestorOfType as af, isSchemaPropComponentCollectionLocalised as ag, isSchemaPropCollection as ah, isSchemaPropActionTextModifier as ai, isSchemaPropTextModifier as aj, isCustomSchemaProp as ak, textModifierSchemaProp as al, buildRichTextBulletedListBlockElementComponentConfig as am, buildRichTextComponentConfig as an, buildRichTextParagraphBlockElementComponentConfig as ao, isDocument as b, isEmptyExternalReference as c, isEmptyRenderableContent as d, isIdReferenceToDocumentExternalValue as e, isLocalValue as f, isNonEmptyRenderableContent as g, isRenderableContent as h, isTrulyResponsiveValue as i, isResolvedCompoundExternalDataValue as j, compileInternal as k, createCompilationContext as l, getSchemaDefinition as m, normalize as n, buildRichTextNoCodeEntry as o, getDevicesWidths as p, getDefaultLocale as q, resolveLocalisedValue as r, getFallbackForLocale as s, getFallbackLocaleForLocale as t, getExternalReferenceLocationKey as u, validateColor as v, getExternalValue as w, getResolvedExternalDataValue as x, isCompoundExternalDataValue as y, isLocalTextReference as z };

@@ -56,6 +56,7 @@ function buildRichTextNoCodeEntry(options?: {
                 font: fontTokenValue,
                 value: text ?? "Lorem ipsum",
                 TextWrapper: [],
+                fontStyle: "normal"
               }),
             ],
           }),
@@ -154,9 +155,10 @@ function buildRichTextPartComponentConfig({
   value,
   id,
   TextWrapper,
+  fontStyle,
 }: SetOptional<
   Omit<RichTextPartComponentConfig, "_id" | "_component"> & Partial<Identity>,
-  "TextWrapper"
+  "TextWrapper" | "fontStyle"
 >): RichTextPartComponentConfig {
   return {
     _id: id ?? uniqueId(),
@@ -165,6 +167,7 @@ function buildRichTextPartComponentConfig({
     font,
     value,
     TextWrapper: TextWrapper ?? [],
+    fontStyle: fontStyle ?? "normal",
   };
 }
 

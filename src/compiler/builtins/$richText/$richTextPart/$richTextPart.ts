@@ -100,6 +100,20 @@ const richTextPartEditableComponent: NoCodeComponentDefinition<RichTextPartValue
         group: "Text",
       },
       {
+        prop: "fontStyle",
+        label: "Font Style",
+        type: "select",
+        params: {
+          options: [
+            { value: "normal", label: "Normal" },
+            { value: "italic", label: "Italic" },
+            { value: "oblique", label: "Oblique" },
+          ],
+        },
+        defaultValue: "normal",
+        group: "Text",
+      },
+      {
         prop: "TextWrapper",
         label: "Text Wrapper",
         type: "component",
@@ -121,6 +135,7 @@ type RichTextPartComponentConfig = EditableComponentToComponentConfig<
   color: Record<string, any>;
   font: Record<string, any>;
   TextWrapper: [NoCodeComponentEntry] | [];
+  fontStyle: "normal" | "italic" | "oblique";
 };
 
 type RichTextPartCompiledComponentConfig = CompiledComponentConfigBase<

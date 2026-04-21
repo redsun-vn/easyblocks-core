@@ -149,6 +149,12 @@ const editing: RichTextEditingFunction = ({
           path: richTextPartSources.map((source) => `${source}.color`),
         }
         : null,
+      richTextPartSources.length > 0
+        ? {
+            type: "field",
+            path: richTextPartSources.map((source) => `${source}.fontStyle`),
+          }
+        : null,
       richTextBlockPath
         ? {
           type: "field",

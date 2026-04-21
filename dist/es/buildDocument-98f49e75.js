@@ -1,5 +1,5 @@
 /* with love from shopstory */
-import { b as isDocument, a as isComponentConfig, l as createCompilationContext, k as compileInternal, n as normalize, T as configTraverse, z as isLocalTextReference, U as isExternalSchemaProp, i as isTrulyResponsiveValue, D as responsiveValueEntries, u as getExternalReferenceLocationKey, V as serialize } from './configTraverse-3dfeba14.js';
+import { b as isDocument, a as isComponentConfig, l as createCompilationContext, k as compileInternal, n as normalize, T as configTraverse, z as isLocalTextReference, U as isExternalSchemaProp, i as isTrulyResponsiveValue, D as responsiveValueEntries, u as getExternalReferenceLocationKey, V as serialize } from './configTraverse-70cc3dc0.js';
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {

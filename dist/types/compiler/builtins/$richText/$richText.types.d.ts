@@ -10,6 +10,7 @@ interface Text {
     color: Record<string, any>;
     font: Record<string, any>;
     TextWrapper: [NoCodeComponentEntry] | [];
+    fontStyle?: "normal" | "italic" | "oblique";
 }
 export interface ParagraphElement {
     id: string;

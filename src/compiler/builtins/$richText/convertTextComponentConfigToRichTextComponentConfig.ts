@@ -39,6 +39,7 @@ function convertTextComponentConfigToRichTextComponentConfig(
                 font: textComponentConfig.font,
                 value,
                 TextWrapper: [],
+                fontStyle: "normal",
               }),
             ],
           });

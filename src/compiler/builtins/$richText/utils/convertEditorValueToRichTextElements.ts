@@ -55,6 +55,7 @@ function convertEditorElementToRichTextLineElement(
         font: child.font,
         id: child.id,
         TextWrapper: child.TextWrapper,
+        fontStyle: child.fontStyle ?? "normal",
       });
     }),
   });
