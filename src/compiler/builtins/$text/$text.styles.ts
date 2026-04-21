@@ -12,6 +12,7 @@ export function textStyles({
     value: string;
     accessibilityRole: string;
     font: Record<string, any>;
+    fontStyle: "normal" | "italic" | "oblique";
   },
   { passedAlign: string }
 >): NoCodeComponentStylesFunctionResult {
@@ -30,6 +31,7 @@ export function textStyles({
     styled: {
       Text: {
         ...fontWithDefaults,
+        fontStyle: values.fontStyle ?? "normal",
         __as: values.accessibilityRole,
         textAlign: align,
         "& textarea::placeholder": {
@@ -39,6 +41,7 @@ export function textStyles({
         "& textarea": {
           // This is important when textarea is globally set in project, here we'll override any global styles.
           ...fontWithDefaults,
+          fontStyle: values.fontStyle ?? "normal",
         },
         border: values.value === "" ? "1px dotted grey" : "none",
       },

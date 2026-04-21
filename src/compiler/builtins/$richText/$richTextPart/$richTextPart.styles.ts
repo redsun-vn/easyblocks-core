@@ -14,10 +14,11 @@ export interface RichTextPartValues {
   font: Record<string, any>;
   value: string;
   TextWrapper: [NoCodeComponentEntry] | [];
+  fontStyle: "normal" | "italic" | "oblique";
 }
 
 export function richTextPartStyles({
-  values: { color, font, TextWrapper },
+  values: { color, font, TextWrapper, fontStyle },
   isEditing,
 }: NoCodeComponentStylesFunctionInput<RichTextPartValues>): NoCodeComponentStylesFunctionResult {
   const fontWithDefaults = {
@@ -33,6 +34,7 @@ export function richTextPartStyles({
     backgroundClip: "text",
     color: "transparent",
     ...fontWithDefaults,
+    fontStyle: fontStyle ?? "normal",
   };
 
   if (hasTextWrapper && !isEditing) {

@@ -4,6 +4,7 @@ export declare function textStyles({ values, params, }: NoCodeComponentStylesFun
     value: string;
     accessibilityRole: string;
     font: Record<string, any>;
+    fontStyle: "normal" | "italic" | "oblique";
 }, {
     passedAlign: string;
 }>): NoCodeComponentStylesFunctionResult;

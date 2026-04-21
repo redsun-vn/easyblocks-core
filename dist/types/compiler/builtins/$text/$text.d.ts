@@ -5,6 +5,7 @@ declare const textEditableComponent: NoCodeComponentDefinition<{
     value: string;
     accessibilityRole: string;
     font: Record<string, any>;
+    fontStyle: "normal" | "italic" | "oblique";
 }, {
     passedAlign: string;
 }>;
@@ -13,6 +14,7 @@ type TextComponentConfig = EditableComponentToComponentConfig<typeof textEditabl
     font: ResponsiveValue<TokenValue<ResponsiveValue<Font>>>;
     value: ExternalReference;
     accessibilityRole: string;
+    fontStyle: "normal" | "italic" | "oblique";
 };
 export { textEditableComponent };
 export type { TextComponentConfig };

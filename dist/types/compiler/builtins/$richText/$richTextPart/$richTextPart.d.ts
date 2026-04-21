@@ -7,6 +7,7 @@ type RichTextPartComponentConfig = EditableComponentToComponentConfig<typeof ric
     color: Record<string, any>;
     font: Record<string, any>;
     TextWrapper: [NoCodeComponentEntry] | [];
+    fontStyle: "normal" | "italic" | "oblique";
 };
 type RichTextPartCompiledComponentConfig = CompiledComponentConfigBase<RichTextPartComponentConfig["_component"], {
     value: string;
