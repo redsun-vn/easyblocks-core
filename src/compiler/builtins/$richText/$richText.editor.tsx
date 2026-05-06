@@ -147,6 +147,11 @@ function RichTextEditor(props: RichTextProps) {
   const previousRichTextComponentConfig = useRef<RichTextComponentConfig>();
   const currentSelectionRef = useRef<BaseRange | null>(null);
 
+  const pendingExternalUpdate = useRef<{
+    nextEditorValue: Descendant[];
+    newEditorSelection: BaseRange | null;
+  } | null>(null);
+
   const isConfigChanged = !isConfigEqual(
     previousRichTextComponentConfig.current,
     richTextConfig
@@ -164,29 +169,14 @@ function RichTextEditor(props: RichTextProps) {
     // Doing it makes Slate always up-to date with the latest config if it's changed from outside.
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
     setEditorValue(nextEditorValue);
-    editor.children = nextEditorValue;
 
-    if (isEnabled) {
-      const newEditorSelection = getEditorSelectionFromFocusedFields(
-        focussedField,
-        form
-      );
-
-      if (isDecorationActive) {
-        currentSelectionRef.current = newEditorSelection;
-      } else {
-        // Slate gives us two methods to update its selection:
-        // - `setSelection` updates current selection, so `editor.selection` must be not null
-        // - `select` sets the selection, so `editor.selection` must be null
-        if (newEditorSelection !== null && editor.selection !== null) {
-          Transforms.setSelection(editor, newEditorSelection);
-        } else if (newEditorSelection !== null && editor.selection === null) {
-          Transforms.select(editor, newEditorSelection);
-        } else {
-          Transforms.deselect(editor);
-        }
-      }
-    }
+    // Store for layout effect — never mutate editor during render
+    pendingExternalUpdate.current = {
+      nextEditorValue,
+      newEditorSelection: isEnabled
+        ? getEditorSelectionFromFocusedFields(focussedField, form)
+        : null
+    };
   }
 
   useLayoutEffect(() => {
@@ -202,6 +192,46 @@ function RichTextEditor(props: RichTextProps) {
       };
     }
   }, [editor, isDecorationActive, richTextConfig]);
+
+  useLayoutEffect(() => {
+    if (!pendingExternalUpdate.current) return;
+
+    const { nextEditorValue, newEditorSelection } = pendingExternalUpdate.current;
+    pendingExternalUpdate.current = null;
+
+    editor.children = nextEditorValue;
+
+    if (!isEnabled) return;
+
+    if (isDecorationActive) {
+      currentSelectionRef.current = newEditorSelection;
+      return;
+    }
+
+    try {
+      if (newEditorSelection !== null && editor.selection !== null) {
+        if (
+          Editor.hasPath(editor, newEditorSelection.anchor.path) &&
+          Editor.hasPath(editor, newEditorSelection.focus.path)
+        ) {
+          Transforms.setSelection(editor, newEditorSelection);
+        }
+      } else if (newEditorSelection !== null && editor.selection === null) {
+        if (
+          Editor.hasPath(editor, newEditorSelection.anchor.path) &&
+          Editor.hasPath(editor, newEditorSelection.focus.path)
+        ) {
+          Transforms.select(editor, newEditorSelection);
+        }
+      } else {
+        Transforms.deselect(editor);
+      }
+    } catch (e) {
+      try {
+        Transforms.deselect(editor);
+      } catch { }
+    }
+  });
 
   const isRichTextActive = focussedField.some((focusedField: any) =>
     focusedField.startsWith(path)

@@ -32,6 +32,6 @@ declare function buildRichTextBlockElementComponentConfig(type: RichTextBlockEle
 declare function buildRichTextParagraphBlockElementComponentConfig({ elements, }: Pick<RichTextBlockElementComponentConfig, "elements">): RichTextBlockElementComponentConfig;
 declare function buildRichTextBulletedListBlockElementComponentConfig({ elements, }: Pick<RichTextBlockElementComponentConfig, "elements">): RichTextBlockElementComponentConfig;
 declare function buildRichTextLineElementComponentConfig({ elements, }: Pick<RichTextLineElementComponentConfig, "elements">): RichTextLineElementComponentConfig;
-declare function buildRichTextPartComponentConfig({ color, font, value, id, TextWrapper, }: SetOptional<Omit<RichTextPartComponentConfig, "_id" | "_component"> & Partial<Identity>, "TextWrapper">): RichTextPartComponentConfig;
+declare function buildRichTextPartComponentConfig({ color, font, value, id, TextWrapper, fontStyle, }: SetOptional<Omit<RichTextPartComponentConfig, "_id" | "_component"> & Partial<Identity>, "TextWrapper" | "fontStyle">): RichTextPartComponentConfig;
 export { buildRichTextBlockElementComponentConfig, buildRichTextBulletedListBlockElementComponentConfig, buildRichTextComponentConfig, buildRichTextLineElementComponentConfig, buildRichTextNoCodeEntry, buildRichTextParagraphBlockElementComponentConfig, buildRichTextPartComponentConfig, };
 //# sourceMappingURL=builders.d.ts.map

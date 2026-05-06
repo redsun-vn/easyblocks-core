@@ -16,6 +16,7 @@ const textEditableComponent: NoCodeComponentDefinition<
     value: string;
     accessibilityRole: string;
     font: Record<string, any>;
+    fontStyle: "normal" | "italic" | "oblique";
   },
   { passedAlign: string }
 > = {
@@ -42,6 +43,19 @@ const textEditableComponent: NoCodeComponentDefinition<
       type: "font",
     },
     {
+      prop: "fontStyle",
+      label: "Font Style",
+      type: "select",
+      params: {
+        options: [
+          { value: "normal", label: "Normal" },
+          { value: "italic", label: "Italic" },
+          { value: "oblique", label: "Oblique" },
+        ],
+      },
+      defaultValue: "normal",
+    },
+    {
       prop: "accessibilityRole",
       type: "select",
       label: "Role",
@@ -66,6 +80,7 @@ type TextComponentConfig = EditableComponentToComponentConfig<
   font: ResponsiveValue<TokenValue<ResponsiveValue<Font>>>;
   value: ExternalReference;
   accessibilityRole: string;
+  fontStyle: "normal" | "italic" | "oblique";
 };
 
 export { textEditableComponent };

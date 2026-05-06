@@ -190,11 +190,28 @@ function mergeVisuallyTheSameOrEmptyTextNodes(
 
         if (Text.isText(currentChildNode) && Text.isText(nextChildNode)) {
           if (compareText(currentChildNode, nextChildNode)) {
-            Transforms.mergeNodes(editor, {
-              at: nextChildPath,
-              match: (node) => Text.isText(node),
+            Editor.withoutNormalizing(editor, () => {
+              // Capture where cursor should land after merge
+              const mergeTargetPoint = {
+                path: currentChildPath,
+                offset: currentChildNode.text.length,
+              };
+              Transforms.mergeNodes(editor, {
+                at: nextChildPath,
+                match: (node) => Text.isText(node),
+              });
+              // Re-anchor selection to the merged node so paths are valid
+              try {
+                if (editor.selection) {
+                  Transforms.setSelection(editor, {
+                    anchor: mergeTargetPoint,
+                    focus: mergeTargetPoint,
+                  });
+                }
+              } catch {
+                Transforms.deselect(editor);
+              }
             });
-
             return true;
           }
 
@@ -203,11 +220,26 @@ function mergeVisuallyTheSameOrEmptyTextNodes(
             childIndex + 1 < textLineChildren.length - 1 &&
             currentChildNode.TextWrapper.length === 0
           ) {
-            Transforms.mergeNodes(editor, {
-              at: nextChildPath,
-              match: (node) => Text.isText(node),
+            Editor.withoutNormalizing(editor, () => {
+              const mergeTargetPoint = {
+                path: currentChildPath,
+                offset: currentChildNode.text.length,
+              };
+              Transforms.mergeNodes(editor, {
+                at: nextChildPath,
+                match: (node) => Text.isText(node),
+              });
+              try {
+                if (editor.selection) {
+                  Transforms.setSelection(editor, {
+                    anchor: mergeTargetPoint,
+                    focus: mergeTargetPoint,
+                  });
+                }
+              } catch {
+                Transforms.deselect(editor);
+              }
             });
-
             return true;
           }
 

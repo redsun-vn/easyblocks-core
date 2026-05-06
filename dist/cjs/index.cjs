@@ -3,11 +3,15 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var buildDocument = require('./buildDocument-3f248560.js');
-var configTraverse = require('./configTraverse-1e446f53.js');
+var buildDocument = require('./buildDocument-cb58f0ff.js');
+var configTraverse = require('./configTraverse-92d9b3eb.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
+<<<<<<< HEAD
 var ComponentBuilder = require('./ComponentBuilder-4b5a5f2d.js');
+=======
+var ComponentBuilder = require('./ComponentBuilder-e7e66ff6.js');
+>>>>>>> 581f880c8168b0f47575ace1a534806e604774d5
 require('js-xxhash');
 require('zod');
 require('postcss-value-parser');

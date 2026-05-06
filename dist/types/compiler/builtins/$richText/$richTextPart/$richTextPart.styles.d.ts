@@ -4,6 +4,7 @@ export interface RichTextPartValues {
     font: Record<string, any>;
     value: string;
     TextWrapper: [NoCodeComponentEntry] | [];
+    fontStyle: "normal" | "italic" | "oblique";
 }
-export declare function richTextPartStyles({ values: { color, font, TextWrapper }, isEditing, }: NoCodeComponentStylesFunctionInput<RichTextPartValues>): NoCodeComponentStylesFunctionResult;
+export declare function richTextPartStyles({ values: { color, font, TextWrapper, fontStyle }, isEditing, }: NoCodeComponentStylesFunctionInput<RichTextPartValues>): NoCodeComponentStylesFunctionResult;
 //# sourceMappingURL=$richTextPart.styles.d.ts.map
