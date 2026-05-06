@@ -229,15 +229,15 @@ function getCompiledSubcomponents(
 
   // For collections: render progressively when there are many children.
   // In editing mode, render all at once (editor needs all items visible immediately).
-  if (!isEditing && elements.length > 3) {
-    return progressiveElements(
-      elements.map((el, i) =>
-        React.isValidElement(el) ? el : <Fragment key={i}>{el}</Fragment>,
-      ),
-      3,
-      2,
-    );
-  }
+  // if (!isEditing && elements.length > 3) {
+  //   return progressiveElements(
+  //     elements.map((el, i) =>
+  //       React.isValidElement(el) ? el : <Fragment key={i}>{el}</Fragment>,
+  //     ),
+  //     3,
+  //     2,
+  //   );
+  // }
 
   return elements;
 }

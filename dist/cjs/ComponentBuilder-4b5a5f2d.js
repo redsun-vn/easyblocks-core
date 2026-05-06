@@ -409,64 +409,6 @@ function useEasyblocksMetadata() {
   return context;
 }
 
-/**
- * Wraps a single child and defers its rendering by `delay` animation frames.
- * Uses `startTransition` so React treats the reveal as non-urgent.
- *
- * - delay=1 → appears after 1 rAF (~16ms)
- * - delay=2 → appears after 2 rAFs (~32ms)
- *
- * Renders `null` until revealed, so the parent array contract is preserved.
- */
-function DeferredChild(_ref) {
-  let {
-    children,
-    delay
-  } = _ref;
-  const [show, setShow] = React.useState(false);
-  const rafRef = React.useRef(0);
-  React.useEffect(() => {
-    let frame = 0;
-    const tick = () => {
-      frame++;
-      if (frame >= delay) {
-        React.startTransition(() => setShow(true));
-      } else {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [delay]);
-  return show ? children : null;
-}
-
-/**
- * Takes an array of elements and returns a new array where:
- * - The first `initialCount` elements are returned as-is (rendered immediately).
- * - Remaining elements are wrapped in `<DeferredChild>` with staggered delays.
- *
- * The result is still a `ReactElement[]` — same type as the input.
- * Parent components can `.map()`, `.length`, or iterate over it normally.
- *
- * @param elements     All children to render.
- * @param initialCount How many to render synchronously (default 3).
- * @param batchSize    How many to reveal per animation frame (default 2).
- */
-function progressiveElements(elements) {
-  let initialCount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
-  let batchSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
-  if (elements.length <= initialCount) return elements;
-  return elements.map((el, i) => {
-    if (i < initialCount) return el;
-    const delay = Math.ceil((i - initialCount + 1) / batchSize);
-    return /*#__PURE__*/React__default["default"].createElement(DeferredChild, {
-      key: el.key ?? i,
-      delay: delay
-    }, el);
-  });
-}
-
 function buildBoxes(compiled, name, actionWrappers, meta) {
   if (Array.isArray(compiled)) {
     return compiled.map((x, index) => buildBoxes(x, `${name}.${index}`, actionWrappers, meta));
@@ -583,11 +525,16 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
 
   // For collections: render progressively when there are many children.
   // In editing mode, render all at once (editor needs all items visible immediately).
-  if (!isEditing && elements.length > 3) {
-    return progressiveElements(elements.map((el, i) => /*#__PURE__*/React__default["default"].isValidElement(el) ? el : /*#__PURE__*/React__default["default"].createElement(React.Fragment, {
-      key: i
-    }, el)), 3, 2);
-  }
+  // if (!isEditing && elements.length > 3) {
+  //   return progressiveElements(
+  //     elements.map((el, i) =>
+  //       React.isValidElement(el) ? el : <Fragment key={i}>{el}</Fragment>,
+  //     ),
+  //     3,
+  //     2,
+  //   );
+  // }
+
   return elements;
 }
 const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function ComponentBuilder(props) {

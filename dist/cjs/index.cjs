@@ -7,7 +7,7 @@ var buildDocument = require('./buildDocument-3f248560.js');
 var configTraverse = require('./configTraverse-1e446f53.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
-var ComponentBuilder = require('./ComponentBuilder-116057b0.js');
+var ComponentBuilder = require('./ComponentBuilder-4b5a5f2d.js');
 require('js-xxhash');
 require('zod');
 require('postcss-value-parser');
