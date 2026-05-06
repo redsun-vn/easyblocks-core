@@ -1,11 +1,6 @@
 /* with love from shopstory */
-<<<<<<<< HEAD:dist/es/ComponentBuilder-bbd28c34.js
 import React, { useMemo, useContext, createContext, Fragment } from 'react';
-import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-7cd35882.js';
-========
-import React, { useMemo, useContext, createContext, useState, useRef, useEffect, startTransition, Fragment } from 'react';
-import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-70cc3dc0.js';
->>>>>>>> 581f880c8168b0f47575ace1a534806e604774d5:dist/es/ComponentBuilder-b0785327.js
+import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-68ea2148.js';
 import { createStitches } from '@stitches/core';
 
 function cleanString(value) {

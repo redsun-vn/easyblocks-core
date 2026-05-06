@@ -3,18 +3,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-92d9b3eb.js');
+var configTraverse = require('./configTraverse-b2243c69.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-<<<<<<< HEAD
-var ComponentBuilder = require('./ComponentBuilder-4b5a5f2d.js');
-=======
-var ComponentBuilder = require('./ComponentBuilder-e7e66ff6.js');
->>>>>>> 581f880c8168b0f47575ace1a534806e604774d5
+var ComponentBuilder = require('./ComponentBuilder-1a634583.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
