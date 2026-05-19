@@ -1,14 +1,14 @@
 /* with love from shopstory */
-import { $ as deepClone, a0 as traverseComponents, T as configTraverse, a1 as uniqueId, a2 as buildRichTextBlockElementComponentConfig, a3 as buildRichTextLineElementComponentConfig, a4 as buildRichTextPartComponentConfig, a5 as nonNullable, a6 as deepCompare, a7 as dotNotationGet, a8 as dotNotationSet, s as getFallbackForLocale, E as responsiveValueFill, p as getDevicesWidths, a9 as compileBox, X as getBoxStyles, q as getDefaultLocale, l as createCompilationContext } from './configTraverse-68ea2148.js';
-export { C as CompilationCache, a2 as buildRichTextBlockElementComponentConfig, am as buildRichTextBulletedListBlockElementComponentConfig, an as buildRichTextComponentConfig, a3 as buildRichTextLineElementComponentConfig, o as buildRichTextNoCodeEntry, ao as buildRichTextParagraphBlockElementComponentConfig, a4 as buildRichTextPartComponentConfig, a9 as compileBox, k as compileInternal, T as configTraverse, ab as findComponentDefinition, Y as findComponentDefinitionById, af as findPathOfFirstAncestorOfType, X as getBoxStyles, m as getSchemaDefinition, ak as isCustomSchemaProp, U as isExternalSchemaProp, ai as isSchemaPropActionTextModifier, ah as isSchemaPropCollection, _ as isSchemaPropComponent, ag as isSchemaPropComponentCollectionLocalised, Z as isSchemaPropComponentOrComponentCollection, aj as isSchemaPropTextModifier, n as normalize, ae as parsePath, ac as scalarizeConfig, ad as stripRichTextPartSelection, al as textModifierSchemaProp, aa as textStyles, a0 as traverseComponents } from './configTraverse-68ea2148.js';
+import { $ as deepClone, a0 as traverseComponents, T as configTraverse, a1 as uniqueId, a2 as buildRichTextBlockElementComponentConfig, a3 as buildRichTextLineElementComponentConfig, a4 as buildRichTextPartComponentConfig, a5 as nonNullable, a6 as deepCompare, a7 as dotNotationGet, a8 as dotNotationSet, s as getFallbackForLocale, E as responsiveValueFill, p as getDevicesWidths, a9 as compileBox, X as getBoxStyles, q as getDefaultLocale, l as createCompilationContext } from './configTraverse-70cc3dc0.js';
+export { C as CompilationCache, a2 as buildRichTextBlockElementComponentConfig, am as buildRichTextBulletedListBlockElementComponentConfig, an as buildRichTextComponentConfig, a3 as buildRichTextLineElementComponentConfig, o as buildRichTextNoCodeEntry, ao as buildRichTextParagraphBlockElementComponentConfig, a4 as buildRichTextPartComponentConfig, a9 as compileBox, k as compileInternal, T as configTraverse, ab as findComponentDefinition, Y as findComponentDefinitionById, af as findPathOfFirstAncestorOfType, X as getBoxStyles, m as getSchemaDefinition, ak as isCustomSchemaProp, U as isExternalSchemaProp, ai as isSchemaPropActionTextModifier, ah as isSchemaPropCollection, _ as isSchemaPropComponent, ag as isSchemaPropComponentCollectionLocalised, Z as isSchemaPropComponentOrComponentCollection, aj as isSchemaPropTextModifier, n as normalize, ae as parsePath, ac as scalarizeConfig, ad as stripRichTextPartSelection, al as textModifierSchemaProp, aa as textStyles, a0 as traverseComponents } from './configTraverse-70cc3dc0.js';
 import _extends from '@babel/runtime/helpers/extends';
 import throttle from 'lodash/throttle';
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import { Element, Range, Editor, Text, Node, Transforms, createEditor } from 'slate';
 import { withReact, ReactEditor, Slate, Editable } from 'slate-react';
-import { c as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-adc39055.js';
-export { C as ComponentBuilder, E as EasyblocksMetadataProvider, d as componentPickerClosed, f as componentPickerOpened, i as itemInserted, g as itemMoved, h as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-adc39055.js';
+import { c as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-24d165e4.js';
+export { C as ComponentBuilder, E as EasyblocksMetadataProvider, d as componentPickerClosed, f as componentPickerOpened, i as itemInserted, g as itemMoved, h as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-24d165e4.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import debounce from 'lodash/debounce';
 import 'js-xxhash';
@@ -249,6 +249,7 @@ function convertRichTextPartComponentConfigToEditorText(richTextPartComponentCon
   return {
     color: richTextPartComponentConfig.color,
     font: richTextPartComponentConfig.font,
+    fontStyle: richTextPartComponentConfig.fontStyle ?? "normal",
     id: richTextPartComponentConfig._id,
     text: richTextPartComponentConfig.value,
     TextWrapper: richTextPartComponentConfig.TextWrapper
@@ -569,10 +570,12 @@ function mergeVisuallyTheSameOrEmptyTextNodes(editor, entry) {
 // }
 
 function filterNonComparableProperties(obj) {
-  return keys(obj).filter(key => ["color", "font", "TextWrapper"].includes(key)).reduce((filteredObject, currentKey) => {
-    filteredObject[currentKey] = obj[currentKey];
-    return filteredObject;
-  }, {});
+  return {
+    color: obj.color,
+    font: obj.font,
+    fontStyle: obj.fontStyle,
+    TextWrapper: obj.TextWrapper
+  };
 }
 function compareText(text1, text2) {
   let areEqual = true;
@@ -821,6 +824,7 @@ function RichTextEditor(props) {
     // React bails out the render if state setter function is invoked during the render phase.
     // Doing it makes Slate always up-to date with the latest config if it's changed from outside.
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+    editor.children = nextEditorValue;
     setEditorValue(nextEditorValue);
 
     // Store for layout effect — never mutate editor during render
@@ -844,7 +848,7 @@ function RichTextEditor(props) {
       newEditorSelection
     } = pendingExternalUpdate.current;
     pendingExternalUpdate.current = null;
-    editor.children = nextEditorValue;
+    lastChangeReason.current = "external";
     if (!isEnabled) return;
     if (isDecorationActive) {
       currentSelectionRef.current = newEditorSelection;

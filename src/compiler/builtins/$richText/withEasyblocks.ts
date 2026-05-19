@@ -9,7 +9,12 @@ import {
 } from "slate";
 import { RichTextBlockElementType } from "./$richTextBlockElement/$richTextBlockElement";
 
-type ComparableText = Pick<Text, "color" | "font">;
+type ComparableText = {
+  color: Text["color"];
+  font: Text["font"];
+  fontStyle: Text["fontStyle"];
+  TextWrapper: Text["TextWrapper"];
+};
 
 /**
  * Tracks which ids were used during current normalization run
@@ -325,14 +330,12 @@ function mergeVisuallyTheSameOrEmptyTextNodes(
 // }
 
 function filterNonComparableProperties(obj: Text): ComparableText {
-  return keys(obj)
-    .filter<keyof ComparableText>((key): key is keyof ComparableText =>
-      ["color", "font", "TextWrapper"].includes(key)
-    )
-    .reduce((filteredObject, currentKey) => {
-      filteredObject[currentKey] = obj[currentKey];
-      return filteredObject;
-    }, {} as ComparableText);
+  return {
+    color: obj.color,
+    font: obj.font,
+    fontStyle: obj.fontStyle,
+    TextWrapper: obj.TextWrapper,
+  };
 }
 
 function compareText(text1: Text, text2: Text): boolean {
@@ -349,7 +352,7 @@ function compareText(text1: Text, text2: Text): boolean {
     const key = part1Keys[index];
     const part1Value = text1[key];
     const part2Value = text2[key];
-    const areValuesEqual = deepCompare(part1Value, part2Value);
+    const areValuesEqual = deepCompare(part1Value as any, part2Value as any);
 
     if (!areValuesEqual) {
       areEqual = false;
