@@ -168,6 +168,7 @@ function RichTextEditor(props: RichTextProps) {
     // React bails out the render if state setter function is invoked during the render phase.
     // Doing it makes Slate always up-to date with the latest config if it's changed from outside.
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+    editor.children = nextEditorValue;
     setEditorValue(nextEditorValue);
 
     // Store for layout effect — never mutate editor during render
@@ -199,7 +200,7 @@ function RichTextEditor(props: RichTextProps) {
     const { nextEditorValue, newEditorSelection } = pendingExternalUpdate.current;
     pendingExternalUpdate.current = null;
 
-    editor.children = nextEditorValue;
+    lastChangeReason.current = "external";
 
     if (!isEnabled) return;
 

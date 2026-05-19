@@ -1,7 +1,13 @@
 /* with love from shopstory */
-import React, { useMemo, useContext, createContext, Fragment } from 'react';
-import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-68ea2148.js';
-import { createStitches } from '@stitches/core';
+'use strict';
+
+var React = require('react');
+var configTraverse = require('./configTraverse-92d9b3eb.js');
+var core = require('@stitches/core');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
 function cleanString(value) {
   return value.replace(/\u2028/g, "");
@@ -9,7 +15,7 @@ function cleanString(value) {
 
 function responsiveValueValues(value) {
   const values = [];
-  entries(value).forEach(_ref => {
+  configTraverse.entries(value).forEach(_ref => {
     let [key, v] = _ref;
     if (key === "$res") return;
     values.push(v);
@@ -25,9 +31,9 @@ function RichTextPartClient(props) {
   } = props;
   const textValue = value || "\uFEFF";
   if (TextWrapper) {
-    return /*#__PURE__*/React.createElement(Text.type, Text.props, /*#__PURE__*/React.createElement(TextWrapper.type, TextWrapper.props, textValue));
+    return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, /*#__PURE__*/React__default["default"].createElement(TextWrapper.type, TextWrapper.props, textValue));
   }
-  return /*#__PURE__*/React.createElement(Text.type, Text.props, textValue);
+  return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, textValue);
 }
 
 function selectionFramePositionChanged(target, container) {
@@ -42,7 +48,7 @@ function selectionFramePositionChanged(target, container) {
 function richTextChangedEvent(payload) {
   return {
     type: "@easyblocks-editor/rich-text-changed",
-    payload: serialize(payload)
+    payload: configTraverse.serialize(payload)
   };
 }
 function componentPickerOpened(path) {
@@ -287,7 +293,7 @@ const boxStyles = {
   border: 0,
   listStyle: "none"
 };
-const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
+const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
   /**
    * passedProps - the props given in component code like <MyBox data-id="abc" /> (data-id is in passedProps)
    * restProps - the props given by Shopstory (like from actionWrapper)
@@ -322,7 +328,7 @@ const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
   const {
     boxClassName,
     componentClassName
-  } = useMemo(() => {
+  } = React.useMemo(() => {
     /**
      * We need styles to be "owned" by the current JS realm for Stitches/CSSOM.
      * structuredClone is faster than JSON.parse(JSON.stringify()) and handles
@@ -330,7 +336,7 @@ const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
      * structuredClone isn't available (older browsers).
      */
     const cloned = typeof structuredClone === "function" ? structuredClone(styles) : JSON.parse(JSON.stringify(styles));
-    const correctedStyles = getBoxStyles(cloned, devices);
+    const correctedStyles = configTraverse.getBoxStyles(cloned, devices);
     const generateBoxClass = stitches.css(boxStyles);
     const generateClassName = stitches.css(correctedStyles);
     return {
@@ -338,7 +344,7 @@ const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
       componentClassName: generateClassName()
     };
   }, [styles.__hash]);
-  return /*#__PURE__*/React.createElement(as || __as || "div", {
+  return /*#__PURE__*/React__default["default"].createElement(as || __as || "div", {
     ref,
     ...restPassedProps,
     className: [boxClassName, componentClassName, className].filter(Boolean).join(" "),
@@ -347,9 +353,9 @@ const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
 });
 Box.displayName = "Box";
 
-const EasyblocksExternalDataContext = /*#__PURE__*/createContext(null);
+const EasyblocksExternalDataContext = /*#__PURE__*/React.createContext(null);
 function useEasyblocksExternalData() {
-  const context = useContext(EasyblocksExternalDataContext);
+  const context = React.useContext(EasyblocksExternalDataContext);
   if (!context) {
     throw new Error("useEasyblocksExternalData must be used within a EasyblocksExternalDataProvider");
   }
@@ -360,7 +366,7 @@ function EasyblocksExternalDataProvider(_ref) {
     children,
     externalData
   } = _ref;
-  return /*#__PURE__*/React.createElement(EasyblocksExternalDataContext.Provider, {
+  return /*#__PURE__*/React__default["default"].createElement(EasyblocksExternalDataContext.Provider, {
     value: externalData
   }, children);
 }
@@ -370,7 +376,7 @@ function easyblocksGetCssText() {
   return easyblocksStitchesInstances.map(stitches => stitches.getCssText()).join(" ");
 }
 function easyblocksGetStyleTag() {
-  return /*#__PURE__*/React.createElement("style", {
+  return /*#__PURE__*/React__default["default"].createElement("style", {
     id: "stitches",
     dangerouslySetInnerHTML: {
       __html: easyblocksGetCssText()
@@ -378,7 +384,7 @@ function easyblocksGetStyleTag() {
   });
 }
 
-const EasyblocksMetadataContext = /*#__PURE__*/createContext(undefined);
+const EasyblocksMetadataContext = /*#__PURE__*/React.createContext(undefined);
 const EasyblocksMetadataProvider = _ref => {
   let {
     meta,
@@ -386,9 +392,9 @@ const EasyblocksMetadataProvider = _ref => {
   } = _ref;
   // Let's load stitches instance
   if (easyblocksStitchesInstances.length === 0) {
-    easyblocksStitchesInstances.push(createStitches({}));
+    easyblocksStitchesInstances.push(core.createStitches({}));
   }
-  return /*#__PURE__*/React.createElement(EasyblocksMetadataContext.Provider, {
+  return /*#__PURE__*/React__default["default"].createElement(EasyblocksMetadataContext.Provider, {
     value: {
       ...meta,
       stitches: easyblocksStitchesInstances[0]
@@ -396,7 +402,7 @@ const EasyblocksMetadataProvider = _ref => {
   }, children);
 };
 function useEasyblocksMetadata() {
-  const context = useContext(EasyblocksMetadataContext);
+  const context = React.useContext(EasyblocksMetadataContext);
   if (!context) {
     throw new Error("useEasyblocksMetadata must be used within a EasyblocksMetadataProvider");
   }
@@ -414,7 +420,7 @@ function buildBoxes(compiled, name, actionWrappers, meta) {
         devices: meta.vars.devices,
         stitches: meta.stitches
       };
-      return /*#__PURE__*/React.createElement(Box, boxProps);
+      return /*#__PURE__*/React__default["default"].createElement(Box, boxProps);
     }
     const ret = {};
     for (const key in compiled) {
@@ -449,7 +455,7 @@ const _componentSlotsCache = new WeakMap();
 function getComponentSlots(schema) {
   let slots = _componentSlotsCache.get(schema);
   if (!slots) {
-    slots = schema.filter(isSchemaPropComponentOrComponentCollection);
+    slots = schema.filter(configTraverse.isSchemaPropComponentOrComponentCollection);
     _componentSlotsCache.set(schema, slots);
   }
   return slots;
@@ -460,20 +466,20 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
     path = path + "." + meta.vars.locale;
   }
   if (schemaProp.noInline) {
-    const elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React.createElement(ComponentBuilder, {
+    const elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React__default["default"].createElement(ComponentBuilder, {
       key: compiledChild._id,
       path: `${path}.${index}`,
       compiled: compiledChild,
       components: components
     }) : compiledChild);
-    if (isSchemaPropComponent(schemaProp)) {
+    if (configTraverse.isSchemaPropComponent(schemaProp)) {
       return elements[0];
     } else {
       return elements;
     }
   }
   const EditableComponentBuilder = isEditing ? components["EditableComponentBuilder.editor"] : components["EditableComponentBuilder.client"];
-  let elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React.createElement(EditableComponentBuilder, {
+  let elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React__default["default"].createElement(EditableComponentBuilder, {
     key: compiledChild._id,
     compiled: compiledChild,
     index: index,
@@ -488,7 +494,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   // We don't want to show add button for this type
   schemaProp.type !== "component-collection-localised") {
     const type = getComponentMainType(schemaProp.accepts);
-    elements = [/*#__PURE__*/React.createElement(Placeholder, {
+    elements = [/*#__PURE__*/React__default["default"].createElement(Placeholder, {
       key: "placeholder",
       id: id,
       path: path,
@@ -513,8 +519,8 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
       meta: meta
     })];
   }
-  if (isSchemaPropComponent(schemaProp)) {
-    return elements[0] ?? /*#__PURE__*/React.createElement(Fragment, null);
+  if (configTraverse.isSchemaPropComponent(schemaProp)) {
+    return elements[0] ?? /*#__PURE__*/React__default["default"].createElement(React.Fragment, null);
   }
 
   // For collections: render progressively when there are many children.
@@ -531,7 +537,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
 
   return elements;
 }
-const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props) {
+const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function ComponentBuilder(props) {
   const {
     compiled,
     passedProps,
@@ -556,7 +562,7 @@ const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props
 
   // Reuse a stable wrapper so findComponentDefinitionById's WeakMap cache hits.
   const defContext = getDefinitionsContext(meta.vars.definitions);
-  const componentDefinition = findComponentDefinitionById(compiled._component, defContext);
+  const componentDefinition = configTraverse.findComponentDefinitionById(compiled._component, defContext);
   const component = getComponent(componentDefinition, components, isEditing);
   const isMissingComponent = compiled._component === "@easyblocks/missing-component";
   const isMissingInstance = component === undefined;
@@ -567,12 +573,12 @@ const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props
       return null;
     }
     if (isMissingComponent) {
-      return /*#__PURE__*/React.createElement(MissingComponent, {
+      return /*#__PURE__*/React__default["default"].createElement(MissingComponent, {
         error: true
       }, "Missing");
     } else {
       console.warn(`Missing "${compiled._component}"`);
-      return /*#__PURE__*/React.createElement(MissingComponent, {
+      return /*#__PURE__*/React__default["default"].createElement(MissingComponent, {
         component: componentDefinition,
         error: true
       }, "Missing");
@@ -582,14 +588,14 @@ const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props
   const shopstoryCompiledConfig = compiled;
 
   // Memoize the runtime object — it only depends on meta which is stable per render tree.
-  const runtime = useMemo(() => ({
+  const runtime = React.useMemo(() => ({
     stitches: meta.stitches,
     resop: resop,
     devices: meta.vars.devices
   }), [meta.stitches, meta.vars.devices]);
 
   // Memoize buildBoxes — only recompute when the compiled styled tree changes.
-  const styledBoxes = useMemo(() => buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta), [shopstoryCompiledConfig.styled, meta]);
+  const styledBoxes = React.useMemo(() => buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta), [shopstoryCompiledConfig.styled, meta]);
 
   // Use cached slot list instead of filtering every schema prop on each render.
   const componentSlots = getComponentSlots(componentDefinition.schema);
@@ -613,7 +619,7 @@ const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props
   } = allPassedProps || {};
 
   // Memoize the easyblocks prop — only changes when the component instance or selection changes.
-  const easyblocksProp = useMemo(() => ({
+  const easyblocksProp = React.useMemo(() => ({
     id: shopstoryCompiledConfig._id,
     isEditing,
     path,
@@ -622,14 +628,14 @@ const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props
   }), [shopstoryCompiledConfig._id, isEditing, path, runtime, __isSelected]);
 
   // Memoize external props — only changes when compiled props or external data changes.
-  const externalProps = useMemo(() => mapExternalProps(shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData), [shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData]);
+  const externalProps = React.useMemo(() => mapExternalProps(shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData), [shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData]);
   const componentProps = {
     ...restPassedProps,
     ...externalProps,
     ...styled,
     __easyblocks: easyblocksProp
   };
-  return /*#__PURE__*/React.createElement(Component, componentProps);
+  return /*#__PURE__*/React__default["default"].createElement(Component, componentProps);
 });
 function getComponent(componentDefinition, components, isEditing) {
   let component;
@@ -670,12 +676,12 @@ function mapExternalProps(props, configId, componentDefinition, externalData) {
     const schemaProp = schemaMap.get(propName);
     if (schemaProp) {
       const propValue = props[propName];
-      if (schemaProp.type === "text" && isLocalTextReference(propValue, "text")) {
+      if (schemaProp.type === "text" && configTraverse.isLocalTextReference(propValue, "text")) {
         resultsProps[propName] = propValue.value;
       } else if (
       // FIXME: this is a mess
-      !isTrulyResponsiveValue$1(propValue) && typeof propValue === "object" && "id" in propValue && "widgetId" in propValue && !("value" in propValue) || isTrulyResponsiveValue$1(propValue) && responsiveValueValues(propValue).every(v => typeof v === "object" && v && "id" in v && "widgetId" in v && !("value" in v))) {
-        resultsProps[propName] = resolveExternalValue(propValue, configId, schemaProp, externalData);
+      !configTraverse.isTrulyResponsiveValue(propValue) && typeof propValue === "object" && "id" in propValue && "widgetId" in propValue && !("value" in propValue) || configTraverse.isTrulyResponsiveValue(propValue) && responsiveValueValues(propValue).every(v => typeof v === "object" && v && "id" in v && "widgetId" in v && !("value" in v))) {
+        resultsProps[propName] = configTraverse.resolveExternalValue(propValue, configId, schemaProp, externalData);
       } else {
         resultsProps[propName] = props[propName];
       }
@@ -709,4 +715,19 @@ function getComponentMainType(componentTypes) {
   return type;
 }
 
-export { Box as B, ComponentBuilder as C, EasyblocksMetadataProvider as E, RichTextPartClient as R, EasyblocksExternalDataProvider as a, easyblocksGetStyleTag as b, cleanString as c, componentPickerClosed as d, easyblocksGetCssText as e, componentPickerOpened as f, itemMoved as g, richTextChangedEvent as h, itemInserted as i, responsiveValueValues as r, selectionFramePositionChanged as s, useEasyblocksMetadata as u };
+exports.Box = Box;
+exports.ComponentBuilder = ComponentBuilder;
+exports.EasyblocksExternalDataProvider = EasyblocksExternalDataProvider;
+exports.EasyblocksMetadataProvider = EasyblocksMetadataProvider;
+exports.RichTextPartClient = RichTextPartClient;
+exports.cleanString = cleanString;
+exports.componentPickerClosed = componentPickerClosed;
+exports.componentPickerOpened = componentPickerOpened;
+exports.easyblocksGetCssText = easyblocksGetCssText;
+exports.easyblocksGetStyleTag = easyblocksGetStyleTag;
+exports.itemInserted = itemInserted;
+exports.itemMoved = itemMoved;
+exports.responsiveValueValues = responsiveValueValues;
+exports.richTextChangedEvent = richTextChangedEvent;
+exports.selectionFramePositionChanged = selectionFramePositionChanged;
+exports.useEasyblocksMetadata = useEasyblocksMetadata;
