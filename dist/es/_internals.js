@@ -249,6 +249,7 @@ function convertRichTextPartComponentConfigToEditorText(richTextPartComponentCon
   return {
     color: richTextPartComponentConfig.color,
     font: richTextPartComponentConfig.font,
+    fontStyle: richTextPartComponentConfig.fontStyle ?? "normal",
     id: richTextPartComponentConfig._id,
     text: richTextPartComponentConfig.value,
     TextWrapper: richTextPartComponentConfig.TextWrapper
@@ -569,10 +570,12 @@ function mergeVisuallyTheSameOrEmptyTextNodes(editor, entry) {
 // }
 
 function filterNonComparableProperties(obj) {
-  return keys(obj).filter(key => ["color", "font", "TextWrapper"].includes(key)).reduce((filteredObject, currentKey) => {
-    filteredObject[currentKey] = obj[currentKey];
-    return filteredObject;
-  }, {});
+  return {
+    color: obj.color,
+    font: obj.font,
+    fontStyle: obj.fontStyle,
+    TextWrapper: obj.TextWrapper
+  };
 }
 function compareText(text1, text2) {
   let areEqual = true;
@@ -821,6 +824,7 @@ function RichTextEditor(props) {
     // React bails out the render if state setter function is invoked during the render phase.
     // Doing it makes Slate always up-to date with the latest config if it's changed from outside.
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+    editor.children = nextEditorValue;
     setEditorValue(nextEditorValue);
 
     // Store for layout effect — never mutate editor during render
@@ -844,7 +848,7 @@ function RichTextEditor(props) {
       newEditorSelection
     } = pendingExternalUpdate.current;
     pendingExternalUpdate.current = null;
-    editor.children = nextEditorValue;
+    lastChangeReason.current = "external";
     if (!isEnabled) return;
     if (isDecorationActive) {
       currentSelectionRef.current = newEditorSelection;

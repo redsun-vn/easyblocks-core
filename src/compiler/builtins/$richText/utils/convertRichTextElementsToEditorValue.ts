@@ -27,6 +27,7 @@ function convertRichTextPartComponentConfigToEditorText(
   return {
     color: richTextPartComponentConfig.color,
     font: richTextPartComponentConfig.font,
+    fontStyle: richTextPartComponentConfig.fontStyle ?? "normal",
     id: richTextPartComponentConfig._id,
     text: richTextPartComponentConfig.value,
     TextWrapper: richTextPartComponentConfig.TextWrapper,
