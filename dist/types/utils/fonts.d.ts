@@ -19,17 +19,21 @@ type LoadGoogleFontsOptions = {
     /** If true, waits for fonts to actually render-ready before resolving. */
     waitFontReady?: boolean;
     /**
-     * Editor mode: loads ALL font families with ALL weights (300–800).
-     * Production mode (default): loads only the fonts + weights actually used.
+     * Editor mode: loads ALL font families with weights 300–800 on both
+     * regular and italic axes.
+     * Production mode (default): loads only the fonts + variants used.
      */
     editor?: boolean;
 };
 /**
- * Loads Google Fonts by injecting a `<link>` into `<head>`.
+ * Loads Google Fonts by injecting one or more `<link>` tags into `<head>`.
  *
  * Two modes:
- * - **Editor** (`editor: true`): loads all font families with weights 300–800.
- * - **Production** (default): loads only the fonts + weights actually used.
+ * - **Editor** (`editor: true`): preloads all 233 families × weights 300–800
+ *   × regular + italic axes. URL is split into chunks to stay under browser
+ *   and Google Fonts URL length limits.
+ * - **Production** (default): loads only the variants actually present in
+ *   the document. Italic variants come from `ExtractedFont.italics`.
  */
 export declare function loadGoogleFonts({ fonts, waitFontReady, editor, }?: LoadGoogleFontsOptions): Promise<void>;
 export {};

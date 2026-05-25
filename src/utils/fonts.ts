@@ -347,22 +347,61 @@ const DEFAULT_WEIGHTS = [400];
 const EDITOR_WEIGHTS = [300, 400, 500, 600, 700, 800];
 
 /**
+ * Per-`<link>` URL budget. Google Fonts v1 + Chrome GET start failing well
+ * before 8KB; 3500 chars keeps requests reliably deliverable.
+ */
+const URL_MAX_CHARS = 3500;
+
+const FONTS_BASE_URL = "https://fonts.googleapis.com/css";
+const FONTS_URL_SUFFIX = "&display=swap";
+
+/** Serializes one family entry to its v1 token, e.g. `Open+Sans:400,400italic`. */
+function serializeFamily({ family, weights, italics }: FontRequest): string {
+  const tokens = [
+    ...weights.map((w) => String(w)),
+    ...italics.map((w) => `${w}italic`),
+  ];
+  return `${family.replace(/ /g, "+")}:${tokens.join(",")}`;
+}
+
+/**
  * Builds a Google Fonts API v1 URL.
  *
  * v1 format: `css?family=Open+Sans:400,700,400italic,700italic|Roboto:400`
  */
 function buildGoogleFontsUrl(fonts: FontRequest[]): string {
-  const params = fonts
-    .map(({ family, weights, italics }) => {
-      const tokens = [
-        ...weights.map((w) => String(w)),
-        ...italics.map((w) => `${w}italic`),
-      ];
-      return `${family.replace(/ /g, "+")}:${tokens.join(",")}`;
-    })
-    .join("|");
+  const params = fonts.map(serializeFamily).join("|");
+  return `${FONTS_BASE_URL}?family=${params}${FONTS_URL_SUFFIX}`;
+}
 
-  return `https://fonts.googleapis.com/css?family=${params}&display=swap`;
+/**
+ * Splits requested families into batches such that each batch's URL stays
+ * under {@link URL_MAX_CHARS}. Greedy packing — preserves family order.
+ */
+function chunkRequests(fonts: FontRequest[]): FontRequest[][] {
+  const baseLen =
+    FONTS_BASE_URL.length + "?family=".length + FONTS_URL_SUFFIX.length;
+  const chunks: FontRequest[][] = [];
+  let current: FontRequest[] = [];
+  let currentLen = baseLen;
+
+  for (const font of fonts) {
+    const token = serializeFamily(font);
+    // +1 for the `|` separator between families (omitted on first entry of chunk).
+    const addLen = token.length + (current.length > 0 ? 1 : 0);
+
+    if (current.length > 0 && currentLen + addLen > URL_MAX_CHARS) {
+      chunks.push(current);
+      current = [];
+      currentLen = baseLen;
+    }
+
+    current.push(font);
+    currentLen += current.length === 1 ? token.length : addLen;
+  }
+
+  if (current.length > 0) chunks.push(current);
+  return chunks;
 }
 
 /**
@@ -401,8 +440,9 @@ type LoadGoogleFontsOptions = {
   /** If true, waits for fonts to actually render-ready before resolving. */
   waitFontReady?: boolean;
   /**
-   * Editor mode: loads ALL font families with ALL weights (300–800).
-   * Production mode (default): loads only the fonts + weights actually used.
+   * Editor mode: loads ALL font families with weights 300–800 on both
+   * regular and italic axes.
+   * Production mode (default): loads only the fonts + variants used.
    */
   editor?: boolean;
 };
@@ -424,11 +464,14 @@ function injectLink(url: string): Promise<void> {
 }
 
 /**
- * Loads Google Fonts by injecting a `<link>` into `<head>`.
+ * Loads Google Fonts by injecting one or more `<link>` tags into `<head>`.
  *
  * Two modes:
- * - **Editor** (`editor: true`): loads all font families with weights 300–800.
- * - **Production** (default): loads only the fonts + weights actually used.
+ * - **Editor** (`editor: true`): preloads all 233 families × weights 300–800
+ *   × regular + italic axes. URL is split into chunks to stay under browser
+ *   and Google Fonts URL length limits.
+ * - **Production** (default): loads only the variants actually present in
+ *   the document. Italic variants come from `ExtractedFont.italics`.
  */
 export async function loadGoogleFonts({
   fonts,
@@ -455,20 +498,20 @@ export async function loadGoogleFonts({
     requested = fontFamilies.map((f) => ({
       family: f,
       weights: DEFAULT_WEIGHTS,
-      italics: [],
+      italics: DEFAULT_WEIGHTS,
     }));
   } else if (fonts.length > 0 && typeof fonts[0] === "string") {
     requested = (fonts as string[]).map((f) => ({
       family: f,
       weights: DEFAULT_WEIGHTS,
-      italics: [],
+      italics: DEFAULT_WEIGHTS,
     }));
   } else {
     // ExtractedFont[] — defensive default for italics if consumer omits it.
     requested = (fonts as ExtractedFont[]).map((f) => ({
       family: f.family,
       weights: f.weights,
-      italics: f.italics ?? [],
+      italics: f.italics.length ? f.italics : f.weights,
     }));
   }
 
@@ -479,7 +522,8 @@ export async function loadGoogleFonts({
     return;
   }
 
-  await injectLink(buildGoogleFontsUrl(newFonts));
+  const chunks = chunkRequests(newFonts);
+  await Promise.all(chunks.map((c) => injectLink(buildGoogleFontsUrl(c))));
 
   if (waitFontReady) await document.fonts.ready;
 }

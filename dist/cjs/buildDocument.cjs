@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var buildDocument = require('./buildDocument-b042fe48.js');
+var buildDocument = require('./buildDocument-5ebeb707.js');
 require('./configTraverse-b2243c69.js');
 require('js-xxhash');
 require('zod');

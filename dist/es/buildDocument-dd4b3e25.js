@@ -1,7 +1,5 @@
 /* with love from shopstory */
-'use strict';
-
-var configTraverse = require('./configTraverse-b2243c69.js');
+import { b as isDocument, a as isComponentConfig, l as createCompilationContext, k as compileInternal, n as normalize, T as configTraverse, z as isLocalTextReference, U as isExternalSchemaProp, i as isTrulyResponsiveValue, D as responsiveValueEntries, u as getExternalReferenceLocationKey, V as serialize } from './configTraverse-68ea2148.js';
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {
@@ -39,7 +37,7 @@ function mergeDefinitions(definitions1, definitions2) {
 }
 
 function validate(input) {
-  const isValid = input === null || input === undefined || configTraverse.isDocument(input) || isLegacyInput(input);
+  const isValid = input === null || input === undefined || isDocument(input) || isLegacyInput(input);
   if (!isValid) {
     return {
       isValid: false
@@ -51,14 +49,14 @@ function validate(input) {
   };
 }
 function isLegacyInput(input) {
-  return configTraverse.isComponentConfig(input);
+  return isComponentConfig(input);
 }
 
 function normalizeInput(input) {
   if (isLegacyInput(input)) {
     return input;
   }
-  if (configTraverse.isDocument(input) && input.entry) {
+  if (isDocument(input) && input.entry) {
     return input.entry;
   }
   throw new Error("Internal error: Can't obtain config from remote document.");
@@ -70,13 +68,13 @@ const compile = (content, config, contextParams) => {
     vars: {},
     code: {}
   };
-  const compilationContext = configTraverse.createCompilationContext(config, contextParams, content._component);
+  const compilationContext = createCompilationContext(config, contextParams, content._component);
   const inputConfigComponent = normalizeInput(content);
   const {
     meta,
     compiled,
     configAfterAuto
-  } = configTraverse.compileInternal(inputConfigComponent, compilationContext);
+  } = compileInternal(inputConfigComponent, compilationContext);
   resultMeta = mergeCompilationMeta(resultMeta, meta);
   return {
     compiled,
@@ -88,9 +86,9 @@ const compile = (content, config, contextParams) => {
 const findExternals = (input, config, contextParams) => {
   const inputConfigComponent = normalizeInput(input);
   const externalsWithSchemaProps = [];
-  const compilationContext = configTraverse.createCompilationContext(config, contextParams, input._component);
-  const normalizedConfig = configTraverse.normalize(inputConfigComponent, compilationContext);
-  configTraverse.configTraverse(normalizedConfig, compilationContext, _ref => {
+  const compilationContext = createCompilationContext(config, contextParams, input._component);
+  const normalizedConfig = normalize(inputConfigComponent, compilationContext);
+  configTraverse(normalizedConfig, compilationContext, _ref => {
     let {
       config,
       value,
@@ -99,26 +97,26 @@ const findExternals = (input, config, contextParams) => {
     // This kinda tricky, because "text" is a special case. It can be either local or external.
     // To prevent false positives, we need to check if it's local text reference and make sure that we won't
     // treat "text" that's actually external as non external.
-    if (schemaProp.type === "text" && configTraverse.isLocalTextReference(value, "text") || schemaProp.type !== "text" && !configTraverse.isExternalSchemaProp(schemaProp, compilationContext.types)) {
+    if (schemaProp.type === "text" && isLocalTextReference(value, "text") || schemaProp.type !== "text" && !isExternalSchemaProp(schemaProp, compilationContext.types)) {
       return;
     }
     const hasInputComponentRootParams = compilationContext.definitions.components.some(c => c.id === normalizedConfig._component && c.rootParams !== undefined);
     const configId = normalizedConfig._id === config._id && hasInputComponentRootParams ? "$" : config._id;
-    if (configTraverse.isTrulyResponsiveValue(value)) {
-      configTraverse.responsiveValueEntries(value).forEach(_ref2 => {
+    if (isTrulyResponsiveValue(value)) {
+      responsiveValueEntries(value).forEach(_ref2 => {
         let [breakpoint, currentValue] = _ref2;
         if (currentValue === undefined) {
           return;
         }
         externalsWithSchemaProps.push({
-          id: configTraverse.getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
+          id: getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
           schemaProp: schemaProp,
           externalReference: currentValue
         });
       });
     } else {
       externalsWithSchemaProps.push({
-        id: configTraverse.getExternalReferenceLocationKey(configId, schemaProp.prop),
+        id: getExternalReferenceLocationKey(configId, schemaProp.prop),
         schemaProp: schemaProp,
         externalReference: value
       });
@@ -171,7 +169,7 @@ function findChangedExternalData(resourcesWithSchemaProps, externalData, isExter
     }
 
     // If id is a string and it's either local text reference or a reference to document's data, then it's not pending
-    if (typeof resource.externalId === "string" && (configTraverse.isLocalTextReference({
+    if (typeof resource.externalId === "string" && (isLocalTextReference({
       id: resource.externalId
     }, type) || resource.externalId.startsWith("$."))) {
       return false;
@@ -402,21 +400,57 @@ const DEFAULT_WEIGHTS = [400];
 const EDITOR_WEIGHTS = [300, 400, 500, 600, 700, 800];
 
 /**
+ * Per-`<link>` URL budget. Google Fonts v1 + Chrome GET start failing well
+ * before 8KB; 3500 chars keeps requests reliably deliverable.
+ */
+const URL_MAX_CHARS = 3500;
+const FONTS_BASE_URL = "https://fonts.googleapis.com/css";
+const FONTS_URL_SUFFIX = "&display=swap";
+
+/** Serializes one family entry to its v1 token, e.g. `Open+Sans:400,400italic`. */
+function serializeFamily(_ref) {
+  let {
+    family,
+    weights,
+    italics
+  } = _ref;
+  const tokens = [...weights.map(w => String(w)), ...italics.map(w => `${w}italic`)];
+  return `${family.replace(/ /g, "+")}:${tokens.join(",")}`;
+}
+
+/**
  * Builds a Google Fonts API v1 URL.
  *
  * v1 format: `css?family=Open+Sans:400,700,400italic,700italic|Roboto:400`
  */
 function buildGoogleFontsUrl(fonts) {
-  const params = fonts.map(_ref => {
-    let {
-      family,
-      weights,
-      italics
-    } = _ref;
-    const tokens = [...weights.map(w => String(w)), ...italics.map(w => `${w}italic`)];
-    return `${family.replace(/ /g, "+")}:${tokens.join(",")}`;
-  }).join("|");
-  return `https://fonts.googleapis.com/css?family=${params}&display=swap`;
+  const params = fonts.map(serializeFamily).join("|");
+  return `${FONTS_BASE_URL}?family=${params}${FONTS_URL_SUFFIX}`;
+}
+
+/**
+ * Splits requested families into batches such that each batch's URL stays
+ * under {@link URL_MAX_CHARS}. Greedy packing — preserves family order.
+ */
+function chunkRequests(fonts) {
+  const baseLen = FONTS_BASE_URL.length + "?family=".length + FONTS_URL_SUFFIX.length;
+  const chunks = [];
+  let current = [];
+  let currentLen = baseLen;
+  for (const font of fonts) {
+    const token = serializeFamily(font);
+    // +1 for the `|` separator between families (omitted on first entry of chunk).
+    const addLen = token.length + (current.length > 0 ? 1 : 0);
+    if (current.length > 0 && currentLen + addLen > URL_MAX_CHARS) {
+      chunks.push(current);
+      current = [];
+      currentLen = baseLen;
+    }
+    current.push(font);
+    currentLen += current.length === 1 ? token.length : addLen;
+  }
+  if (current.length > 0) chunks.push(current);
+  return chunks;
 }
 
 /**
@@ -467,11 +501,14 @@ function injectLink(url) {
 }
 
 /**
- * Loads Google Fonts by injecting a `<link>` into `<head>`.
+ * Loads Google Fonts by injecting one or more `<link>` tags into `<head>`.
  *
  * Two modes:
- * - **Editor** (`editor: true`): loads all font families with weights 300–800.
- * - **Production** (default): loads only the fonts + weights actually used.
+ * - **Editor** (`editor: true`): preloads all 233 families × weights 300–800
+ *   × regular + italic axes. URL is split into chunks to stay under browser
+ *   and Google Fonts URL length limits.
+ * - **Production** (default): loads only the variants actually present in
+ *   the document. Italic variants come from `ExtractedFont.italics`.
  */
 async function loadGoogleFonts() {
   let {
@@ -493,20 +530,20 @@ async function loadGoogleFonts() {
     requested = fontFamilies.map(f => ({
       family: f,
       weights: DEFAULT_WEIGHTS,
-      italics: []
+      italics: DEFAULT_WEIGHTS
     }));
   } else if (fonts.length > 0 && typeof fonts[0] === "string") {
     requested = fonts.map(f => ({
       family: f,
       weights: DEFAULT_WEIGHTS,
-      italics: []
+      italics: DEFAULT_WEIGHTS
     }));
   } else {
     // ExtractedFont[] — defensive default for italics if consumer omits it.
     requested = fonts.map(f => ({
       family: f.family,
       weights: f.weights,
-      italics: f.italics ?? []
+      italics: f.italics.length ? f.italics : f.weights
     }));
   }
   const newFonts = filterNewFontWeights(requested);
@@ -514,7 +551,8 @@ async function loadGoogleFonts() {
     if (waitFontReady) await document.fonts.ready;
     return;
   }
-  await injectLink(buildGoogleFontsUrl(newFonts));
+  const chunks = chunkRequests(newFonts);
+  await Promise.all(chunks.map(c => injectLink(buildGoogleFontsUrl(c))));
   if (waitFontReady) await document.fonts.ready;
 }
 
@@ -548,7 +586,7 @@ async function buildDocument(_ref) {
   return {
     renderableDocument: {
       renderableContent,
-      meta: configTraverse.serialize(meta),
+      meta: serialize(meta),
       configAfterAuto
     },
     externalData
@@ -574,20 +612,4 @@ async function resolveEntryForDocument(_ref2) {
   }
 }
 
-exports.buildDocument = buildDocument;
-exports.buildEntry = buildEntry;
-exports.compile = compile;
-exports.defaultFontFamily = defaultFontFamily;
-exports.defaultFontSize = defaultFontSize;
-exports.defaultFontWeight = defaultFontWeight;
-exports.defaultLineHeight = defaultLineHeight;
-exports.findExternals = findExternals;
-exports.fontFamilies = fontFamilies;
-exports.getFontFamilies = getFontFamilies;
-exports.getFontSizes = getFontSizes;
-exports.getFontWeights = getFontWeights;
-exports.getLineHeights = getLineHeights;
-exports.loadGoogleFonts = loadGoogleFonts;
-exports.mergeCompilationMeta = mergeCompilationMeta;
-exports.normalizeInput = normalizeInput;
-exports.validate = validate;
+export { buildEntry as a, buildDocument as b, compile as c, defaultFontFamily as d, defaultFontSize as e, findExternals as f, defaultFontWeight as g, defaultLineHeight as h, fontFamilies as i, getFontFamilies as j, getFontSizes as k, getFontWeights as l, mergeCompilationMeta as m, normalizeInput as n, getLineHeights as o, loadGoogleFonts as p, validate as v };
