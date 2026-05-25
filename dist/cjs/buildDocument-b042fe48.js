@@ -1,5 +1,7 @@
 /* with love from shopstory */
-import { b as isDocument, a as isComponentConfig, l as createCompilationContext, k as compileInternal, n as normalize, T as configTraverse, z as isLocalTextReference, U as isExternalSchemaProp, i as isTrulyResponsiveValue, D as responsiveValueEntries, u as getExternalReferenceLocationKey, V as serialize } from './configTraverse-68ea2148.js';
+'use strict';
+
+var configTraverse = require('./configTraverse-b2243c69.js');
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {
@@ -37,7 +39,7 @@ function mergeDefinitions(definitions1, definitions2) {
 }
 
 function validate(input) {
-  const isValid = input === null || input === undefined || isDocument(input) || isLegacyInput(input);
+  const isValid = input === null || input === undefined || configTraverse.isDocument(input) || isLegacyInput(input);
   if (!isValid) {
     return {
       isValid: false
@@ -49,14 +51,14 @@ function validate(input) {
   };
 }
 function isLegacyInput(input) {
-  return isComponentConfig(input);
+  return configTraverse.isComponentConfig(input);
 }
 
 function normalizeInput(input) {
   if (isLegacyInput(input)) {
     return input;
   }
-  if (isDocument(input) && input.entry) {
+  if (configTraverse.isDocument(input) && input.entry) {
     return input.entry;
   }
   throw new Error("Internal error: Can't obtain config from remote document.");
@@ -68,13 +70,13 @@ const compile = (content, config, contextParams) => {
     vars: {},
     code: {}
   };
-  const compilationContext = createCompilationContext(config, contextParams, content._component);
+  const compilationContext = configTraverse.createCompilationContext(config, contextParams, content._component);
   const inputConfigComponent = normalizeInput(content);
   const {
     meta,
     compiled,
     configAfterAuto
-  } = compileInternal(inputConfigComponent, compilationContext);
+  } = configTraverse.compileInternal(inputConfigComponent, compilationContext);
   resultMeta = mergeCompilationMeta(resultMeta, meta);
   return {
     compiled,
@@ -86,9 +88,9 @@ const compile = (content, config, contextParams) => {
 const findExternals = (input, config, contextParams) => {
   const inputConfigComponent = normalizeInput(input);
   const externalsWithSchemaProps = [];
-  const compilationContext = createCompilationContext(config, contextParams, input._component);
-  const normalizedConfig = normalize(inputConfigComponent, compilationContext);
-  configTraverse(normalizedConfig, compilationContext, _ref => {
+  const compilationContext = configTraverse.createCompilationContext(config, contextParams, input._component);
+  const normalizedConfig = configTraverse.normalize(inputConfigComponent, compilationContext);
+  configTraverse.configTraverse(normalizedConfig, compilationContext, _ref => {
     let {
       config,
       value,
@@ -97,26 +99,26 @@ const findExternals = (input, config, contextParams) => {
     // This kinda tricky, because "text" is a special case. It can be either local or external.
     // To prevent false positives, we need to check if it's local text reference and make sure that we won't
     // treat "text" that's actually external as non external.
-    if (schemaProp.type === "text" && isLocalTextReference(value, "text") || schemaProp.type !== "text" && !isExternalSchemaProp(schemaProp, compilationContext.types)) {
+    if (schemaProp.type === "text" && configTraverse.isLocalTextReference(value, "text") || schemaProp.type !== "text" && !configTraverse.isExternalSchemaProp(schemaProp, compilationContext.types)) {
       return;
     }
     const hasInputComponentRootParams = compilationContext.definitions.components.some(c => c.id === normalizedConfig._component && c.rootParams !== undefined);
     const configId = normalizedConfig._id === config._id && hasInputComponentRootParams ? "$" : config._id;
-    if (isTrulyResponsiveValue(value)) {
-      responsiveValueEntries(value).forEach(_ref2 => {
+    if (configTraverse.isTrulyResponsiveValue(value)) {
+      configTraverse.responsiveValueEntries(value).forEach(_ref2 => {
         let [breakpoint, currentValue] = _ref2;
         if (currentValue === undefined) {
           return;
         }
         externalsWithSchemaProps.push({
-          id: getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
+          id: configTraverse.getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
           schemaProp: schemaProp,
           externalReference: currentValue
         });
       });
     } else {
       externalsWithSchemaProps.push({
-        id: getExternalReferenceLocationKey(configId, schemaProp.prop),
+        id: configTraverse.getExternalReferenceLocationKey(configId, schemaProp.prop),
         schemaProp: schemaProp,
         externalReference: value
       });
@@ -169,7 +171,7 @@ function findChangedExternalData(resourcesWithSchemaProps, externalData, isExter
     }
 
     // If id is a string and it's either local text reference or a reference to document's data, then it's not pending
-    if (typeof resource.externalId === "string" && (isLocalTextReference({
+    if (typeof resource.externalId === "string" && (configTraverse.isLocalTextReference({
       id: resource.externalId
     }, type) || resource.externalId.startsWith("$."))) {
       return false;
@@ -227,8 +229,9 @@ function traverse(obj, visitor) {
   }
 }
 /**
- * Walks the entry tree and collects every `{ fontFamily, fontWeight? }` pair.
- * Returns deduplicated fonts with only the weights actually used.
+ * Walks the entry tree and collects every `{ fontFamily, fontWeight?, fontStyle? }` pair.
+ * Splits weights into regular (`weights`) and italic (`italics`) axes based on `fontStyle`.
+ * Returns deduplicated fonts with only the variants actually used.
  */
 function extractFontsWithWeights(entry) {
   const map = new Map();
@@ -236,19 +239,27 @@ function extractFontsWithWeights(entry) {
     if (node && typeof node === "object" && node.value && typeof node.value === "object" && typeof node.value.fontFamily === "string") {
       const family = node.value.fontFamily;
       const weight = typeof node.value.fontWeight === "number" ? node.value.fontWeight : 400;
-      let weights = map.get(family);
-      if (!weights) {
-        weights = new Set();
-        map.set(family, weights);
+      const isItalic = node.value.fontStyle === "italic";
+      let entryMap = map.get(family);
+      if (!entryMap) {
+        entryMap = {
+          weights: new Set(),
+          italics: new Set()
+        };
+        map.set(family, entryMap);
       }
-      weights.add(weight);
+      (isItalic ? entryMap.italics : entryMap.weights).add(weight);
     }
   });
   return Array.from(map.entries()).map(_ref => {
-    let [family, weights] = _ref;
+    let [family, {
+      weights,
+      italics
+    }] = _ref;
     return {
       family,
-      weights: Array.from(weights).sort((a, b) => a - b)
+      weights: Array.from(weights).sort((a, b) => a - b),
+      italics: Array.from(italics).sort((a, b) => a - b)
     };
   });
 }
@@ -379,54 +390,64 @@ function getFontSizes() {
 // loadGoogleFonts
 // ---------------------------------------------------------------------------
 
-/** Tracks which family+weight combos are already injected. */
+/** Internal request shape — regular weights + italic weights per family. */
+
+/** Tracks which family+weight combos are already injected, per axis. */
 const loadedFontWeights = new Map();
 
 /** Default weights to load when only family names (no weights) are provided. */
 const DEFAULT_WEIGHTS = [400];
 
-/** All weights loaded in editor mode. */
+/** All weights loaded in editor mode (applied to both regular and italic axes). */
 const EDITOR_WEIGHTS = [300, 400, 500, 600, 700, 800];
 
 /**
  * Builds a Google Fonts API v1 URL.
  *
- * v1 format: `css?family=Open+Sans:300,400|Roboto:400,700`
+ * v1 format: `css?family=Open+Sans:400,700,400italic,700italic|Roboto:400`
  */
 function buildGoogleFontsUrl(fonts) {
   const params = fonts.map(_ref => {
     let {
       family,
-      weights
+      weights,
+      italics
     } = _ref;
-    return `${family.replace(/ /g, "+")}:${weights.join(",")}`;
+    const tokens = [...weights.map(w => String(w)), ...italics.map(w => `${w}italic`)];
+    return `${family.replace(/ /g, "+")}:${tokens.join(",")}`;
   }).join("|");
   return `https://fonts.googleapis.com/css?family=${params}&display=swap`;
 }
 
 /**
  * Filters out font+weight combos that are already loaded.
- * Returns only the new combos, and marks them as loaded.
+ * Regular and italic axes filtered independently. Returns only the new combos
+ * per axis, and marks them as loaded.
  */
 function filterNewFontWeights(fonts) {
   const result = [];
   for (const {
     family,
-    weights
+    weights,
+    italics
   } of fonts) {
-    let existing = loadedFontWeights.get(family);
-    const newWeights = weights.filter(w => !existing?.has(w));
-    if (newWeights.length === 0) continue;
-    if (!existing) {
-      existing = new Set();
-      loadedFontWeights.set(family, existing);
+    let entry = loadedFontWeights.get(family);
+    const newRegular = weights.filter(w => !entry?.regular.has(w));
+    const newItalic = italics.filter(w => !entry?.italic.has(w));
+    if (newRegular.length === 0 && newItalic.length === 0) continue;
+    if (!entry) {
+      entry = {
+        regular: new Set(),
+        italic: new Set()
+      };
+      loadedFontWeights.set(family, entry);
     }
-    for (const w of newWeights) {
-      existing.add(w);
-    }
+    for (const w of newRegular) entry.regular.add(w);
+    for (const w of newItalic) entry.italic.add(w);
     result.push({
       family,
-      weights: newWeights
+      weights: newRegular,
+      italics: newItalic
     });
   }
   return result;
@@ -461,24 +482,32 @@ async function loadGoogleFonts() {
   if (typeof window === "undefined") return;
   let requested;
   if (editor) {
-    // Editor: all families with full weight range 300–800.
+    // Editor: all families with full weight range 300–800 for regular AND italic.
     const families = fonts && fonts.length > 0 && typeof fonts[0] === "string" ? fonts : fontFamilies;
     requested = families.map(f => ({
       family: f,
-      weights: EDITOR_WEIGHTS
+      weights: EDITOR_WEIGHTS,
+      italics: EDITOR_WEIGHTS
     }));
   } else if (!fonts) {
     requested = fontFamilies.map(f => ({
       family: f,
-      weights: DEFAULT_WEIGHTS
+      weights: DEFAULT_WEIGHTS,
+      italics: []
     }));
   } else if (fonts.length > 0 && typeof fonts[0] === "string") {
     requested = fonts.map(f => ({
       family: f,
-      weights: DEFAULT_WEIGHTS
+      weights: DEFAULT_WEIGHTS,
+      italics: []
     }));
   } else {
-    requested = fonts;
+    // ExtractedFont[] — defensive default for italics if consumer omits it.
+    requested = fonts.map(f => ({
+      family: f.family,
+      weights: f.weights,
+      italics: f.italics ?? []
+    }));
   }
   const newFonts = filterNewFontWeights(requested);
   if (newFonts.length === 0) {
@@ -519,7 +548,7 @@ async function buildDocument(_ref) {
   return {
     renderableDocument: {
       renderableContent,
-      meta: serialize(meta),
+      meta: configTraverse.serialize(meta),
       configAfterAuto
     },
     externalData
@@ -545,4 +574,20 @@ async function resolveEntryForDocument(_ref2) {
   }
 }
 
-export { buildEntry as a, buildDocument as b, compile as c, defaultFontFamily as d, defaultFontSize as e, findExternals as f, defaultFontWeight as g, defaultLineHeight as h, fontFamilies as i, getFontFamilies as j, getFontSizes as k, getFontWeights as l, mergeCompilationMeta as m, normalizeInput as n, getLineHeights as o, loadGoogleFonts as p, validate as v };
+exports.buildDocument = buildDocument;
+exports.buildEntry = buildEntry;
+exports.compile = compile;
+exports.defaultFontFamily = defaultFontFamily;
+exports.defaultFontSize = defaultFontSize;
+exports.defaultFontWeight = defaultFontWeight;
+exports.defaultLineHeight = defaultLineHeight;
+exports.findExternals = findExternals;
+exports.fontFamilies = fontFamilies;
+exports.getFontFamilies = getFontFamilies;
+exports.getFontSizes = getFontSizes;
+exports.getFontWeights = getFontWeights;
+exports.getLineHeights = getLineHeights;
+exports.loadGoogleFonts = loadGoogleFonts;
+exports.mergeCompilationMeta = mergeCompilationMeta;
+exports.normalizeInput = normalizeInput;
+exports.validate = validate;

@@ -13,14 +13,19 @@ function traverse(obj: any, visitor: (node: any) => void) {
 export type ExtractedFont = {
   family: string;
   weights: number[];
+  italics: number[];
 };
 
 /**
- * Walks the entry tree and collects every `{ fontFamily, fontWeight? }` pair.
- * Returns deduplicated fonts with only the weights actually used.
+ * Walks the entry tree and collects every `{ fontFamily, fontWeight?, fontStyle? }` pair.
+ * Splits weights into regular (`weights`) and italic (`italics`) axes based on `fontStyle`.
+ * Returns deduplicated fonts with only the variants actually used.
  */
 export function extractFontsWithWeights(entry: any): ExtractedFont[] {
-  const map = new Map<string, Set<number>>();
+  const map = new Map<
+    string,
+    { weights: Set<number>; italics: Set<number> }
+  >();
 
   traverse(entry, (node) => {
     if (
@@ -33,19 +38,21 @@ export function extractFontsWithWeights(entry: any): ExtractedFont[] {
       const family = node.value.fontFamily;
       const weight =
         typeof node.value.fontWeight === "number" ? node.value.fontWeight : 400;
+      const isItalic = node.value.fontStyle === "italic";
 
-      let weights = map.get(family);
-      if (!weights) {
-        weights = new Set<number>();
-        map.set(family, weights);
+      let entryMap = map.get(family);
+      if (!entryMap) {
+        entryMap = { weights: new Set<number>(), italics: new Set<number>() };
+        map.set(family, entryMap);
       }
-      weights.add(weight);
+      (isItalic ? entryMap.italics : entryMap.weights).add(weight);
     }
   });
 
-  return Array.from(map.entries()).map(([family, weights]) => ({
+  return Array.from(map.entries()).map(([family, { weights, italics }]) => ({
     family,
     weights: Array.from(weights).sort((a, b) => a - b),
+    italics: Array.from(italics).sort((a, b) => a - b),
   }));
 }
 

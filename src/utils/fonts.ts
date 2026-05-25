@@ -331,26 +331,34 @@ export function getFontSizes(): IFont[] {
 // loadGoogleFonts
 // ---------------------------------------------------------------------------
 
-/** Tracks which family+weight combos are already injected. */
-const loadedFontWeights = new Map<string, Set<number>>();
+/** Internal request shape — regular weights + italic weights per family. */
+type FontRequest = { family: string; weights: number[]; italics: number[] };
+
+/** Tracks which family+weight combos are already injected, per axis. */
+const loadedFontWeights = new Map<
+  string,
+  { regular: Set<number>; italic: Set<number> }
+>();
 
 /** Default weights to load when only family names (no weights) are provided. */
 const DEFAULT_WEIGHTS = [400];
 
-/** All weights loaded in editor mode. */
+/** All weights loaded in editor mode (applied to both regular and italic axes). */
 const EDITOR_WEIGHTS = [300, 400, 500, 600, 700, 800];
 
 /**
  * Builds a Google Fonts API v1 URL.
  *
- * v1 format: `css?family=Open+Sans:300,400|Roboto:400,700`
+ * v1 format: `css?family=Open+Sans:400,700,400italic,700italic|Roboto:400`
  */
-function buildGoogleFontsUrl(
-  fonts: { family: string; weights: number[] }[],
-): string {
+function buildGoogleFontsUrl(fonts: FontRequest[]): string {
   const params = fonts
-    .map(({ family, weights }) => {
-      return `${family.replace(/ /g, "+")}:${weights.join(",")}`;
+    .map(({ family, weights, italics }) => {
+      const tokens = [
+        ...weights.map((w) => String(w)),
+        ...italics.map((w) => `${w}italic`),
+      ];
+      return `${family.replace(/ /g, "+")}:${tokens.join(",")}`;
     })
     .join("|");
 
@@ -359,30 +367,29 @@ function buildGoogleFontsUrl(
 
 /**
  * Filters out font+weight combos that are already loaded.
- * Returns only the new combos, and marks them as loaded.
+ * Regular and italic axes filtered independently. Returns only the new combos
+ * per axis, and marks them as loaded.
  */
-function filterNewFontWeights(
-  fonts: { family: string; weights: number[] }[],
-): { family: string; weights: number[] }[] {
-  const result: { family: string; weights: number[] }[] = [];
+function filterNewFontWeights(fonts: FontRequest[]): FontRequest[] {
+  const result: FontRequest[] = [];
 
-  for (const { family, weights } of fonts) {
-    let existing = loadedFontWeights.get(family);
+  for (const { family, weights, italics } of fonts) {
+    let entry = loadedFontWeights.get(family);
 
-    const newWeights = weights.filter((w) => !existing?.has(w));
+    const newRegular = weights.filter((w) => !entry?.regular.has(w));
+    const newItalic = italics.filter((w) => !entry?.italic.has(w));
 
-    if (newWeights.length === 0) continue;
+    if (newRegular.length === 0 && newItalic.length === 0) continue;
 
-    if (!existing) {
-      existing = new Set<number>();
-      loadedFontWeights.set(family, existing);
+    if (!entry) {
+      entry = { regular: new Set<number>(), italic: new Set<number>() };
+      loadedFontWeights.set(family, entry);
     }
 
-    for (const w of newWeights) {
-      existing.add(w);
-    }
+    for (const w of newRegular) entry.regular.add(w);
+    for (const w of newItalic) entry.italic.add(w);
 
-    result.push({ family, weights: newWeights });
+    result.push({ family, weights: newRegular, italics: newItalic });
   }
 
   return result;
@@ -430,10 +437,10 @@ export async function loadGoogleFonts({
 }: LoadGoogleFontsOptions = {}): Promise<void> {
   if (typeof window === "undefined") return;
 
-  let requested: { family: string; weights: number[] }[];
+  let requested: FontRequest[];
 
   if (editor) {
-    // Editor: all families with full weight range 300–800.
+    // Editor: all families with full weight range 300–800 for regular AND italic.
     const families =
       fonts && fonts.length > 0 && typeof fonts[0] === "string"
         ? (fonts as string[])
@@ -442,19 +449,27 @@ export async function loadGoogleFonts({
     requested = families.map((f) => ({
       family: f,
       weights: EDITOR_WEIGHTS,
+      italics: EDITOR_WEIGHTS,
     }));
   } else if (!fonts) {
     requested = fontFamilies.map((f) => ({
       family: f,
       weights: DEFAULT_WEIGHTS,
+      italics: [],
     }));
   } else if (fonts.length > 0 && typeof fonts[0] === "string") {
     requested = (fonts as string[]).map((f) => ({
       family: f,
       weights: DEFAULT_WEIGHTS,
+      italics: [],
     }));
   } else {
-    requested = fonts as ExtractedFont[];
+    // ExtractedFont[] — defensive default for italics if consumer omits it.
+    requested = (fonts as ExtractedFont[]).map((f) => ({
+      family: f.family,
+      weights: f.weights,
+      italics: f.italics ?? [],
+    }));
   }
 
   const newFonts = filterNewFontWeights(requested);
