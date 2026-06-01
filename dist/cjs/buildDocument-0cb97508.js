@@ -1,7 +1,7 @@
 /* with love from shopstory */
 'use strict';
 
-var configTraverse = require('./configTraverse-ccfb89fc.js');
+var configTraverse = require('./configTraverse-9ccb1f2d.js');
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {

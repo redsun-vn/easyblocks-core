@@ -916,7 +916,7 @@ function compileSubcomponents(
           //     `Can't resolve localised value for prop "${schemaProp.prop}" of component ${editableElement._component}`
           //   );
           // }
-          value = resolvedValue?.value as any[];
+          value = (resolvedValue?.value as any[]) ?? [];
         }
 
         value.forEach((_: any, index: number) => {

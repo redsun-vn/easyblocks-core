@@ -6273,7 +6273,7 @@ cache) {
           //     `Can't resolve localised value for prop "${schemaProp.prop}" of component ${editableElement._component}`
           //   );
           // }
-          value = resolvedValue?.value;
+          value = resolvedValue?.value ?? [];
         }
         value.forEach((_, index) => {
           childContextProps.itemProps[index] = childContextProps.itemProps[index] ?? {};

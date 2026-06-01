@@ -2,7 +2,7 @@
 'use strict';
 
 var React = require('react');
-var configTraverse = require('./configTraverse-ccfb89fc.js');
+var configTraverse = require('./configTraverse-9ccb1f2d.js');
 var core = require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
