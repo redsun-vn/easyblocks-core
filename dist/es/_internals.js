@@ -786,7 +786,7 @@ function RichTextEditor(props) {
 
   // If rich text has no value, we initialize it with default config by updating it during first render
   // This is only possible when we open entry for non main locale without fallback, this is total edge case
-  if (richTextElements.length === 0 && !fallbackRichTextElements) {
+  if (richTextElements?.length === 0 && !fallbackRichTextElements) {
     // We only want to show rich text for default config within this component, we don't want to update raw content
     // To prevent implicit update of raw content we make a deep copy.
     richTextConfig = deepClone(richTextConfig);

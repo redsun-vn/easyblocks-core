@@ -91,7 +91,7 @@ function RichTextEditor(props: RichTextProps) {
 
   let richTextConfig: RichTextComponentConfig = dotNotationGet(
     form.values,
-    path
+    path,
   );
 
   const [editor] = useState(() => withEasyblocks(withReact(createEditor())));
@@ -102,7 +102,7 @@ function RichTextEditor(props: RichTextProps) {
   const fallbackRichTextElements = getFallbackForLocale(
     richTextConfig.elements,
     contextParams.locale,
-    locales
+    locales,
   );
 
   const richTextElements =
@@ -111,12 +111,12 @@ function RichTextEditor(props: RichTextProps) {
   const richTextElementsConfigPath = `${path}.elements.${contextParams.locale}`;
 
   const [editorValue, setEditorValue] = useState(() =>
-    convertRichTextElementsToEditorValue(richTextElements)
+    convertRichTextElementsToEditorValue(richTextElements),
   );
 
   // If rich text has no value, we initialize it with default config by updating it during first render
   // This is only possible when we open entry for non main locale without fallback, this is total edge case
-  if (richTextElements.length === 0 && !fallbackRichTextElements) {
+  if (richTextElements?.length === 0 && !fallbackRichTextElements) {
     // We only want to show rich text for default config within this component, we don't want to update raw content
     // To prevent implicit update of raw content we make a deep copy.
     richTextConfig = deepClone(richTextConfig);
@@ -137,7 +137,7 @@ function RichTextEditor(props: RichTextProps) {
    * - changes from outside of editable content shouldn't trigger writing to editor's history within change callback ("external")
    */
   const lastChangeReason = useRef<"external" | "text-input" | "paste">(
-    "text-input"
+    "text-input",
   );
 
   /**
@@ -154,7 +154,7 @@ function RichTextEditor(props: RichTextProps) {
 
   const isConfigChanged = !isConfigEqual(
     previousRichTextComponentConfig.current,
-    richTextConfig
+    richTextConfig,
   );
 
   if (previousRichTextComponentConfig.current && isConfigChanged) {
@@ -176,7 +176,7 @@ function RichTextEditor(props: RichTextProps) {
       nextEditorValue,
       newEditorSelection: isEnabled
         ? getEditorSelectionFromFocusedFields(focussedField, form)
-        : null
+        : null,
     };
   }
 
@@ -197,7 +197,8 @@ function RichTextEditor(props: RichTextProps) {
   useLayoutEffect(() => {
     if (!pendingExternalUpdate.current) return;
 
-    const { nextEditorValue, newEditorSelection } = pendingExternalUpdate.current;
+    const { nextEditorValue, newEditorSelection } =
+      pendingExternalUpdate.current;
     pendingExternalUpdate.current = null;
 
     lastChangeReason.current = "external";
@@ -230,12 +231,12 @@ function RichTextEditor(props: RichTextProps) {
     } catch (e) {
       try {
         Transforms.deselect(editor);
-      } catch { }
+      } catch {}
     }
   });
 
   const isRichTextActive = focussedField.some((focusedField: any) =>
-    focusedField.startsWith(path)
+    focusedField.startsWith(path),
   );
 
   useLayoutEffect(() => {
@@ -270,7 +271,7 @@ function RichTextEditor(props: RichTextProps) {
         Transforms.deselect(editor);
 
         const isSlateValueEmpty = isEditorValueEmpty(
-          editor.children as Array<BlockElement>
+          editor.children as Array<BlockElement>,
         );
 
         // When value for current locale is empty we want to show value from fallback value instead of placeholder
@@ -279,13 +280,13 @@ function RichTextEditor(props: RichTextProps) {
           const nextRichTextElement = deepClone(richTextConfig);
           delete nextRichTextElement.elements[contextParams.locale];
           editor.children = convertRichTextElementsToEditorValue(
-            fallbackRichTextElements
+            fallbackRichTextElements,
           );
           form.change(path, nextRichTextElement);
         }
       }
     },
-    [focussedField, isEnabled, isRichTextActive]
+    [focussedField, isEnabled, isRichTextActive],
   );
 
   useEffect(() => {
@@ -321,7 +322,7 @@ function RichTextEditor(props: RichTextProps) {
         const updateSelectionResult = updateSelection(
           temporaryEditor,
           payload.prop,
-          ...payload.values
+          ...payload.values,
         );
 
         if (!updateSelectionResult) {
@@ -348,8 +349,8 @@ function RichTextEditor(props: RichTextProps) {
                 getAbsoluteRichTextPartPath(
                   focusedRichTextPart,
                   path,
-                  editorContext.contextParams.locale
-                )
+                  editorContext.contextParams.locale,
+                ),
             );
 
           return newFocusedFields;
@@ -375,7 +376,7 @@ function RichTextEditor(props: RichTextProps) {
     const Element = Elements.find(
       (Element) =>
         Element._id === element.id ||
-        NORMALIZED_IDS_TO_IDS.get(element.id) === Element._id
+        NORMALIZED_IDS_TO_IDS.get(element.id) === Element._id,
     );
 
     if (!Element) {
@@ -524,14 +525,14 @@ function RichTextEditor(props: RichTextProps) {
           const nextFocusedFields = getFocusedFieldsFromSlateSelection(
             editor,
             path,
-            contextParams.locale
+            contextParams.locale,
           );
 
           return nextFocusedFields;
         }
       });
     }, RICH_TEXT_CONFIG_SYNC_THROTTLE_TIMEOUT),
-    [isConfigChanged, editorContext.contextParams.locale]
+    [isConfigChanged, editorContext.contextParams.locale],
   );
 
   const scheduleFocusedFieldsChange = useCallback(
@@ -541,7 +542,7 @@ function RichTextEditor(props: RichTextProps) {
     throttle((focusedFields: Parameters<typeof setFocussedField>[0]) => {
       setFocussedField(focusedFields);
     }, RICH_TEXT_FOCUSED_FIELDS_SYNC_THROTTLE_TIMEOUT),
-    [setFocussedField]
+    [setFocussedField],
   );
 
   function handleEditableChange(value: Array<Descendant>): void {
@@ -568,7 +569,7 @@ function RichTextEditor(props: RichTextProps) {
       const nextFocusedFields = getFocusedFieldsFromSlateSelection(
         editor,
         path,
-        contextParams.locale
+        contextParams.locale,
       );
 
       if (nextFocusedFields) {
@@ -619,7 +620,7 @@ function RichTextEditor(props: RichTextProps) {
         ];
 
         nextSlateValue = convertRichTextElementsToEditorValue(
-          nextRichTextComponentConfig.elements[contextParams.locale]
+          nextRichTextComponentConfig.elements[contextParams.locale],
         );
 
         editor.children = nextSlateValue;
@@ -638,7 +639,7 @@ function RichTextEditor(props: RichTextProps) {
         nextRichTextComponentConfig = richTextConfig;
         nextRichTextComponentConfig.elements[contextParams.locale] =
           convertEditorValueToRichTextElements(
-            editor.children as Array<BlockElement>
+            editor.children as Array<BlockElement>,
           );
         form.change(path, nextRichTextComponentConfig);
       }
@@ -647,13 +648,13 @@ function RichTextEditor(props: RichTextProps) {
 
       if (editor.selection) {
         const nextFocusedFields = getFocusedRichTextPartsConfigPaths(
-          editor
+          editor,
         ).map((richTextPartPath) =>
           getAbsoluteRichTextPartPath(
             richTextPartPath,
             path,
-            contextParams.locale
-          )
+            contextParams.locale,
+          ),
         );
 
         setFocussedField(nextFocusedFields);
@@ -678,7 +679,7 @@ function RichTextEditor(props: RichTextProps) {
         currentSelectionRef.current = ReactEditor.toSlateRange(
           editor,
           selection,
-          { exactMatch: false, suppressThrow: true }
+          { exactMatch: false, suppressThrow: true },
         );
       } else {
         currentSelectionRef.current = null;
@@ -690,13 +691,13 @@ function RichTextEditor(props: RichTextProps) {
     if (isEnabled) {
       window.document.addEventListener(
         "selectionchange",
-        throttledSaveLatestSelection
+        throttledSaveLatestSelection,
       );
 
       return () => {
         window.document.removeEventListener(
           "selectionchange",
-          throttledSaveLatestSelection
+          throttledSaveLatestSelection,
         );
       };
     }
@@ -713,12 +714,12 @@ function RichTextEditor(props: RichTextProps) {
   function handleEditableCopy(event: React.ClipboardEvent) {
     const selectedRichTextComponentConfig = getRichTextComponentConfigFragment(
       richTextConfig,
-      editorContext
+      editorContext,
     );
 
     event.clipboardData.setData(
       "text/x-shopstory",
-      JSON.stringify(selectedRichTextComponentConfig)
+      JSON.stringify(selectedRichTextComponentConfig),
     );
   }
 
@@ -735,13 +736,13 @@ function RichTextEditor(props: RichTextProps) {
 
       const nextSlateValue = convertRichTextElementsToEditorValue(
         duplicateConfig(selectedRichTextComponentConfig, editorContext)
-          .elements[contextParams.locale]
+          .elements[contextParams.locale],
       );
 
       const temporaryEditor = createTemporaryEditor(editor);
       Editor.insertFragment(temporaryEditor, nextSlateValue);
       const nextElements = convertEditorValueToRichTextElements(
-        temporaryEditor.children as Array<BlockElement>
+        temporaryEditor.children as Array<BlockElement>,
       );
 
       actions.runChange(() => {
@@ -750,7 +751,7 @@ function RichTextEditor(props: RichTextProps) {
         const nextFocusedFields = getFocusedFieldsFromSlateSelection(
           temporaryEditor,
           path,
-          contextParams.locale
+          contextParams.locale,
         );
 
         return nextFocusedFields;
@@ -860,7 +861,7 @@ function RichTextEditor(props: RichTextProps) {
               Transforms.setSelection(editor, editorSelectionRange);
               const editorSelectionDOMRange = ReactEditor.toDOMRange(
                 editor,
-                editorSelectionRange
+                editorSelectionRange,
               );
 
               window
@@ -869,7 +870,7 @@ function RichTextEditor(props: RichTextProps) {
                   editorSelectionDOMRange.startContainer,
                   editorSelectionDOMRange.startOffset,
                   editorSelectionDOMRange.endContainer,
-                  editorSelectionDOMRange.endOffset
+                  editorSelectionDOMRange.endOffset,
                 );
             }
           }}
@@ -899,7 +900,7 @@ function isConfigEqual(newConfig: any, oldConfig: any) {
 
 function mapResponsiveAlignmentToStyles(
   align: ResponsiveValue<Alignment>,
-  { devices, resop }: { devices: Devices; resop: any }
+  { devices, resop }: { devices: Devices; resop: any },
 ) {
   function mapAlignmentToFlexAlignment(align: Alignment) {
     if (align === "center") {
@@ -923,7 +924,7 @@ function mapResponsiveAlignmentToStyles(
         textAlign: values.align,
       };
     },
-    devices
+    devices,
   );
 
   const compiledStyles = compileBox(responsiveStyles, devices);
@@ -990,15 +991,15 @@ function splitStringNodes(editor: Editor, selection: BaseRange) {
       const selectedTextNode = document.createElement("span");
       selectedTextNode.textContent = textContent.slice(
         selection.anchor.offset,
-        selection.focus.offset
+        selection.focus.offset,
       );
       selectedTextNode.dataset.easyblocksRichTextSelection = "true";
       newChild.appendChild(
-        document.createTextNode(textContent.slice(0, selection.anchor.offset))
+        document.createTextNode(textContent.slice(0, selection.anchor.offset)),
       );
       newChild.appendChild(selectedTextNode);
       newChild.appendChild(
-        document.createTextNode(textContent.slice(selection.focus.offset))
+        document.createTextNode(textContent.slice(selection.focus.offset)),
       );
       slateString!.replaceChildren(newChild);
     }
@@ -1016,12 +1017,12 @@ function splitStringNodes(editor: Editor, selection: BaseRange) {
       if (index === 0) {
         newChild.appendChild(
           document.createTextNode(
-            slateString.textContent!.slice(0, selection.anchor.offset)
-          )
+            slateString.textContent!.slice(0, selection.anchor.offset),
+          ),
         );
         const selectedTextNode = document.createElement("span");
         selectedTextNode.textContent = textContent.slice(
-          selection.anchor.offset
+          selection.anchor.offset,
         );
         selectedTextNode.dataset.easyblocksRichTextSelection = "true";
         newChild.appendChild(selectedTextNode);
@@ -1031,12 +1032,12 @@ function splitStringNodes(editor: Editor, selection: BaseRange) {
         const selectedTextNode = document.createElement("span");
         selectedTextNode.textContent = textContent.slice(
           0,
-          selection.focus.offset
+          selection.focus.offset,
         );
         selectedTextNode.dataset.easyblocksRichTextSelection = "true";
         newChild.appendChild(selectedTextNode);
         newChild.appendChild(
-          document.createTextNode(textContent.slice(selection.focus.offset))
+          document.createTextNode(textContent.slice(selection.focus.offset)),
         );
         slateString.replaceChildren(newChild);
       } else {
