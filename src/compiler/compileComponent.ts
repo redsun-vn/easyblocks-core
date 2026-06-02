@@ -911,12 +911,12 @@ function compileSubcomponents(
             editableElement[schemaProp.prop],
             compilationContext,
           );
-          // if (!resolvedValue) {
-          //   throw new Error(
-          //     `Can't resolve localised value for prop "${schemaProp.prop}" of component ${editableElement._component}`
-          //   );
-          // }
-          value = (resolvedValue?.value as any[]) ?? [];
+          if (!resolvedValue) {
+            throw new Error(
+              `Can't resolve localised value for prop "${schemaProp.prop}" of component ${editableElement._component}`,
+            );
+          }
+          value = resolvedValue?.value as any[];
         }
 
         value.forEach((_: any, index: number) => {
@@ -1098,7 +1098,16 @@ function resolveLocalisedValue<T>(
   );
 
   if (!fallbackLocale) {
-    return;
+    const firstLocale = Object.keys(localisedValue)?.[0];
+
+    if (!firstLocale) {
+      return;
+    }
+
+    return {
+      value: localisedValue[firstLocale],
+      locale: locale,
+    };
   }
 
   return {

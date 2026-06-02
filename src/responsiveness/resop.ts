@@ -4,14 +4,14 @@ type Values = { [key: string]: any };
 
 export function resop<
   Input extends Record<string, ResponsiveValue<unknown>>,
-  ScalarResult extends Record<string, unknown>
+  ScalarResult extends Record<string, unknown>,
 >(
   config: Input,
   callback: (
     scalarInput: Scalar<Input>,
-    breakpointIndex: string
+    breakpointIndex: string,
   ) => ScalarResult,
-  devices: Devices
+  devices: Devices,
 ): Responsify<ScalarResult> {
   // Decompose config into scalar configs
   const scalarConfigs: Record<string, Scalar<Input>> = {};
@@ -33,7 +33,7 @@ export function resop<
 function squashCSSResults(
   scalarValues: { [key: string]: any },
   devices: Devices,
-  disableNesting?: boolean
+  disableNesting?: boolean,
 ): any {
   // Let's check whether scalarValues represent object (for nesting) or a scalar value.
   let objectsNum = 0;
@@ -64,7 +64,7 @@ function squashCSSResults(
     (noObjectsNum > 0 && (arraysNum > 0 || objectsNum > 0))
   ) {
     throw new Error(
-      "This shouldn't happen. Mismatched types for different breakpoints!!!"
+      "This shouldn't happen. Mismatched types for different breakpoints!!!",
     );
   }
 
@@ -74,7 +74,7 @@ function squashCSSResults(
     for (const breakpoint in scalarValues) {
       biggestArrayLength = Math.max(
         biggestArrayLength,
-        scalarValues[breakpoint].length
+        scalarValues[breakpoint].length,
       ); // {...allKeysObject, ...scalarValues[breakpoint]};
     }
 
@@ -188,12 +188,12 @@ function squashCSSResults(
 
 function responsiveValueForceGet<T>(
   value: ResponsiveValue<T>,
-  deviceId: string
+  deviceId: string,
 ): T {
   if (isTrulyResponsiveValue(value)) {
     if (value[deviceId] === undefined) {
       const error = `You called responsiveValueForceGet with value ${JSON.stringify(
-        value
+        value,
       )} and deviceId: ${deviceId}. Value undefined.`;
       throw new Error(error);
     }
@@ -203,7 +203,7 @@ function responsiveValueForceGet<T>(
 }
 
 function isTrulyResponsiveValue<T>(
-  x: ResponsiveValue<T>
+  x: ResponsiveValue<T>,
 ): x is TrulyResponsiveValue<T> {
   return (
     typeof x === "object" &&
@@ -215,7 +215,7 @@ function isTrulyResponsiveValue<T>(
 
 function responsiveValueNormalize<T>(
   arg: ResponsiveValue<T>,
-  devices: Devices
+  devices: Devices,
 ): ResponsiveValue<T> {
   if (!isTrulyResponsiveValue(arg)) {
     return arg;
@@ -270,9 +270,8 @@ function responsiveValueNormalize<T>(
   return ret;
 }
 
-type UnwrapResponsiveValue<T> = T extends ResponsiveValue<infer Value>
-  ? Value
-  : never;
+type UnwrapResponsiveValue<T> =
+  T extends ResponsiveValue<infer Value> ? Value : never;
 
 type Scalar<Input extends Record<string, ResponsiveValue<unknown>>> = {
   [key in keyof Input]: UnwrapResponsiveValue<Input[key]>;

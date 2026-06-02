@@ -3,7 +3,7 @@ import { isTrulyResponsiveValue } from "./isTrulyResponsiveValue";
 
 export function responsiveValueGet<T>(
   value: ResponsiveValue<T>,
-  deviceId: string
+  deviceId: string,
 ): T | undefined {
   if (isTrulyResponsiveValue(value)) {
     return value[deviceId] as T | undefined;
@@ -13,14 +13,17 @@ export function responsiveValueGet<T>(
 
 export function responsiveValueForceGet<T>(
   value: ResponsiveValue<T>,
-  deviceId: string
+  deviceId: string,
 ): T {
   if (isTrulyResponsiveValue(value)) {
     if (value[deviceId] === undefined) {
-      const error = `You called responsiveValueForceGet with value ${JSON.stringify(
-        value
-      )} and deviceId: ${deviceId}. Value undefined.`;
-      throw new Error(error);
+      // const error = `You called responsiveValueForceGet with value ${JSON.stringify(
+      //   value,
+      // )} and deviceId: ${deviceId}. Value undefined.`;
+      // throw new Error(error);
+
+      // TODO Temp device
+      return "xl" as T;
     }
     return value[deviceId] as T;
   }

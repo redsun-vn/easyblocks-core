@@ -18,7 +18,7 @@ export function getDefaultLocale(locales: Locale[]): Locale {
 
 export function getFallbackLocaleForLocale(
   locale: string,
-  locales: Locale[]
+  locales: Locale[],
 ): string | undefined {
   do {
     const fallbackId =
@@ -37,13 +37,19 @@ export function getFallbackLocaleForLocale(
 export function getFallbackForLocale<T>(
   translatedValues: { [locale: string]: T | undefined | null },
   locale: string,
-  locales: Locale[]
+  locales: Locale[],
 ): T | undefined {
   while (true) {
     const fallbackLocale = getFallbackLocaleForLocale(locale, locales);
 
     if (!fallbackLocale) {
-      return;
+      const firstLocale = Object.keys(translatedValues)?.[0];
+
+      if (!firstLocale) {
+        return;
+      }
+
+      return translatedValues[firstLocale] ?? undefined;
     }
 
     const fallbackValue = translatedValues[fallbackLocale];
