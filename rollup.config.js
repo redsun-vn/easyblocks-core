@@ -91,7 +91,7 @@ function createRollupConfigs({
       format: "es",
       dir: `${baseOutputDir}/es`,
       banner,
-      sourcemap: false,
+      sourcemap: true,
     },
     plugins: [
       ...getPlugins(
@@ -114,7 +114,7 @@ function createRollupConfigs({
       dir: `${baseOutputDir}/cjs`,
       banner,
       entryFileNames: "[name].cjs",
-      sourcemap: false,
+      sourcemap: true,
     },
     plugins: [
       ...getPlugins(

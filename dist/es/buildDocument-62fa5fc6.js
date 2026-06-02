@@ -613,3 +613,4 @@ async function resolveEntryForDocument(_ref2) {
 }
 
 export { buildEntry as a, buildDocument as b, compile as c, defaultFontFamily as d, defaultFontSize as e, findExternals as f, defaultFontWeight as g, defaultLineHeight as h, fontFamilies as i, getFontFamilies as j, getFontSizes as k, getFontWeights as l, mergeCompilationMeta as m, normalizeInput as n, getLineHeights as o, loadGoogleFonts as p, validate as v };
+//# sourceMappingURL=buildDocument-62fa5fc6.js.map

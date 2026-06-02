@@ -12,3 +12,4 @@ require('postcss-value-parser');
 
 
 exports.buildDocument = buildDocument.buildDocument;
+//# sourceMappingURL=buildDocument.cjs.map
