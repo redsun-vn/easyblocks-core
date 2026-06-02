@@ -6282,7 +6282,7 @@ cache) {
           }
           value = resolvedValue?.value;
         }
-        value.forEach((_, index) => {
+        value?.forEach((_, index) => {
           childContextProps.itemProps[index] = childContextProps.itemProps[index] ?? {};
           const itemPropContextProps = childContextProps.itemProps[index];
           itemPropContextProps.$width = itemPropContextProps.$width ?? contextProps.$width;
@@ -6352,7 +6352,7 @@ function itemFieldsForEach(config, compilationContext, callback) {
         }
       }
       const value = dotNotationGet(config, path) ?? [];
-      value.forEach((_, index) => {
+      value?.forEach((_, index) => {
         if (itemFields) {
           itemFields.forEach(itemSchemaProp => {
             const itemPath = `${path}.${index}.${itemSchemaProp.prop}`;

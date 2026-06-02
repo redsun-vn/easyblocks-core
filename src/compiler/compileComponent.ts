@@ -919,7 +919,7 @@ function compileSubcomponents(
           value = resolvedValue?.value as any[];
         }
 
-        value.forEach((_: any, index: number) => {
+        value?.forEach((_: any, index: number) => {
           childContextProps.itemProps[index] =
             childContextProps.itemProps[index] ?? {};
           const itemPropContextProps = childContextProps.itemProps[index];
@@ -1055,7 +1055,7 @@ function itemFieldsForEach(
       const value: Array<NoCodeComponentEntry> =
         dotNotationGet(config, path) ?? [];
 
-      value.forEach((_, index) => {
+      value?.forEach((_, index) => {
         if (itemFields) {
           itemFields.forEach((itemSchemaProp) => {
             const itemPath = `${path}.${index}.${itemSchemaProp.prop}`;

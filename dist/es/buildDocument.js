@@ -1,6 +1,6 @@
 /* with love from shopstory */
-export { b as buildDocument } from './buildDocument-013d209c.js';
-import './configTraverse-49ec7945.js';
+export { b as buildDocument } from './buildDocument-b591a7e8.js';
+import './configTraverse-702fe8bd.js';
 import 'js-xxhash';
 import 'zod';
 import 'postcss-value-parser';
