@@ -1912,4 +1912,3 @@ function createTestCompilationContext() {
 }
 
 export { RichTextEditor, TextEditor, buildText, buttonOptionalIconSchemaProp, buttonRequiredIconSchemaProp, createFormMock, createTestCompilationContext, duplicateConfig, useTextValue };
-//# sourceMappingURL=_internals.js.map

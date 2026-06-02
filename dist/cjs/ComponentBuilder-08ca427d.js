@@ -731,4 +731,3 @@ exports.responsiveValueValues = responsiveValueValues;
 exports.richTextChangedEvent = richTextChangedEvent;
 exports.selectionFramePositionChanged = selectionFramePositionChanged;
 exports.useEasyblocksMetadata = useEasyblocksMetadata;
-//# sourceMappingURL=ComponentBuilder-08ca427d.js.map
