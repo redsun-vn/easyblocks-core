@@ -166,6 +166,7 @@ export type ComponentSchemaProp = SchemaPropShared<"component"> & {
   required?: boolean;
   noInline?: boolean;
   placeholderAppearance?: PlaceholderAppearance;
+  tab?: TTabSchemaProp;
 };
 
 export type ComponentCollectionSchemaProp =
@@ -177,6 +178,7 @@ export type ComponentCollectionSchemaProp =
     passFields?: PassedField[];
     noInline?: boolean;
     placeholderAppearance?: PlaceholderAppearance;
+    tab?: TTabSchemaProp;
   };
 
 export type ComponentCollectionLocalisedSchemaProp = Omit<
@@ -653,6 +655,7 @@ export type SchemaPropShared<Type extends string> = {
   description?: string;
   group?: string;
   layout?: "row" | "column";
+  tab?: TTabSchemaProp;
 };
 
 type ValueSchemaProp<
@@ -1080,3 +1083,5 @@ export type TokenValue<T = any> = {
 };
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+export type TTabSchemaProp = "styles" | "data" | "animation";

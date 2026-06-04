@@ -102,6 +102,7 @@ export type ComponentSchemaProp = SchemaPropShared<"component"> & {
     required?: boolean;
     noInline?: boolean;
     placeholderAppearance?: PlaceholderAppearance;
+    tab?: TTabSchemaProp;
 };
 export type ComponentCollectionSchemaProp = SchemaPropShared<"component-collection"> & {
     accepts: string[];
@@ -111,6 +112,7 @@ export type ComponentCollectionSchemaProp = SchemaPropShared<"component-collecti
     passFields?: PassedField[];
     noInline?: boolean;
     placeholderAppearance?: PlaceholderAppearance;
+    tab?: TTabSchemaProp;
 };
 export type ComponentCollectionLocalisedSchemaProp = Omit<ComponentCollectionSchemaProp, "type"> & {
     type: "component-collection-localised";
@@ -467,6 +469,7 @@ export type SchemaPropShared<Type extends string> = {
     description?: string;
     group?: string;
     layout?: "row" | "column";
+    tab?: TTabSchemaProp;
 };
 type ValueSchemaProp<Type extends string, ValueType, Responsiveness extends "optional" | "forced" | "never"> = SchemaPropShared<Type> & {
     defaultValue?: Responsiveness extends "optional" | "forced" ? ResponsiveValue<ValueType> : ValueType;
@@ -770,5 +773,6 @@ export type TokenValue<T = any> = {
     widgetId?: string;
 };
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type TTabSchemaProp = "styles" | "data" | "animation";
 export {};
 //# sourceMappingURL=types.d.ts.map
