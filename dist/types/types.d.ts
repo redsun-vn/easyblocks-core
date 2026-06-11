@@ -523,6 +523,7 @@ export type ComponentDefinitionShared<Identifier extends string = string> = {
     previewImage?: string;
     hideTemplates?: boolean;
     allowSave?: boolean;
+    visible?: boolean;
 };
 export type NoCodeComponentProps = {
     __easyblocks: {

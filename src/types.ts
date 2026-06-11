@@ -730,6 +730,7 @@ export type ComponentDefinitionShared<Identifier extends string = string> = {
 
   hideTemplates?: boolean;
   allowSave?: boolean;
+  visible?: boolean;
 };
 
 export type NoCodeComponentProps = {
