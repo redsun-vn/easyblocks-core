@@ -463,6 +463,7 @@ export type NoCodeComponentDefinition<
   }) => SidebarPreviewVariant | undefined;
   allowSave?: boolean;
   rootParams?: RootParameter[];
+  visible?: boolean;
 };
 
 /**

@@ -281,6 +281,7 @@ export type NoCodeComponentDefinition<Values extends Record<string, any> = Recor
     }) => SidebarPreviewVariant | undefined;
     allowSave?: boolean;
     rootParams?: RootParameter[];
+    visible?: boolean;
 };
 /**
  * @internal
