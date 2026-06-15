@@ -524,6 +524,7 @@ export type ComponentDefinitionShared<Identifier extends string = string> = {
     hideTemplates?: boolean;
     allowSave?: boolean;
     visible?: boolean;
+    group?: string;
 };
 export type NoCodeComponentProps = {
     __easyblocks: {
