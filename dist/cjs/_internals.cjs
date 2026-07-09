@@ -251,7 +251,7 @@ function convertRichTextElementsToEditorValue(richTextElements) {
   if (!richTextElements || richTextElements.length === 0) {
     return getPlaceholderRichTextElements();
   }
-  return richTextElements.map(richTextBlockElementComponentConfig => {
+  return richTextElements?.map(richTextBlockElementComponentConfig => {
     return convertRichTextBlockElementComponentConfigToEditorElement(richTextBlockElementComponentConfig);
   });
 }
