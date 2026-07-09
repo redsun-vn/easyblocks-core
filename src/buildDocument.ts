@@ -28,12 +28,11 @@ async function buildDocument({
   });
 
   const fonts = extractFontsWithWeights(entry);
+  loadGoogleFonts({ fonts });
 
-  const [{ meta, externalData, renderableContent, configAfterAuto }] =
-    await Promise.all([
-      buildEntry({ entry, config, locale }),
-      loadGoogleFonts({ fonts, waitFontReady: true }),
-    ]);
+  const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
+    { entry, config, locale },
+  );
 
   return {
     renderableDocument: {

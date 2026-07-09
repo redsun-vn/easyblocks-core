@@ -572,19 +572,19 @@ async function buildDocument(_ref) {
     locale
   });
   const fonts = extractFontsWithWeights(entry);
-  const [{
+  loadGoogleFonts({
+    fonts
+  });
+  const {
     meta,
     externalData,
     renderableContent,
     configAfterAuto
-  }] = await Promise.all([buildEntry({
+  } = buildEntry({
     entry,
     config,
     locale
-  }), loadGoogleFonts({
-    fonts,
-    waitFontReady: true
-  })]);
+  });
   return {
     renderableDocument: {
       renderableContent,
