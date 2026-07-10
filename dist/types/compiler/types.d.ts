@@ -114,7 +114,7 @@ export type EditorContextType = CompilationContextType & {
     translationFiles?: {
         [key: string]: any;
     };
-    globalSections?: IThemeConfig["globalSections"];
+    globalSections?: IThemeConfig["globalSections"] | null;
     onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
     templates?: Template[];
 };

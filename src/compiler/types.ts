@@ -176,7 +176,7 @@ export type EditorContextType = CompilationContextType & {
   setFocussedField: (focusedFields: string | Array<string>) => void;
   actions: EditorActions;
   translationFiles?: { [key: string]: any };
-  globalSections?: IThemeConfig["globalSections"];
+  globalSections?: IThemeConfig["globalSections"] | null;
   onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
   templates?: Template[];
 };
