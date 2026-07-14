@@ -39,6 +39,10 @@ export {
   type ComponentOverrides,
   type EasyblocksProps,
 } from "./components/Easyblocks";
+export {
+  LazyEasyblocks,
+  type LazyEasyblocksProps,
+} from "./components/LazyEasyblocks";
 export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
 export type {
   AssetDTO,

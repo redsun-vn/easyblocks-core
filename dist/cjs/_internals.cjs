@@ -10,7 +10,7 @@ var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-3a7fd9a3.js');
+var ComponentBuilder = require('./ComponentBuilder-da745f2e.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');

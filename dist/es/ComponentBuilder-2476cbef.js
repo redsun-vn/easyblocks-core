@@ -516,19 +516,6 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   if (isSchemaPropComponent(schemaProp)) {
     return elements[0] ?? /*#__PURE__*/React.createElement(Fragment, null);
   }
-
-  // For collections: render progressively when there are many children.
-  // In editing mode, render all at once (editor needs all items visible immediately).
-  // if (!isEditing && elements.length > 3) {
-  //   return progressiveElements(
-  //     elements.map((el, i) =>
-  //       React.isValidElement(el) ? el : <Fragment key={i}>{el}</Fragment>,
-  //     ),
-  //     3,
-  //     2,
-  //   );
-  // }
-
   return elements;
 }
 const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props) {

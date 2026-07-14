@@ -7,7 +7,7 @@ var buildDocument = require('./buildDocument-d8cba1e2.js');
 var configTraverse = require('./configTraverse-503722f4.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
-var ComponentBuilder = require('./ComponentBuilder-3a7fd9a3.js');
+var ComponentBuilder = require('./ComponentBuilder-da745f2e.js');
 require('js-xxhash');
 require('zod');
 require('postcss-value-parser');
@@ -309,6 +309,147 @@ function Easyblocks(_ref) {
   })));
 }
 
+/**
+ * Pure helpers backing {@link LazyEasyblocks}. Kept DOM-free so they can be
+ * unit-tested in the repo's node-environment jest setup.
+ */
+
+/**
+ * Pick the collection slot with the most children on the root compiled node.
+ * Only array-valued entries are considered. Returns `undefined` when there is
+ * no non-empty collection to lazy-mount.
+ */
+function autoDetectSlot(components) {
+  if (!components) {
+    return undefined;
+  }
+  let bestSlot;
+  let bestLength = 0;
+  for (const key in components) {
+    const value = components[key];
+    if (Array.isArray(value) && value.length > bestLength) {
+      bestSlot = key;
+      bestLength = value.length;
+    }
+  }
+  return bestSlot;
+}
+
+/**
+ * Build a document whose target collection slot is sliced to `visibleCount`
+ * children. Child config objects are reused by reference so children already
+ * mounted (keyed by `_id` in the renderer) never remount.
+ *
+ * Shallow-clones the document, root node, and its `components` map so the
+ * caller's original `renderableContent` stays untouched by Easyblocks' own
+ * `componentOverrides` mutation. Returns the original document unchanged when
+ * there is no non-empty slot to slice.
+ */
+function buildSlicedDocument(renderableDocument, slot, visibleCount) {
+  const renderableContent = renderableDocument.renderableContent;
+  if (!renderableContent || !slot || !Array.isArray(renderableContent.components?.[slot]) || renderableContent.components[slot].length === 0) {
+    return renderableDocument;
+  }
+  const slicedContent = {
+    ...renderableContent,
+    components: {
+      ...renderableContent.components,
+      [slot]: renderableContent.components[slot].slice(0, visibleCount)
+    }
+  };
+  return {
+    ...renderableDocument,
+    renderableContent: slicedContent
+  };
+}
+
+/**
+ * Drop-in wrapper around {@link Easyblocks} that progressively mounts the
+ * children of one collection slot on scroll (append-only infinite scroll).
+ *
+ * Children config objects are reused by reference when slicing, so children
+ * already mounted (keyed by `_id` inside the renderer) never remount — each
+ * scroll batch only mounts the newly revealed children.
+ */
+function LazyEasyblocks(_ref) {
+  let {
+    renderableDocument,
+    initialCount = 3,
+    batchSize = 3,
+    slot,
+    scrollRoot = null,
+    rootMargin = "200px",
+    ...easyblocksProps
+  } = _ref;
+  const renderableContent = renderableDocument.renderableContent;
+
+  // Resolve which collection slot to lazy-mount. `components` is keyed by slot
+  // name; each value is an array of compiled child configs (or ReactElements).
+  const resolvedSlot = slot ?? autoDetectSlot(renderableContent?.components);
+  const children = renderableContent && resolvedSlot ? renderableContent.components[resolvedSlot] : undefined;
+  const total = children?.length ?? 0;
+  const [visibleCount, setVisibleCount] = React.useState(() => Math.min(initialCount, total));
+  const hasMore = visibleCount < total;
+  const sentinelRef = React.useRef(null);
+
+  // Reset visible count when the document, slot, or initial count changes so a
+  // new document does not inherit the previous scroll position.
+  React.useEffect(() => {
+    setVisibleCount(Math.min(initialCount, total));
+  }, [renderableDocument, resolvedSlot, initialCount, total]);
+
+  // Reveal more children when the sentinel scrolls into view. `visibleCount` is
+  // in the deps on purpose: after a batch the effect re-runs and re-`observe`s,
+  // which delivers a fresh intersection callback. If the sentinel is still in
+  // view (short items / tall viewport), the next batch loads immediately and
+  // loops until the viewport is filled — IntersectionObserver otherwise only
+  // fires on threshold *crossings*, so a stationary sentinel would stall.
+  React.useEffect(() => {
+    if (!hasMore || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+    const sentinel = sentinelRef.current;
+    if (!sentinel) {
+      return;
+    }
+    const step = Math.max(1, batchSize);
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setVisibleCount(current => Math.min(current + step, total));
+      }
+    }, {
+      root: scrollRoot,
+      rootMargin
+    });
+    observer.observe(sentinel);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, batchSize, total, scrollRoot, rootMargin, visibleCount]);
+
+  // Build a sliced document that reuses child references. Falls back to the
+  // original document when there is no non-empty collection to lazy-mount.
+  const slicedDocument = React.useMemo(() => buildSlicedDocument(renderableDocument, resolvedSlot, visibleCount), [renderableDocument, resolvedSlot, visibleCount]);
+
+  // No collection to lazy-mount: behave exactly like a plain <Easyblocks />
+  // (including its `componentOverrides` mutation behavior — the clone-based
+  // protection only applies when there is a slot to slice).
+  if (total === 0) {
+    return /*#__PURE__*/React__default["default"].createElement(Easyblocks, _extends__default["default"]({}, easyblocksProps, {
+      renderableDocument: renderableDocument
+    }));
+  }
+  return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, /*#__PURE__*/React__default["default"].createElement(Easyblocks, _extends__default["default"]({}, easyblocksProps, {
+    renderableDocument: slicedDocument
+  })), hasMore ? /*#__PURE__*/React__default["default"].createElement("div", {
+    ref: sentinelRef,
+    "aria-hidden": "true",
+    style: {
+      width: "100%"
+    }
+  }) : null);
+}
+
 function isNoCodeComponentOfType(definition, type) {
   if (!definition.type) {
     return false;
@@ -405,6 +546,7 @@ exports.easyblocksGetCssText = ComponentBuilder.easyblocksGetCssText;
 exports.easyblocksGetStyleTag = ComponentBuilder.easyblocksGetStyleTag;
 exports.responsiveValueValues = ComponentBuilder.responsiveValueValues;
 exports.Easyblocks = Easyblocks;
+exports.LazyEasyblocks = LazyEasyblocks;
 exports.box = box;
 exports.getBrightnessColor = getBrightnessColor;
 exports.globalSectionGroups = globalSectionGroups;

@@ -2,10 +2,10 @@
 export { b as buildDocument, a as buildEntry, c as compile, d as defaultFontFamily, e as defaultFontSize, g as defaultFontWeight, h as defaultLineHeight, f as findExternals, i as fontFamilies, j as getFontFamilies, k as getFontSizes, l as getFontWeights, o as getLineHeights, p as loadGoogleFonts, m as mergeCompilationMeta, n as normalizeInput, v as validate } from './buildDocument-07437181.js';
 import { i as isTrulyResponsiveValue } from './configTraverse-702fe8bd.js';
 export { C as CompilationCache, o as buildRichTextNoCodeEntry, k as compileInternal, l as createCompilationContext, q as getDefaultLocale, p as getDevicesWidths, u as getExternalReferenceLocationKey, w as getExternalValue, s as getFallbackForLocale, t as getFallbackLocaleForLocale, x as getResolvedExternalDataValue, m as getSchemaDefinition, a as isComponentConfig, y as isCompoundExternalDataValue, b as isDocument, c as isEmptyExternalReference, d as isEmptyRenderableContent, e as isIdReferenceToDocumentExternalValue, z as isLocalTextReference, f as isLocalValue, g as isNonEmptyRenderableContent, h as isRenderableContent, j as isResolvedCompoundExternalDataValue, i as isTrulyResponsiveValue, n as normalize, R as parseSpacing, A as resolveExternalValue, r as resolveLocalisedValue, B as responsiveValueAt, D as responsiveValueEntries, E as responsiveValueFill, F as responsiveValueFindDeviceWithDefinedValue, G as responsiveValueFindHigherDeviceWithDefinedValue, H as responsiveValueFindLowerDeviceWithDefinedValue, I as responsiveValueFlatten, J as responsiveValueForceGet, K as responsiveValueGet, L as responsiveValueGetDefinedValue, M as responsiveValueGetFirstHigherValue, N as responsiveValueGetFirstLowerValue, O as responsiveValueGetHighestDefinedDevice, P as responsiveValueMap, Q as responsiveValueNormalize, S as spacingToPx, v as validateColor } from './configTraverse-702fe8bd.js';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import _extends from '@babel/runtime/helpers/extends';
-import { c as cleanString, E as EasyblocksMetadataProvider, a as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './ComponentBuilder-bf95f8ba.js';
-export { e as easyblocksGetCssText, b as easyblocksGetStyleTag, r as responsiveValueValues } from './ComponentBuilder-bf95f8ba.js';
+import { c as cleanString, E as EasyblocksMetadataProvider, a as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './ComponentBuilder-2476cbef.js';
+export { e as easyblocksGetCssText, b as easyblocksGetStyleTag, r as responsiveValueValues } from './ComponentBuilder-2476cbef.js';
 import 'js-xxhash';
 import 'zod';
 import 'postcss-value-parser';
@@ -302,6 +302,147 @@ function Easyblocks(_ref) {
   })));
 }
 
+/**
+ * Pure helpers backing {@link LazyEasyblocks}. Kept DOM-free so they can be
+ * unit-tested in the repo's node-environment jest setup.
+ */
+
+/**
+ * Pick the collection slot with the most children on the root compiled node.
+ * Only array-valued entries are considered. Returns `undefined` when there is
+ * no non-empty collection to lazy-mount.
+ */
+function autoDetectSlot(components) {
+  if (!components) {
+    return undefined;
+  }
+  let bestSlot;
+  let bestLength = 0;
+  for (const key in components) {
+    const value = components[key];
+    if (Array.isArray(value) && value.length > bestLength) {
+      bestSlot = key;
+      bestLength = value.length;
+    }
+  }
+  return bestSlot;
+}
+
+/**
+ * Build a document whose target collection slot is sliced to `visibleCount`
+ * children. Child config objects are reused by reference so children already
+ * mounted (keyed by `_id` in the renderer) never remount.
+ *
+ * Shallow-clones the document, root node, and its `components` map so the
+ * caller's original `renderableContent` stays untouched by Easyblocks' own
+ * `componentOverrides` mutation. Returns the original document unchanged when
+ * there is no non-empty slot to slice.
+ */
+function buildSlicedDocument(renderableDocument, slot, visibleCount) {
+  const renderableContent = renderableDocument.renderableContent;
+  if (!renderableContent || !slot || !Array.isArray(renderableContent.components?.[slot]) || renderableContent.components[slot].length === 0) {
+    return renderableDocument;
+  }
+  const slicedContent = {
+    ...renderableContent,
+    components: {
+      ...renderableContent.components,
+      [slot]: renderableContent.components[slot].slice(0, visibleCount)
+    }
+  };
+  return {
+    ...renderableDocument,
+    renderableContent: slicedContent
+  };
+}
+
+/**
+ * Drop-in wrapper around {@link Easyblocks} that progressively mounts the
+ * children of one collection slot on scroll (append-only infinite scroll).
+ *
+ * Children config objects are reused by reference when slicing, so children
+ * already mounted (keyed by `_id` inside the renderer) never remount — each
+ * scroll batch only mounts the newly revealed children.
+ */
+function LazyEasyblocks(_ref) {
+  let {
+    renderableDocument,
+    initialCount = 3,
+    batchSize = 3,
+    slot,
+    scrollRoot = null,
+    rootMargin = "200px",
+    ...easyblocksProps
+  } = _ref;
+  const renderableContent = renderableDocument.renderableContent;
+
+  // Resolve which collection slot to lazy-mount. `components` is keyed by slot
+  // name; each value is an array of compiled child configs (or ReactElements).
+  const resolvedSlot = slot ?? autoDetectSlot(renderableContent?.components);
+  const children = renderableContent && resolvedSlot ? renderableContent.components[resolvedSlot] : undefined;
+  const total = children?.length ?? 0;
+  const [visibleCount, setVisibleCount] = useState(() => Math.min(initialCount, total));
+  const hasMore = visibleCount < total;
+  const sentinelRef = useRef(null);
+
+  // Reset visible count when the document, slot, or initial count changes so a
+  // new document does not inherit the previous scroll position.
+  useEffect(() => {
+    setVisibleCount(Math.min(initialCount, total));
+  }, [renderableDocument, resolvedSlot, initialCount, total]);
+
+  // Reveal more children when the sentinel scrolls into view. `visibleCount` is
+  // in the deps on purpose: after a batch the effect re-runs and re-`observe`s,
+  // which delivers a fresh intersection callback. If the sentinel is still in
+  // view (short items / tall viewport), the next batch loads immediately and
+  // loops until the viewport is filled — IntersectionObserver otherwise only
+  // fires on threshold *crossings*, so a stationary sentinel would stall.
+  useEffect(() => {
+    if (!hasMore || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+    const sentinel = sentinelRef.current;
+    if (!sentinel) {
+      return;
+    }
+    const step = Math.max(1, batchSize);
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setVisibleCount(current => Math.min(current + step, total));
+      }
+    }, {
+      root: scrollRoot,
+      rootMargin
+    });
+    observer.observe(sentinel);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, batchSize, total, scrollRoot, rootMargin, visibleCount]);
+
+  // Build a sliced document that reuses child references. Falls back to the
+  // original document when there is no non-empty collection to lazy-mount.
+  const slicedDocument = useMemo(() => buildSlicedDocument(renderableDocument, resolvedSlot, visibleCount), [renderableDocument, resolvedSlot, visibleCount]);
+
+  // No collection to lazy-mount: behave exactly like a plain <Easyblocks />
+  // (including its `componentOverrides` mutation behavior — the clone-based
+  // protection only applies when there is a slot to slice).
+  if (total === 0) {
+    return /*#__PURE__*/React.createElement(Easyblocks, _extends({}, easyblocksProps, {
+      renderableDocument: renderableDocument
+    }));
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Easyblocks, _extends({}, easyblocksProps, {
+    renderableDocument: slicedDocument
+  })), hasMore ? /*#__PURE__*/React.createElement("div", {
+    ref: sentinelRef,
+    "aria-hidden": "true",
+    style: {
+      width: "100%"
+    }
+  }) : null);
+}
+
 function isNoCodeComponentOfType(definition, type) {
   if (!definition.type) {
     return false;
@@ -332,4 +473,4 @@ const globalSectionGroups = [{
   name: "Footers"
 }];
 
-export { Easyblocks, box, getBrightnessColor, globalSectionGroups, isNoCodeComponentOfType, responsiveValueReduce, responsiveValueSet };
+export { Easyblocks, LazyEasyblocks, box, getBrightnessColor, globalSectionGroups, isNoCodeComponentOfType, responsiveValueReduce, responsiveValueSet };

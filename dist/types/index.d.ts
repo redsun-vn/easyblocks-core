@@ -8,6 +8,7 @@ export { resolveLocalisedValue } from "./compiler/definitions";
 export { getDevicesWidths } from "./compiler/devices";
 export { validateColor } from "./compiler/validate-color";
 export { Easyblocks, type ComponentOverrides, type EasyblocksProps, } from "./components/Easyblocks";
+export { LazyEasyblocks, type LazyEasyblocksProps, } from "./components/LazyEasyblocks";
 export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
 export type { AssetDTO, ConfigDTO, DocumentDTO, DocumentWithResolvedConfigDTO, } from "./EasyblocksBackend";
 export { isNoCodeComponentOfType } from "./isNoCodeComponentOfType";

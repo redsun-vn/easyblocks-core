@@ -42,7 +42,6 @@ import {
 import { Box } from "../Box/Box";
 import { useEasyblocksExternalData } from "../EasyblocksExternalDataProvider";
 import { useEasyblocksMetadata } from "../EasyblocksMetadataProvider";
-import { progressiveElements } from "../ProgressiveList";
 
 function buildBoxes(
   compiled: any,
@@ -226,18 +225,6 @@ function getCompiledSubcomponents(
   if (isSchemaPropComponent(schemaProp)) {
     return elements[0] ?? <Fragment></Fragment>;
   }
-
-  // For collections: render progressively when there are many children.
-  // In editing mode, render all at once (editor needs all items visible immediately).
-  // if (!isEditing && elements.length > 3) {
-  //   return progressiveElements(
-  //     elements.map((el, i) =>
-  //       React.isValidElement(el) ? el : <Fragment key={i}>{el}</Fragment>,
-  //     ),
-  //     3,
-  //     2,
-  //   );
-  // }
 
   return elements;
 }
