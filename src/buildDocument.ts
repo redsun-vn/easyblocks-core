@@ -21,18 +21,24 @@ async function buildDocument({
   renderableDocument: RenderableDocument;
   externalData: RequestedExternalData;
 }> {
+  console.time("resolveEntryForDocument");
   const { entry } = await resolveEntryForDocument({
     documentId,
     config,
     locale,
   });
+  console.timeEnd("resolveEntryForDocument");
 
-  const fonts = extractFontsWithWeights(entry);
-  loadGoogleFonts({ fonts });
+  Promise.resolve().then(() => {
+    const fonts = extractFontsWithWeights(entry);
+    loadGoogleFonts({ fonts });
+  });
 
+  console.time("buildEntry");
   const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
     { entry, config, locale },
   );
+  console.timeEnd("buildEntry");
 
   return {
     renderableDocument: {

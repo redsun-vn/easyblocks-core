@@ -564,6 +564,7 @@ async function buildDocument(_ref) {
     config,
     locale
   } = _ref;
+  console.time("resolveEntryForDocument");
   const {
     entry
   } = await resolveEntryForDocument({
@@ -571,10 +572,14 @@ async function buildDocument(_ref) {
     config,
     locale
   });
-  const fonts = extractFontsWithWeights(entry);
-  loadGoogleFonts({
-    fonts
+  console.timeEnd("resolveEntryForDocument");
+  Promise.resolve().then(() => {
+    const fonts = extractFontsWithWeights(entry);
+    loadGoogleFonts({
+      fonts
+    });
   });
+  console.time("buildEntry");
   const {
     meta,
     externalData,
@@ -585,6 +590,7 @@ async function buildDocument(_ref) {
     config,
     locale
   });
+  console.timeEnd("buildEntry");
   return {
     renderableDocument: {
       renderableContent,
