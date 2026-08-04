@@ -726,18 +726,11 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
         }
 
         if (customTypeDefinition.type === "token") {
-          console.log(
-            "customTypeDefinition.token: ",
-            customTypeDefinition.token,
-          );
-          console.log("compilationContext.theme: ", compilationContext.theme);
           const themeValues =
             compilationContext.theme[customTypeDefinition.token];
-          console.log("themeValues: ", themeValues);
           const defaultThemeValueEntry = Object.entries(themeValues).find(
             ([, v]) => v.isDefault,
           );
-          console.log("defaultThemeValueEntry: ", defaultThemeValueEntry);
 
           const defaultValue = (() => {
             if (schemaProp.defaultValue) {
