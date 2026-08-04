@@ -6,8 +6,7 @@ import type {
   RenderableDocument,
   RequestedExternalData,
 } from "./types";
-import { extractFontsWithWeights } from "./utils/extractFonts";
-import { setGlobalFonts } from "./utils/fonts";
+import { ExtractedFont, extractFontsWithWeights } from "./utils/extractFonts";
 
 async function buildDocument({
   documentId,
@@ -20,6 +19,7 @@ async function buildDocument({
 }): Promise<{
   renderableDocument: RenderableDocument;
   externalData: RequestedExternalData;
+  fonts: ExtractedFont[];
 }> {
   const { entry } = await resolveEntryForDocument({
     documentId,
@@ -27,9 +27,7 @@ async function buildDocument({
     locale,
   });
 
-  const fonts = extractFontsWithWeights(entry);
-  console.log("fonts: ", fonts);
-  setGlobalFonts(fonts);
+  const fonts = extractFontsWithWeights(entry) || [];
 
   const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
     { entry, config, locale },
@@ -42,6 +40,7 @@ async function buildDocument({
       configAfterAuto,
     },
     externalData,
+    fonts,
   };
 }
 

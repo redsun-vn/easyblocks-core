@@ -6,7 +6,8 @@ import { RichTextLineElementClient } from "../compiler/builtins/$richText/$richT
 import { RichTextPartClient } from "../compiler/builtins/$richText/$richTextPart/$richTextPart.client";
 import { TextClient } from "../compiler/builtins/$text/$text.client";
 import { ExternalData, RenderableDocument } from "../types";
-import { getGlobalFonts, loadGoogleFonts } from "../utils/fonts";
+import { ExtractedFont } from "../utils/extractFonts";
+import { loadGoogleFonts } from "../utils/fonts";
 import {
   ComponentBuilder,
   ComponentBuilderProps,
@@ -20,6 +21,7 @@ export type EasyblocksProps = {
   externalData?: ExternalData;
   components?: Record<string, React.ComponentType<any>>;
   componentOverrides?: ComponentOverrides;
+  fonts?: ExtractedFont[];
 };
 
 export type ComponentOverrides = Record<string, ReactElement>;
@@ -39,6 +41,7 @@ function Easyblocks({
   externalData,
   componentOverrides,
   components,
+  fonts,
 }: EasyblocksProps) {
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -47,11 +50,6 @@ function Easyblocks({
         window.innerWidth - document.documentElement.clientWidth
       }px)`,
     );
-
-    console.log("getGlobalFonts(): ", getGlobalFonts());
-    loadGoogleFonts({ fonts: getGlobalFonts() }).catch((e) => {
-      console.error("Failed to load Google Fonts", e);
-    });
   });
 
   const renderableContent = renderableDocument.renderableContent;
@@ -67,6 +65,14 @@ function Easyblocks({
       renderableContent.components[componentProp] = [componentOverride];
     });
   }
+
+  useEffect(() => {
+    if (fonts?.length) {
+      loadGoogleFonts({ fonts }).catch((e) => {
+        console.error("Failed to load Google Fonts", e);
+      });
+    }
+  }, [fonts]);
 
   return (
     <EasyblocksMetadataProvider meta={renderableDocument.meta}>
