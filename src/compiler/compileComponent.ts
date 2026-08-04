@@ -479,6 +479,10 @@ export function compileComponent(
             : {}),
         };
 
+        console.log(
+          "renderableComponentDefinition.id: ",
+          renderableComponentDefinition.id,
+        );
         return renderableComponentDefinition.styles(stylesInput);
       },
       compilationContext.devices,

@@ -6020,6 +6020,7 @@ meta, cache, parentComponentEditingInfo) {
           __COMPILATION_CONTEXT__: compilationContext
         } : {})
       };
+      console.log("renderableComponentDefinition.id: ", renderableComponentDefinition.id);
       return renderableComponentDefinition.styles(stylesInput);
     }, compilationContext.devices, renderableComponentDefinition);
     validateStylesProps(props, componentDefinition);
