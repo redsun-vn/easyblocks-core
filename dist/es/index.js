@@ -1,5 +1,6 @@
 /* with love from shopstory */
-export { b as buildDocument, a as buildEntry, c as compile, d as defaultFontFamily, e as defaultFontSize, g as defaultFontWeight, h as defaultLineHeight, f as findExternals, i as fontFamilies, j as getFontFamilies, k as getFontSizes, l as getFontWeights, o as getLineHeights, p as loadGoogleFonts, m as mergeCompilationMeta, n as normalizeInput, v as validate } from './buildDocument-9154cc9f.js';
+import { l as loadGoogleFonts, g as getGlobalFonts } from './buildDocument-1968071f.js';
+export { b as buildDocument, a as buildEntry, c as compile, d as defaultFontFamily, e as defaultFontSize, h as defaultFontWeight, i as defaultLineHeight, f as findExternals, j as fontFamilies, k as getFontFamilies, o as getFontSizes, p as getFontWeights, q as getLineHeights, l as loadGoogleFonts, m as mergeCompilationMeta, n as normalizeInput, v as validate } from './buildDocument-1968071f.js';
 import { i as isTrulyResponsiveValue } from './configTraverse-1b69107b.js';
 export { C as CompilationCache, o as buildRichTextNoCodeEntry, k as compileInternal, l as createCompilationContext, q as getDefaultLocale, p as getDevicesWidths, u as getExternalReferenceLocationKey, w as getExternalValue, s as getFallbackForLocale, t as getFallbackLocaleForLocale, x as getResolvedExternalDataValue, m as getSchemaDefinition, a as isComponentConfig, y as isCompoundExternalDataValue, b as isDocument, c as isEmptyExternalReference, d as isEmptyRenderableContent, e as isIdReferenceToDocumentExternalValue, z as isLocalTextReference, f as isLocalValue, g as isNonEmptyRenderableContent, h as isRenderableContent, j as isResolvedCompoundExternalDataValue, i as isTrulyResponsiveValue, n as normalize, R as parseSpacing, A as resolveExternalValue, r as resolveLocalisedValue, B as responsiveValueAt, D as responsiveValueEntries, E as responsiveValueFill, F as responsiveValueFindDeviceWithDefinedValue, G as responsiveValueFindHigherDeviceWithDefinedValue, H as responsiveValueFindLowerDeviceWithDefinedValue, I as responsiveValueFlatten, J as responsiveValueForceGet, K as responsiveValueGet, L as responsiveValueGetDefinedValue, M as responsiveValueGetFirstHigherValue, N as responsiveValueGetFirstLowerValue, O as responsiveValueGetHighestDefinedDevice, P as responsiveValueMap, Q as responsiveValueNormalize, S as spacingToPx, v as validateColor } from './configTraverse-1b69107b.js';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
@@ -276,6 +277,11 @@ function Easyblocks(_ref) {
   } = _ref;
   useEffect(() => {
     document.documentElement.style.setProperty("--shopstory-viewport-width", `calc(100vw - ${window.innerWidth - document.documentElement.clientWidth}px)`);
+    loadGoogleFonts({
+      fonts: getGlobalFonts()
+    }).catch(e => {
+      console.error("Failed to load Google Fonts", e);
+    });
   });
   const renderableContent = renderableDocument.renderableContent;
   if (renderableContent === null) {

@@ -36,5 +36,7 @@ type LoadGoogleFontsOptions = {
  *   the document. Italic variants come from `ExtractedFont.italics`.
  */
 export declare function loadGoogleFonts({ fonts, waitFontReady, editor, }?: LoadGoogleFontsOptions): Promise<void>;
+export declare const setGlobalFonts: (fonts: ExtractedFont[]) => ExtractedFont[];
+export declare const getGlobalFonts: () => ExtractedFont[];
 export {};
 //# sourceMappingURL=fonts.d.ts.map

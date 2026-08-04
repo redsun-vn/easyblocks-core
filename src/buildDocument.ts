@@ -7,7 +7,7 @@ import type {
   RequestedExternalData,
 } from "./types";
 import { extractFontsWithWeights } from "./utils/extractFonts";
-import { loadGoogleFonts } from "./utils/fonts";
+import { loadGoogleFonts, setGlobalFonts } from "./utils/fonts";
 
 async function buildDocument({
   documentId,
@@ -27,10 +27,8 @@ async function buildDocument({
     locale,
   });
 
-  Promise.resolve().then(() => {
-    const fonts = extractFontsWithWeights(entry);
-    loadGoogleFonts({ fonts });
-  });
+  const fonts = extractFontsWithWeights(entry);
+  setGlobalFonts(fonts);
 
   const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
     { entry, config, locale },

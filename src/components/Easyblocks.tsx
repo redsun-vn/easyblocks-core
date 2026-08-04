@@ -6,6 +6,7 @@ import { RichTextLineElementClient } from "../compiler/builtins/$richText/$richT
 import { RichTextPartClient } from "../compiler/builtins/$richText/$richTextPart/$richTextPart.client";
 import { TextClient } from "../compiler/builtins/$text/$text.client";
 import { ExternalData, RenderableDocument } from "../types";
+import { getGlobalFonts, loadGoogleFonts } from "../utils/fonts";
 import {
   ComponentBuilder,
   ComponentBuilderProps,
@@ -44,8 +45,12 @@ function Easyblocks({
       "--shopstory-viewport-width",
       `calc(100vw - ${
         window.innerWidth - document.documentElement.clientWidth
-      }px)`
+      }px)`,
     );
+
+    loadGoogleFonts({ fonts: getGlobalFonts() }).catch((e) => {
+      console.error("Failed to load Google Fonts", e);
+    });
   });
 
   const renderableContent = renderableDocument.renderableContent;
