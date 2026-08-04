@@ -103,4 +103,5 @@ export {
   getLineHeights,
   loadGoogleFonts,
 } from "./utils/fonts";
+export type { ExtractedFont } from "./utils/extractFonts";
 export { globalSectionGroups } from "./utils/globalSections";

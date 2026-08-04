@@ -19,5 +19,6 @@ export { parseSpacing, spacingToPx } from "./spacingToPx";
 export type * from "./types";
 export { getBrightnessColor } from "./utils/colors";
 export { defaultFontFamily, defaultFontSize, defaultFontWeight, defaultLineHeight, fontFamilies, getFontFamilies, getFontSizes, getFontWeights, getLineHeights, loadGoogleFonts, } from "./utils/fonts";
+export type { ExtractedFont } from "./utils/extractFonts";
 export { globalSectionGroups } from "./utils/globalSections";
 //# sourceMappingURL=index.d.ts.map
