@@ -1,6 +1,6 @@
 /* with love from shopstory */
 import React, { useMemo, useContext, createContext, Fragment } from 'react';
-import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-24ddaee0.js';
+import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-1b69107b.js';
 import { createStitches } from '@stitches/core';
 
 function cleanString(value) {

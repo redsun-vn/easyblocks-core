@@ -479,13 +479,7 @@ export function compileComponent(
             : {}),
         };
 
-        console.log(
-          "renderableComponentDefinition.id: ",
-          renderableComponentDefinition,
-          renderableComponentDefinition.id,
-          renderableComponentDefinition.styles,
-        );
-        return renderableComponentDefinition.styles(stylesInput);
+        return renderableComponentDefinition.styles?.(stylesInput);
       },
       compilationContext.devices,
       renderableComponentDefinition,

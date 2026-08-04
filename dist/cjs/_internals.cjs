@@ -3,14 +3,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-15658c06.js');
+var configTraverse = require('./configTraverse-90c5492a.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-ef6da3a7.js');
+var ComponentBuilder = require('./ComponentBuilder-98751c29.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
@@ -686,7 +686,7 @@ function getEditorSelectionFromFocusedFields(focusedFields, form) {
       }
     };
   } catch (error) {
-    console.log(error);
+    console.log("[getEditorSelectionFromFocusedFields] Error: ", error);
     return null;
   }
 }

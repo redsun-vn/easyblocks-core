@@ -4,7 +4,7 @@ import { parseFocusedRichTextPartConfigPath } from "./parseRichTextPartConfigPat
 
 function getEditorSelectionFromFocusedFields(
   focusedFields: Array<string>,
-  form: any
+  form: any,
 ): Selection {
   try {
     const anchorFocusedField = focusedFields[0];
@@ -31,7 +31,7 @@ function getEditorSelectionFromFocusedFields(
       },
     };
   } catch (error) {
-    console.log(error);
+    console.log("[getEditorSelectionFromFocusedFields] Error: ", error);
 
     return null;
   }
