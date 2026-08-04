@@ -48,6 +48,7 @@ function Easyblocks({
       }px)`,
     );
 
+    console.log("getGlobalFonts(): ", getGlobalFonts());
     loadGoogleFonts({ fonts: getGlobalFonts() }).catch((e) => {
       console.error("Failed to load Google Fonts", e);
     });

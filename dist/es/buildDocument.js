@@ -1,5 +1,5 @@
 /* with love from shopstory */
-export { b as buildDocument } from './buildDocument-1968071f.js';
+export { b as buildDocument } from './buildDocument-bb796864.js';
 import './configTraverse-1b69107b.js';
 import 'js-xxhash';
 import 'zod';

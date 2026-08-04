@@ -1,7 +1,5 @@
 /* with love from shopstory */
-'use strict';
-
-var configTraverse = require('./configTraverse-90c5492a.js');
+import { b as isDocument, a as isComponentConfig, l as createCompilationContext, k as compileInternal, n as normalize, T as configTraverse, z as isLocalTextReference, U as isExternalSchemaProp, i as isTrulyResponsiveValue, D as responsiveValueEntries, u as getExternalReferenceLocationKey, V as serialize } from './configTraverse-1b69107b.js';
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {
@@ -39,7 +37,7 @@ function mergeDefinitions(definitions1, definitions2) {
 }
 
 function validate(input) {
-  const isValid = input === null || input === undefined || configTraverse.isDocument(input) || isLegacyInput(input);
+  const isValid = input === null || input === undefined || isDocument(input) || isLegacyInput(input);
   if (!isValid) {
     return {
       isValid: false
@@ -51,14 +49,14 @@ function validate(input) {
   };
 }
 function isLegacyInput(input) {
-  return configTraverse.isComponentConfig(input);
+  return isComponentConfig(input);
 }
 
 function normalizeInput(input) {
   if (isLegacyInput(input)) {
     return input;
   }
-  if (configTraverse.isDocument(input) && input.entry) {
+  if (isDocument(input) && input.entry) {
     return input.entry;
   }
   throw new Error("Internal error: Can't obtain config from remote document.");
@@ -70,13 +68,13 @@ const compile = (content, config, contextParams) => {
     vars: {},
     code: {}
   };
-  const compilationContext = configTraverse.createCompilationContext(config, contextParams, content._component);
+  const compilationContext = createCompilationContext(config, contextParams, content._component);
   const inputConfigComponent = normalizeInput(content);
   const {
     meta,
     compiled,
     configAfterAuto
-  } = configTraverse.compileInternal(inputConfigComponent, compilationContext);
+  } = compileInternal(inputConfigComponent, compilationContext);
   resultMeta = mergeCompilationMeta(resultMeta, meta);
   return {
     compiled,
@@ -88,9 +86,9 @@ const compile = (content, config, contextParams) => {
 const findExternals = (input, config, contextParams) => {
   const inputConfigComponent = normalizeInput(input);
   const externalsWithSchemaProps = [];
-  const compilationContext = configTraverse.createCompilationContext(config, contextParams, input._component);
-  const normalizedConfig = configTraverse.normalize(inputConfigComponent, compilationContext);
-  configTraverse.configTraverse(normalizedConfig, compilationContext, _ref => {
+  const compilationContext = createCompilationContext(config, contextParams, input._component);
+  const normalizedConfig = normalize(inputConfigComponent, compilationContext);
+  configTraverse(normalizedConfig, compilationContext, _ref => {
     let {
       config,
       value,
@@ -99,26 +97,26 @@ const findExternals = (input, config, contextParams) => {
     // This kinda tricky, because "text" is a special case. It can be either local or external.
     // To prevent false positives, we need to check if it's local text reference and make sure that we won't
     // treat "text" that's actually external as non external.
-    if (schemaProp.type === "text" && configTraverse.isLocalTextReference(value, "text") || schemaProp.type !== "text" && !configTraverse.isExternalSchemaProp(schemaProp, compilationContext.types)) {
+    if (schemaProp.type === "text" && isLocalTextReference(value, "text") || schemaProp.type !== "text" && !isExternalSchemaProp(schemaProp, compilationContext.types)) {
       return;
     }
     const hasInputComponentRootParams = compilationContext.definitions.components.some(c => c.id === normalizedConfig._component && c.rootParams !== undefined);
     const configId = normalizedConfig._id === config._id && hasInputComponentRootParams ? "$" : config._id;
-    if (configTraverse.isTrulyResponsiveValue(value)) {
-      configTraverse.responsiveValueEntries(value).forEach(_ref2 => {
+    if (isTrulyResponsiveValue(value)) {
+      responsiveValueEntries(value).forEach(_ref2 => {
         let [breakpoint, currentValue] = _ref2;
         if (currentValue === undefined) {
           return;
         }
         externalsWithSchemaProps.push({
-          id: configTraverse.getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
+          id: getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
           schemaProp: schemaProp,
           externalReference: currentValue
         });
       });
     } else {
       externalsWithSchemaProps.push({
-        id: configTraverse.getExternalReferenceLocationKey(configId, schemaProp.prop),
+        id: getExternalReferenceLocationKey(configId, schemaProp.prop),
         schemaProp: schemaProp,
         externalReference: value
       });
@@ -171,7 +169,7 @@ function findChangedExternalData(resourcesWithSchemaProps, externalData, isExter
     }
 
     // If id is a string and it's either local text reference or a reference to document's data, then it's not pending
-    if (typeof resource.externalId === "string" && (configTraverse.isLocalTextReference({
+    if (typeof resource.externalId === "string" && (isLocalTextReference({
       id: resource.externalId
     }, type) || resource.externalId.startsWith("$."))) {
       return false;
@@ -558,6 +556,7 @@ async function loadGoogleFonts() {
   if (waitFontReady) await document.fonts.ready;
 }
 let globalFonts = [];
+console.log("globalFonts: ", globalFonts);
 const setGlobalFonts = fonts => globalFonts = fonts;
 const getGlobalFonts = () => globalFonts;
 
@@ -589,7 +588,7 @@ async function buildDocument(_ref) {
   return {
     renderableDocument: {
       renderableContent,
-      meta: configTraverse.serialize(meta),
+      meta: serialize(meta),
       configAfterAuto
     },
     externalData
@@ -615,21 +614,4 @@ async function resolveEntryForDocument(_ref2) {
   }
 }
 
-exports.buildDocument = buildDocument;
-exports.buildEntry = buildEntry;
-exports.compile = compile;
-exports.defaultFontFamily = defaultFontFamily;
-exports.defaultFontSize = defaultFontSize;
-exports.defaultFontWeight = defaultFontWeight;
-exports.defaultLineHeight = defaultLineHeight;
-exports.findExternals = findExternals;
-exports.fontFamilies = fontFamilies;
-exports.getFontFamilies = getFontFamilies;
-exports.getFontSizes = getFontSizes;
-exports.getFontWeights = getFontWeights;
-exports.getGlobalFonts = getGlobalFonts;
-exports.getLineHeights = getLineHeights;
-exports.loadGoogleFonts = loadGoogleFonts;
-exports.mergeCompilationMeta = mergeCompilationMeta;
-exports.normalizeInput = normalizeInput;
-exports.validate = validate;
+export { buildEntry as a, buildDocument as b, compile as c, defaultFontFamily as d, defaultFontSize as e, findExternals as f, getGlobalFonts as g, defaultFontWeight as h, defaultLineHeight as i, fontFamilies as j, getFontFamilies as k, loadGoogleFonts as l, mergeCompilationMeta as m, normalizeInput as n, getFontSizes as o, getFontWeights as p, getLineHeights as q, validate as v };

@@ -7,7 +7,7 @@ import type {
   RequestedExternalData,
 } from "./types";
 import { extractFontsWithWeights } from "./utils/extractFonts";
-import { loadGoogleFonts, setGlobalFonts } from "./utils/fonts";
+import { setGlobalFonts } from "./utils/fonts";
 
 async function buildDocument({
   documentId,

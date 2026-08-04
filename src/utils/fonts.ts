@@ -529,6 +529,7 @@ export async function loadGoogleFonts({
 }
 
 let globalFonts: ExtractedFont[] = [];
+console.log("globalFonts: ", globalFonts);
 
 export const setGlobalFonts = (fonts: ExtractedFont[]): ExtractedFont[] =>
   (globalFonts = fonts);

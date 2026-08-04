@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var buildDocument = require('./buildDocument-46620134.js');
+var buildDocument = require('./buildDocument-8ef897dc.js');
 var configTraverse = require('./configTraverse-90c5492a.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');
@@ -283,6 +283,7 @@ function Easyblocks(_ref) {
   } = _ref;
   React.useEffect(() => {
     document.documentElement.style.setProperty("--shopstory-viewport-width", `calc(100vw - ${window.innerWidth - document.documentElement.clientWidth}px)`);
+    console.log("getGlobalFonts(): ", buildDocument.getGlobalFonts());
     buildDocument.loadGoogleFonts({
       fonts: buildDocument.getGlobalFonts()
     }).catch(e => {
