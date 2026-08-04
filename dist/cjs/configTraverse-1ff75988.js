@@ -7149,9 +7149,9 @@ const schemaPropDefinitions = {
           };
           return defaultLocalValue;
         }
-        console.log("customTypeDefinition: ", customTypeDefinition);
         if (customTypeDefinition.type === "token") {
-          console.log("compilationContext: ", compilationContext);
+          console.log("customTypeDefinition.token: ", customTypeDefinition.token);
+          console.log("compilationContext.theme: ", compilationContext.theme);
           const themeValues = compilationContext.theme[customTypeDefinition.token];
           console.log("themeValues: ", themeValues);
           const defaultThemeValueEntry = Object.entries(themeValues).find(_ref => {
