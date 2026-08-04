@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var buildDocument = require('./buildDocument-8ef897dc.js');
+var buildDocument = require('./buildDocument-173d7611.js');
 var configTraverse = require('./configTraverse-90c5492a.js');
 var React = require('react');
 var _extends = require('@babel/runtime/helpers/extends');

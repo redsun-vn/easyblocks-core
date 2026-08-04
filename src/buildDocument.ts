@@ -28,6 +28,7 @@ async function buildDocument({
   });
 
   const fonts = extractFontsWithWeights(entry);
+  console.log("fonts: ", fonts);
   setGlobalFonts(fonts);
 
   const { meta, externalData, renderableContent, configAfterAuto } = buildEntry(
