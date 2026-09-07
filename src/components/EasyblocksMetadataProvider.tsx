@@ -5,9 +5,20 @@ import React, { createContext, ReactNode, useContext } from "react";
 import { easyblocksStitchesInstances } from "./ssr";
 import { CompilationMetadata } from "../types";
 
-const EasyblocksMetadataContext = createContext<
+/** Created on first use — see the note in EasyblocksExternalDataProvider. */
+let metadataContext: React.Context<
   (CompilationMetadata & { stitches: any }) | undefined
->(undefined);
+> | null = null;
+
+function getMetadataContext() {
+  if (!metadataContext) {
+    metadataContext = createContext<
+      (CompilationMetadata & { stitches: any }) | undefined
+    >(undefined);
+  }
+
+  return metadataContext;
+}
 
 type EasyblocksMetadataProviderProps = {
   children: ReactNode;
@@ -23,20 +34,22 @@ const EasyblocksMetadataProvider: React.FC<EasyblocksMetadataProviderProps> = ({
     easyblocksStitchesInstances.push(createStitches({}));
   }
 
+  const MetadataContext = getMetadataContext();
+
   return (
-    <EasyblocksMetadataContext.Provider
+    <MetadataContext.Provider
       value={{
         ...meta,
         stitches: easyblocksStitchesInstances[0],
       }}
     >
       {children}
-    </EasyblocksMetadataContext.Provider>
+    </MetadataContext.Provider>
   );
 };
 
 function useEasyblocksMetadata() {
-  const context = useContext(EasyblocksMetadataContext);
+  const context = useContext(getMetadataContext());
 
   if (!context) {
     throw new Error(

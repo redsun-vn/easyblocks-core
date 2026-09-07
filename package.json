@@ -74,6 +74,11 @@
       "types": "./dist/types/buildDocument.d.ts",
       "import": "./dist/es/buildDocument.js",
       "require": "./dist/cjs/buildDocument.cjs"
+    },
+    "./client": {
+      "types": "./dist/types/client.d.ts",
+      "import": "./dist/es/client.js",
+      "require": "./dist/cjs/client.cjs"
     }
   },
   "sideEffects": false,

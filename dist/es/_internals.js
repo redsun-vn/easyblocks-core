@@ -1,19 +1,21 @@
 /* with love from shopstory */
-import { $ as deepClone, a0 as traverseComponents, T as configTraverse, a1 as uniqueId, a2 as buildRichTextBlockElementComponentConfig, a3 as buildRichTextLineElementComponentConfig, a4 as buildRichTextPartComponentConfig, a5 as nonNullable, a6 as deepCompare, a7 as dotNotationGet, a8 as dotNotationSet, s as getFallbackForLocale, E as responsiveValueFill, p as getDevicesWidths, a9 as compileBox, X as getBoxStyles, q as getDefaultLocale, l as createCompilationContext } from './configTraverse-1b69107b.js';
-export { C as CompilationCache, a2 as buildRichTextBlockElementComponentConfig, am as buildRichTextBulletedListBlockElementComponentConfig, an as buildRichTextComponentConfig, a3 as buildRichTextLineElementComponentConfig, o as buildRichTextNoCodeEntry, ao as buildRichTextParagraphBlockElementComponentConfig, a4 as buildRichTextPartComponentConfig, a9 as compileBox, k as compileInternal, T as configTraverse, ab as findComponentDefinition, Y as findComponentDefinitionById, af as findPathOfFirstAncestorOfType, X as getBoxStyles, m as getSchemaDefinition, ak as isCustomSchemaProp, U as isExternalSchemaProp, ai as isSchemaPropActionTextModifier, ah as isSchemaPropCollection, _ as isSchemaPropComponent, ag as isSchemaPropComponentCollectionLocalised, Z as isSchemaPropComponentOrComponentCollection, aj as isSchemaPropTextModifier, n as normalize, ae as parsePath, ac as scalarizeConfig, ad as stripRichTextPartSelection, al as textModifierSchemaProp, aa as textStyles, a0 as traverseComponents } from './configTraverse-1b69107b.js';
+import { B as deepClone, D as traverseComponents, A as configTraverse, E as uniqueId, F as buildRichTextBlockElementComponentConfig, G as buildRichTextLineElementComponentConfig, H as buildRichTextPartComponentConfig, I as nonNullable, J as deepCompare, K as dotNotationGet, L as dotNotationSet, f as getFallbackForLocale, j as responsiveValueFill, d as getDevicesWidths, e as getDefaultLocale, a as createCompilationContext } from './configTraverse-2e9c357d.js';
+export { C as CompilationCache, F as buildRichTextBlockElementComponentConfig, R as buildRichTextBulletedListBlockElementComponentConfig, S as buildRichTextComponentConfig, G as buildRichTextLineElementComponentConfig, b as buildRichTextNoCodeEntry, T as buildRichTextParagraphBlockElementComponentConfig, H as buildRichTextPartComponentConfig, c as compileInternal, A as configTraverse, Q as findPathOfFirstAncestorOfType, g as getSchemaDefinition, n as normalize, P as parsePath, N as scalarizeConfig, O as stripRichTextPartSelection, M as textStyles, D as traverseComponents } from './configTraverse-2e9c357d.js';
+import { D as compileBox, G as getBoxStyles } from './findComponentDefinition-2b190cc9.js';
+export { D as compileBox, A as findComponentDefinition, v as findComponentDefinitionById, G as getBoxStyles, H as isCustomSchemaProp, s as isExternalSchemaProp, B as isSchemaPropActionTextModifier, y as isSchemaPropCollection, x as isSchemaPropComponent, z as isSchemaPropComponentCollectionLocalised, u as isSchemaPropComponentOrComponentCollection, C as isSchemaPropTextModifier, I as textModifierSchemaProp } from './findComponentDefinition-2b190cc9.js';
 import _extends from '@babel/runtime/helpers/extends';
 import throttle from 'lodash/throttle';
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import { Element, Range, Editor, Text, Node, Transforms, createEditor } from 'slate';
 import { withReact, ReactEditor, Slate, Editable } from 'slate-react';
-import { c as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-a68ead65.js';
-export { C as ComponentBuilder, E as EasyblocksMetadataProvider, d as componentPickerClosed, f as componentPickerOpened, i as itemInserted, g as itemMoved, h as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-a68ead65.js';
+import { c as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-f3d7ad33.js';
+export { C as ComponentBuilder, E as EasyblocksMetadataProvider, d as componentPickerClosed, f as componentPickerOpened, i as itemInserted, g as itemMoved, h as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-f3d7ad33.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import debounce from 'lodash/debounce';
 import 'js-xxhash';
-import 'zod';
 import 'postcss-value-parser';
+import 'zod';
 import '@stitches/core';
 
 function last(collection) {
