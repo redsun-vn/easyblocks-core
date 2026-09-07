@@ -2,7 +2,7 @@
 'use strict';
 
 var React = require('react');
-var configTraverse = require('./configTraverse-90c5492a.js');
+var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
 var core = require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -15,7 +15,7 @@ function cleanString(value) {
 
 function responsiveValueValues(value) {
   const values = [];
-  configTraverse.entries(value).forEach(_ref => {
+  findComponentDefinition.entries(value).forEach(_ref => {
     let [key, v] = _ref;
     if (key === "$res") return;
     values.push(v);
@@ -48,7 +48,7 @@ function selectionFramePositionChanged(target, container) {
 function richTextChangedEvent(payload) {
   return {
     type: "@easyblocks-editor/rich-text-changed",
-    payload: configTraverse.serialize(payload)
+    payload: findComponentDefinition.serialize(payload)
   };
 }
 function componentPickerOpened(path) {
@@ -336,7 +336,7 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
      * structuredClone isn't available (older browsers).
      */
     const cloned = typeof structuredClone === "function" ? structuredClone(styles) : JSON.parse(JSON.stringify(styles));
-    const correctedStyles = configTraverse.getBoxStyles(cloned, devices);
+    const correctedStyles = findComponentDefinition.getBoxStyles(cloned, devices);
     const generateBoxClass = stitches.css(boxStyles);
     const generateClassName = stitches.css(correctedStyles);
     return {
@@ -353,9 +353,24 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
 });
 Box.displayName = "Box";
 
-const EasyblocksExternalDataContext = /*#__PURE__*/React.createContext(null);
+/**
+ * Created on first use rather than at module scope.
+ *
+ * The package root re-exports this module, so any consumer that imports an unrelated
+ * helper from the root pulls this file into its module graph. In a React Server
+ * Components environment `react` resolves to a build without `createContext`, so calling
+ * it while the module evaluates throws before the consumer renders anything — even though
+ * the provider itself is only ever used on the client.
+ */
+let externalDataContext = null;
+function getExternalDataContext() {
+  if (!externalDataContext) {
+    externalDataContext = /*#__PURE__*/React.createContext(null);
+  }
+  return externalDataContext;
+}
 function useEasyblocksExternalData() {
-  const context = React.useContext(EasyblocksExternalDataContext);
+  const context = React.useContext(getExternalDataContext());
   if (!context) {
     throw new Error("useEasyblocksExternalData must be used within a EasyblocksExternalDataProvider");
   }
@@ -366,7 +381,8 @@ function EasyblocksExternalDataProvider(_ref) {
     children,
     externalData
   } = _ref;
-  return /*#__PURE__*/React__default["default"].createElement(EasyblocksExternalDataContext.Provider, {
+  const ExternalDataContext = getExternalDataContext();
+  return /*#__PURE__*/React__default["default"].createElement(ExternalDataContext.Provider, {
     value: externalData
   }, children);
 }
@@ -384,7 +400,14 @@ function easyblocksGetStyleTag() {
   });
 }
 
-const EasyblocksMetadataContext = /*#__PURE__*/React.createContext(undefined);
+/** Created on first use — see the note in EasyblocksExternalDataProvider. */
+let metadataContext = null;
+function getMetadataContext() {
+  if (!metadataContext) {
+    metadataContext = /*#__PURE__*/React.createContext(undefined);
+  }
+  return metadataContext;
+}
 const EasyblocksMetadataProvider = _ref => {
   let {
     meta,
@@ -394,7 +417,8 @@ const EasyblocksMetadataProvider = _ref => {
   if (easyblocksStitchesInstances.length === 0) {
     easyblocksStitchesInstances.push(core.createStitches({}));
   }
-  return /*#__PURE__*/React__default["default"].createElement(EasyblocksMetadataContext.Provider, {
+  const MetadataContext = getMetadataContext();
+  return /*#__PURE__*/React__default["default"].createElement(MetadataContext.Provider, {
     value: {
       ...meta,
       stitches: easyblocksStitchesInstances[0]
@@ -402,7 +426,7 @@ const EasyblocksMetadataProvider = _ref => {
   }, children);
 };
 function useEasyblocksMetadata() {
-  const context = React.useContext(EasyblocksMetadataContext);
+  const context = React.useContext(getMetadataContext());
   if (!context) {
     throw new Error("useEasyblocksMetadata must be used within a EasyblocksMetadataProvider");
   }
@@ -455,7 +479,7 @@ const _componentSlotsCache = new WeakMap();
 function getComponentSlots(schema) {
   let slots = _componentSlotsCache.get(schema);
   if (!slots) {
-    slots = schema.filter(configTraverse.isSchemaPropComponentOrComponentCollection);
+    slots = schema.filter(findComponentDefinition.isSchemaPropComponentOrComponentCollection);
     _componentSlotsCache.set(schema, slots);
   }
   return slots;
@@ -472,7 +496,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
       compiled: compiledChild,
       components: components
     }) : compiledChild);
-    if (configTraverse.isSchemaPropComponent(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
       return elements[0];
     } else {
       return elements;
@@ -519,7 +543,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
       meta: meta
     })];
   }
-  if (configTraverse.isSchemaPropComponent(schemaProp)) {
+  if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
     return elements[0] ?? /*#__PURE__*/React__default["default"].createElement(React.Fragment, null);
   }
   return elements;
@@ -549,7 +573,7 @@ const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function Co
 
   // Reuse a stable wrapper so findComponentDefinitionById's WeakMap cache hits.
   const defContext = getDefinitionsContext(meta.vars.definitions);
-  const componentDefinition = configTraverse.findComponentDefinitionById(compiled._component, defContext);
+  const componentDefinition = findComponentDefinition.findComponentDefinitionById(compiled._component, defContext);
   const component = getComponent(componentDefinition, components, isEditing);
   const isMissingComponent = compiled._component === "@easyblocks/missing-component";
   const isMissingInstance = component === undefined;
@@ -663,12 +687,12 @@ function mapExternalProps(props, configId, componentDefinition, externalData) {
     const schemaProp = schemaMap.get(propName);
     if (schemaProp) {
       const propValue = props[propName];
-      if (schemaProp.type === "text" && configTraverse.isLocalTextReference(propValue, "text")) {
+      if (schemaProp.type === "text" && findComponentDefinition.isLocalTextReference(propValue, "text")) {
         resultsProps[propName] = propValue.value;
       } else if (
       // FIXME: this is a mess
-      !configTraverse.isTrulyResponsiveValue(propValue) && typeof propValue === "object" && "id" in propValue && "widgetId" in propValue && !("value" in propValue) || configTraverse.isTrulyResponsiveValue(propValue) && responsiveValueValues(propValue).every(v => typeof v === "object" && v && "id" in v && "widgetId" in v && !("value" in v))) {
-        resultsProps[propName] = configTraverse.resolveExternalValue(propValue, configId, schemaProp, externalData);
+      !findComponentDefinition.isTrulyResponsiveValue(propValue) && typeof propValue === "object" && "id" in propValue && "widgetId" in propValue && !("value" in propValue) || findComponentDefinition.isTrulyResponsiveValue(propValue) && responsiveValueValues(propValue).every(v => typeof v === "object" && v && "id" in v && "widgetId" in v && !("value" in v))) {
+        resultsProps[propName] = findComponentDefinition.resolveExternalValue(propValue, configId, schemaProp, externalData);
       } else {
         resultsProps[propName] = props[propName];
       }

@@ -3,19 +3,20 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-90c5492a.js');
+var configTraverse = require('./configTraverse-70f5135e.js');
+var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-98751c29.js');
+var ComponentBuilder = require('./ComponentBuilder-b73f0fd3.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
-require('zod');
 require('postcss-value-parser');
+require('zod');
 require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -1354,8 +1355,8 @@ function mapResponsiveAlignmentToStyles(align, _ref4) {
       textAlign: values.align
     };
   }, devices);
-  const compiledStyles = configTraverse.compileBox(responsiveStyles, devices);
-  return configTraverse.getBoxStyles(compiledStyles, devices);
+  const compiledStyles = findComponentDefinition.compileBox(responsiveStyles, devices);
+  return findComponentDefinition.getBoxStyles(compiledStyles, devices);
 }
 function createTextSelectionDecorator(editor) {
   return _ref5 => {
@@ -1929,29 +1930,29 @@ exports.buildRichTextLineElementComponentConfig = configTraverse.buildRichTextLi
 exports.buildRichTextNoCodeEntry = configTraverse.buildRichTextNoCodeEntry;
 exports.buildRichTextParagraphBlockElementComponentConfig = configTraverse.buildRichTextParagraphBlockElementComponentConfig;
 exports.buildRichTextPartComponentConfig = configTraverse.buildRichTextPartComponentConfig;
-exports.compileBox = configTraverse.compileBox;
 exports.compileInternal = configTraverse.compileInternal;
 exports.configTraverse = configTraverse.configTraverse;
-exports.findComponentDefinition = configTraverse.findComponentDefinition;
-exports.findComponentDefinitionById = configTraverse.findComponentDefinitionById;
 exports.findPathOfFirstAncestorOfType = configTraverse.findPathOfFirstAncestorOfType;
-exports.getBoxStyles = configTraverse.getBoxStyles;
 exports.getSchemaDefinition = configTraverse.getSchemaDefinition;
-exports.isCustomSchemaProp = configTraverse.isCustomSchemaProp;
-exports.isExternalSchemaProp = configTraverse.isExternalSchemaProp;
-exports.isSchemaPropActionTextModifier = configTraverse.isSchemaPropActionTextModifier;
-exports.isSchemaPropCollection = configTraverse.isSchemaPropCollection;
-exports.isSchemaPropComponent = configTraverse.isSchemaPropComponent;
-exports.isSchemaPropComponentCollectionLocalised = configTraverse.isSchemaPropComponentCollectionLocalised;
-exports.isSchemaPropComponentOrComponentCollection = configTraverse.isSchemaPropComponentOrComponentCollection;
-exports.isSchemaPropTextModifier = configTraverse.isSchemaPropTextModifier;
 exports.normalize = configTraverse.normalize;
 exports.parsePath = configTraverse.parsePath;
 exports.scalarizeConfig = configTraverse.scalarizeConfig;
 exports.stripRichTextPartSelection = configTraverse.stripRichTextPartSelection;
-exports.textModifierSchemaProp = configTraverse.textModifierSchemaProp;
 exports.textStyles = configTraverse.textStyles;
 exports.traverseComponents = configTraverse.traverseComponents;
+exports.compileBox = findComponentDefinition.compileBox;
+exports.findComponentDefinition = findComponentDefinition.findComponentDefinition;
+exports.findComponentDefinitionById = findComponentDefinition.findComponentDefinitionById;
+exports.getBoxStyles = findComponentDefinition.getBoxStyles;
+exports.isCustomSchemaProp = findComponentDefinition.isCustomSchemaProp;
+exports.isExternalSchemaProp = findComponentDefinition.isExternalSchemaProp;
+exports.isSchemaPropActionTextModifier = findComponentDefinition.isSchemaPropActionTextModifier;
+exports.isSchemaPropCollection = findComponentDefinition.isSchemaPropCollection;
+exports.isSchemaPropComponent = findComponentDefinition.isSchemaPropComponent;
+exports.isSchemaPropComponentCollectionLocalised = findComponentDefinition.isSchemaPropComponentCollectionLocalised;
+exports.isSchemaPropComponentOrComponentCollection = findComponentDefinition.isSchemaPropComponentOrComponentCollection;
+exports.isSchemaPropTextModifier = findComponentDefinition.isSchemaPropTextModifier;
+exports.textModifierSchemaProp = findComponentDefinition.textModifierSchemaProp;
 exports.ComponentBuilder = ComponentBuilder.ComponentBuilder;
 exports.EasyblocksMetadataProvider = ComponentBuilder.EasyblocksMetadataProvider;
 exports.componentPickerClosed = ComponentBuilder.componentPickerClosed;

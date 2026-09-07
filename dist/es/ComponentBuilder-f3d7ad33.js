@@ -1,6 +1,6 @@
 /* with love from shopstory */
 import React, { useMemo, useContext, createContext, Fragment } from 'react';
-import { W as entries, V as serialize, X as getBoxStyles, Y as findComponentDefinitionById, z as isLocalTextReference, i as isTrulyResponsiveValue$1, A as resolveExternalValue, Z as isSchemaPropComponentOrComponentCollection, _ as isSchemaPropComponent } from './configTraverse-1b69107b.js';
+import { w as entries, t as serialize, G as getBoxStyles, v as findComponentDefinitionById, o as isLocalTextReference, i as isTrulyResponsiveValue$1, r as resolveExternalValue, u as isSchemaPropComponentOrComponentCollection, x as isSchemaPropComponent } from './findComponentDefinition-2b190cc9.js';
 import { createStitches } from '@stitches/core';
 
 function cleanString(value) {
@@ -347,9 +347,24 @@ const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
 });
 Box.displayName = "Box";
 
-const EasyblocksExternalDataContext = /*#__PURE__*/createContext(null);
+/**
+ * Created on first use rather than at module scope.
+ *
+ * The package root re-exports this module, so any consumer that imports an unrelated
+ * helper from the root pulls this file into its module graph. In a React Server
+ * Components environment `react` resolves to a build without `createContext`, so calling
+ * it while the module evaluates throws before the consumer renders anything — even though
+ * the provider itself is only ever used on the client.
+ */
+let externalDataContext = null;
+function getExternalDataContext() {
+  if (!externalDataContext) {
+    externalDataContext = /*#__PURE__*/createContext(null);
+  }
+  return externalDataContext;
+}
 function useEasyblocksExternalData() {
-  const context = useContext(EasyblocksExternalDataContext);
+  const context = useContext(getExternalDataContext());
   if (!context) {
     throw new Error("useEasyblocksExternalData must be used within a EasyblocksExternalDataProvider");
   }
@@ -360,7 +375,8 @@ function EasyblocksExternalDataProvider(_ref) {
     children,
     externalData
   } = _ref;
-  return /*#__PURE__*/React.createElement(EasyblocksExternalDataContext.Provider, {
+  const ExternalDataContext = getExternalDataContext();
+  return /*#__PURE__*/React.createElement(ExternalDataContext.Provider, {
     value: externalData
   }, children);
 }
@@ -378,7 +394,14 @@ function easyblocksGetStyleTag() {
   });
 }
 
-const EasyblocksMetadataContext = /*#__PURE__*/createContext(undefined);
+/** Created on first use — see the note in EasyblocksExternalDataProvider. */
+let metadataContext = null;
+function getMetadataContext() {
+  if (!metadataContext) {
+    metadataContext = /*#__PURE__*/createContext(undefined);
+  }
+  return metadataContext;
+}
 const EasyblocksMetadataProvider = _ref => {
   let {
     meta,
@@ -388,7 +411,8 @@ const EasyblocksMetadataProvider = _ref => {
   if (easyblocksStitchesInstances.length === 0) {
     easyblocksStitchesInstances.push(createStitches({}));
   }
-  return /*#__PURE__*/React.createElement(EasyblocksMetadataContext.Provider, {
+  const MetadataContext = getMetadataContext();
+  return /*#__PURE__*/React.createElement(MetadataContext.Provider, {
     value: {
       ...meta,
       stitches: easyblocksStitchesInstances[0]
@@ -396,7 +420,7 @@ const EasyblocksMetadataProvider = _ref => {
   }, children);
 };
 function useEasyblocksMetadata() {
-  const context = useContext(EasyblocksMetadataContext);
+  const context = useContext(getMetadataContext());
   if (!context) {
     throw new Error("useEasyblocksMetadata must be used within a EasyblocksMetadataProvider");
   }
@@ -696,4 +720,4 @@ function getComponentMainType(componentTypes) {
   return type;
 }
 
-export { Box as B, ComponentBuilder as C, EasyblocksMetadataProvider as E, RichTextPartClient as R, EasyblocksExternalDataProvider as a, easyblocksGetStyleTag as b, cleanString as c, componentPickerClosed as d, easyblocksGetCssText as e, componentPickerOpened as f, itemMoved as g, richTextChangedEvent as h, itemInserted as i, responsiveValueValues as r, selectionFramePositionChanged as s, useEasyblocksMetadata as u };
+export { Box as B, ComponentBuilder as C, EasyblocksMetadataProvider as E, RichTextPartClient as R, easyblocksGetStyleTag as a, EasyblocksExternalDataProvider as b, cleanString as c, componentPickerClosed as d, easyblocksGetCssText as e, componentPickerOpened as f, itemMoved as g, richTextChangedEvent as h, itemInserted as i, responsiveValueValues as r, selectionFramePositionChanged as s, useEasyblocksMetadata as u };

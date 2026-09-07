@@ -1,6 +1,6 @@
 /* with love from shopstory */
 import { xxHash32 } from 'js-xxhash';
-import { z } from 'zod';
+import { i as isTrulyResponsiveValue, u as isSchemaPropComponentOrComponentCollection, v as findComponentDefinitionById, w as entries, x as isSchemaPropComponent, y as isSchemaPropCollection, a as isComponentConfig, s as isExternalSchemaProp, z as isSchemaPropComponentCollectionLocalised, A as findComponentDefinition, B as isSchemaPropActionTextModifier, C as isSchemaPropTextModifier, D as compileBox, E as toArray, q as responsiveValueMap, F as findComponentDefinitionsByType, f as isLocalValue } from './findComponentDefinition-2b190cc9.js';
 import valueParser from 'postcss-value-parser';
 
 function bubbleDown(matcher, items) {
@@ -14,14 +14,6 @@ function bubbleDown(matcher, items) {
     }
   });
   return [...originalOrder, ...bubbledDown];
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-function toArray(scalarOrCollection) {
-  if (Array.isArray(scalarOrCollection)) {
-    return scalarOrCollection;
-  }
-  return [scalarOrCollection];
 }
 
 function range(start, end) {
@@ -116,21 +108,6 @@ function dotNotationSet(obj, path, value) {
   }
 }
 
-/**
- * `Object.entries` is badly typed for its reasons and this function just fixes it.
- * https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript
- */
-function entries(o) {
-  return Object.entries(o);
-}
-
-function serialize(value) {
-  if (value instanceof Error) {
-    return JSON.parse(JSON.stringify(value, Object.getOwnPropertyNames(value)));
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
 function uniqueId() {
   const id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0,
@@ -149,56 +126,6 @@ function assertDefined(value, message) {
 
 function raiseError(errorMessage) {
   throw new Error(errorMessage);
-}
-
-function isCompiledComponentConfig(
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-arg) {
-  return typeof arg === "object" && arg !== null && typeof arg._component === "string" && typeof arg._id === "string" && typeof arg.actions === "object" && typeof arg.components === "object";
-}
-
-function isRenderableContent(input) {
-  return typeof input === "object" && input !== null && "renderableContent" in input && (isCompiledComponentConfig(input.renderableContent) || input.renderableContent === null);
-}
-function isNonEmptyRenderableContent(input) {
-  return typeof input === "object" && input !== null && "renderableContent" in input && isCompiledComponentConfig(input.renderableContent);
-}
-function isEmptyRenderableContent(input) {
-  return typeof input === "object" && input !== null && "renderableContent" in input && input.renderableContent === null;
-}
-const documentSchema = z.object({
-  documentId: z.string(),
-  projectId: z.string(),
-  rootContainer: z.string().optional(),
-  preview: z.object({}).optional(),
-  config: z.optional(z.object({}))
-});
-function isDocument(value) {
-  return documentSchema.safeParse(value).success;
-}
-function isComponentConfig(value) {
-  return typeof value === "object" && typeof value?._component === "string" && typeof value?._id === "string";
-}
-const localValueSchema = z.object({
-  value: z.any(),
-  widgetId: z.string()
-});
-function isLocalValue(value) {
-  return localValueSchema.safeParse(value).success;
-}
-function isResolvedCompoundExternalDataValue(value) {
-  return "type" in value && value.type === "object" && "value" in value;
-}
-function isIdReferenceToDocumentExternalValue(id) {
-  return typeof id === "string" && id.startsWith("$.");
-}
-function isEmptyExternalReference(externalDataConfigEntry) {
-  return externalDataConfigEntry.id === null;
-}
-
-// Sorry for this name
-function isTrulyResponsiveValue(x) {
-  return typeof x === "object" && x !== null && !Array.isArray(x) && x.$res === true;
 }
 
 function responsiveValueGet(value, deviceId) {
@@ -368,30 +295,6 @@ function responsiveValueGetDefinedValue(value, breakpoint, devices, widths) {
   return value[definedDevice.id];
 }
 
-function responsiveValueEntries(value) {
-  const values = [];
-  entries(value).forEach(_ref => {
-    let [key, v] = _ref;
-    if (key === "$res") return;
-    values.push([key, v]);
-  });
-  return values;
-}
-
-function responsiveValueMap(resVal, mapper) {
-  if (!isTrulyResponsiveValue(resVal)) {
-    return mapper(resVal);
-  }
-  const ret = {
-    $res: true
-  };
-  responsiveValueEntries(resVal).forEach(_ref => {
-    let [key, value] = _ref;
-    ret[key] = mapper(value, key);
-  });
-  return ret;
-}
-
 function getDevicesWidths(devices) {
   const widths = {
     $res: true
@@ -550,69 +453,6 @@ function responsiveValueNormalize(arg, devices) {
     return ret[devices[0].id];
   }
   return ret;
-}
-
-function getExternalValue(externalDataValue) {
-  if ("error" in externalDataValue) {
-    return;
-  }
-  return externalDataValue.value;
-}
-function isLocalTextReference(resource, type) {
-  if (resource.id === null) {
-    return false;
-  }
-  return type === "text" && resource.id.startsWith("local.");
-}
-function getExternalReferenceLocationKey(configId, fieldName, deviceId) {
-  let resourceId = `${configId}.${fieldName}`;
-  if (deviceId) {
-    resourceId += `.${deviceId}`;
-  }
-  return resourceId;
-}
-function getResolvedExternalDataValue(externalData, configId, fieldName, value) {
-  const externalReferenceLocationKey = typeof value.id === "string" && value.id.startsWith("$.") ? value.id : getExternalReferenceLocationKey(configId, fieldName);
-  const externalValue = externalData[externalReferenceLocationKey];
-  if (externalValue === undefined || "error" in externalValue) {
-    return;
-  }
-  return externalValue;
-}
-function resolveExternalValue(responsiveResource, configId, schemaProp, externalData) {
-  return responsiveValueMap(responsiveResource, (r, breakpointIndex) => {
-    if (r.id) {
-      // If resource field has `key` defined and its `id` starts with "$.", it means that it's a reference to the
-      // root resource and we need to look for the resource with the same id as the root resource.
-      const locationKey = r.key && typeof r.id === "string" && r.id.startsWith("$.") ? r.id : getExternalReferenceLocationKey(configId, schemaProp.prop, breakpointIndex);
-      const externalDataValue = externalData[locationKey];
-      let resourceValue;
-      if (externalDataValue) {
-        resourceValue = getExternalValue(externalDataValue);
-      }
-      if (externalDataValue === undefined || isEmptyRenderableContent(resourceValue)) {
-        return;
-      }
-      if ("error" in externalDataValue) {
-        return;
-      }
-      if (isCompoundExternalDataValue(externalDataValue)) {
-        if (!r.key) {
-          return;
-        }
-        const resolvedResourceValue = externalDataValue.value[r.key].value;
-        if (!resolvedResourceValue) {
-          return;
-        }
-        return resolvedResourceValue;
-      }
-      return resourceValue;
-    }
-    return;
-  });
-}
-function isCompoundExternalDataValue(value) {
-  return "type" in value && value.type === "object" && "value" in value || "error" in value;
 }
 
 class CompilationCache {
@@ -820,172 +660,8 @@ function applyAutoUsingResponsiveTokens(input, compilationContext) {
   return inputAfterAuto;
 }
 
-/**
- * This function is necessary because if we have Stitches styles object, its breakpoint values should be only on the top level.
- * We can have them nested so we need to transform styles object so that responsive styles goes to the top level.
- */
-
-function flattenResponsiveStyles(styles) {
-  const result = {};
-  for (const key in styles) {
-    const value = styles[key];
-    if (key.startsWith("@")) {
-      if (!result[key]) {
-        result[key] = {};
-      }
-      result[key] = {
-        ...result[key],
-        ...value
-      };
-      continue;
-    }
-    if (typeof value === "object" && value !== null) {
-      const flattenedValue = flattenResponsiveStyles(value);
-
-      // MERGE
-
-      const nonResponsiveValues = {};
-      const responsiveValues = {};
-      for (const key2 in flattenedValue) {
-        const value2 = flattenedValue[key2];
-        if (key2.startsWith("@")) {
-          responsiveValues[key2] = value2;
-        } else {
-          nonResponsiveValues[key2] = value2;
-        }
-      }
-      result[key] = nonResponsiveValues;
-      for (const breakpoint in responsiveValues) {
-        if (!result[breakpoint]) {
-          result[breakpoint] = {};
-        }
-        result[breakpoint] = {
-          ...result[breakpoint],
-          [key]: responsiveValues[breakpoint]
-        };
-      }
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-function compileBox(input, devices) {
-  if (typeof input === "object" && input.$res) {
-    const ret = {};
-    for (const key in input) {
-      if (key !== "$res") {
-        ret["@" + key] = input[key];
-      }
-    }
-    return ret;
-  } else if (typeof input === "object" && input !== null) {
-    const ret = {};
-
-    /**
-     * FIXME: there's a bug here!!!
-     *
-     * I don't know what to do about it. We add items in a correct order to the ret object, and JS should keep this order
-     * but it clearly doesn't work and order gets broken. This breaks where "unset" is set in CSS and hence, inheritance is broken.
-     *
-     * This can be fixed by adding "specific media queries" (from - to) here. It's gonna work.
-     */
-
-    for (const key in input) {
-      const val = input[key];
-      if (typeof val === "object" && val.$res === true) {
-        // const maxBreakpoint = responsiveValueGetMaxDefinedBreakpoint(val, devices);
-
-        let isFirst = true;
-        for (let i = devices.length - 1; i >= 0; i--) {
-          const breakpoint = devices[i].id;
-          if (val[breakpoint] === null || val[breakpoint] === undefined) {
-            continue;
-          }
-          if (isFirst) {
-            ret[key] = val[breakpoint];
-            isFirst = false;
-          } else {
-            if (!ret["@" + breakpoint]) {
-              ret["@" + breakpoint] = {};
-            }
-            ret["@" + breakpoint][key] = val[breakpoint];
-          }
-        }
-        continue;
-      }
-      ret[key] = compileBox(val, devices);
-    }
-    return ret;
-  }
-  return input;
-}
-function getBoxStyles(styles, devices) {
-  const flattenStyles = flattenResponsiveStyles(styles);
-  const ret = {};
-
-  // First copy all the non-responsive values
-  for (const key in flattenStyles) {
-    if (!key.startsWith("@") && key !== "__isBox" && key !== "__hash") {
-      ret[key] = flattenStyles[key];
-    }
-  }
-
-  // now copy breakpoint values in correct order
-  for (let i = devices.length - 1; i >= 0; i--) {
-    const device = devices[i];
-    const breakpoint = device.id;
-
-    // correct order!
-    if (flattenStyles["@" + breakpoint]) {
-      const resolvedKey = resolveDeviceIdToMediaQuery(device);
-      ret[resolvedKey] = flattenStyles["@" + breakpoint];
-    }
-  }
-  return ret;
-}
-function resolveDeviceIdToMediaQuery(device) {
-  return `@media (max-width: ${device.breakpoint - 1}px)`;
-}
-
 function compileFromSchema(value, schemaProp, compilationContext, cache, contextProps, meta, editingInfoComponent, configPrefix) {
   return getSchemaDefinition(schemaProp, compilationContext).compile(value, contextProps, meta, editingInfoComponent, configPrefix, cache);
-}
-
-function isSchemaPropComponentCollectionLocalised(schemaProp) {
-  return schemaProp.type === "component-collection-localised";
-}
-function isSchemaPropCollection(schemaProp) {
-  return schemaProp.type === "component-collection" || schemaProp.type === "component-collection-localised";
-}
-function isSchemaPropComponent(schemaProp) {
-  return schemaProp.type === "component";
-}
-function isSchemaPropComponentOrComponentCollection(schemaProp) {
-  return isSchemaPropCollection(schemaProp) || isSchemaPropComponent(schemaProp);
-}
-function isSchemaPropActionTextModifier(schemaProp) {
-  return schemaProp.type === "component" && schemaProp.accepts.includes("actionTextModifier");
-}
-function isSchemaPropTextModifier(schemaProp) {
-  return schemaProp.type === "component" && schemaProp.accepts.includes("textModifier");
-}
-const internalTypes = new Set(["string", "number", "boolean", "select", "radio-group", "color", "space", "font", "icon", "text", "component", "component-collection", "position", "component$$$", "component-collection-localised", "aspectRatio", "containerWidth", "boxShadow"]);
-function isCustomSchemaProp(schemaProp) {
-  return !internalTypes.has(schemaProp.type);
-}
-function isExternalSchemaProp(schemaProp, types) {
-  return types[schemaProp.type] && types[schemaProp.type].type === "external";
-}
-function textModifierSchemaProp(options) {
-  return {
-    type: "component",
-    accepts: ["textModifier"],
-    // Schema props of type "component" are hidden by default
-    visible: true,
-    ...options
-  };
 }
 
 /**
@@ -1001,53 +677,6 @@ function compileComponentValues(inputValues, componentDefinition, compilationCon
     }
   });
   return values;
-}
-
-function allDefs(context) {
-  return context?.definitions.components || [];
-}
-
-/**
- * Lazily-built Map cache for O(1) definition lookup by id.
- * Keyed on the definitions.components array reference — rebuilt only when the array changes.
- */
-const _defMapCache = new WeakMap();
-function getDefMap(context) {
-  const defs = allDefs(context);
-  let map = _defMapCache.get(defs);
-  if (!map) {
-    map = new Map(defs.map(d => [d.id, d]));
-    _defMapCache.set(defs, map);
-  }
-  return map;
-}
-
-/**
- * Versions with context and custom components sweep
- */
-
-function findComponentDefinition(config, context) {
-  return $findComponentDefinition(config, context);
-}
-function findComponentDefinitionById(id, context) {
-  return $findComponentDefinitionById(id, context);
-}
-function findComponentDefinitionsByType(tag, context) {
-  return allDefs(context).filter(def => toArray(def.type ?? []).includes(tag));
-}
-
-/**
- * Generic
- */
-
-function $findComponentDefinition(config, context) {
-  if (!config) {
-    return undefined;
-  }
-  return $findComponentDefinitionById(config._component, context);
-}
-function $findComponentDefinitionById(id, context) {
-  return getDefMap(context).get(id);
 }
 
 /**
@@ -8554,4 +8183,4 @@ function configTraverseInternal(config, context, callback, path) {
   });
 }
 
-export { deepClone as $, resolveExternalValue as A, responsiveValueAt as B, CompilationCache as C, responsiveValueEntries as D, responsiveValueFill as E, responsiveValueFindDeviceWithDefinedValue as F, responsiveValueFindHigherDeviceWithDefinedValue as G, responsiveValueFindLowerDeviceWithDefinedValue as H, responsiveValueFlatten as I, responsiveValueForceGet as J, responsiveValueGet as K, responsiveValueGetDefinedValue as L, responsiveValueGetFirstHigherValue as M, responsiveValueGetFirstLowerValue as N, responsiveValueGetHighestDefinedDevice as O, responsiveValueMap as P, responsiveValueNormalize as Q, parseSpacing as R, spacingToPx as S, configTraverse as T, isExternalSchemaProp as U, serialize as V, entries as W, getBoxStyles as X, findComponentDefinitionById as Y, isSchemaPropComponentOrComponentCollection as Z, isSchemaPropComponent as _, isComponentConfig as a, traverseComponents as a0, uniqueId as a1, buildRichTextBlockElementComponentConfig as a2, buildRichTextLineElementComponentConfig as a3, buildRichTextPartComponentConfig as a4, nonNullable as a5, deepCompare as a6, dotNotationGet as a7, dotNotationSet as a8, compileBox as a9, textStyles as aa, findComponentDefinition as ab, scalarizeConfig as ac, stripRichTextPartSelection as ad, parsePath as ae, findPathOfFirstAncestorOfType as af, isSchemaPropComponentCollectionLocalised as ag, isSchemaPropCollection as ah, isSchemaPropActionTextModifier as ai, isSchemaPropTextModifier as aj, isCustomSchemaProp as ak, textModifierSchemaProp as al, buildRichTextBulletedListBlockElementComponentConfig as am, buildRichTextComponentConfig as an, buildRichTextParagraphBlockElementComponentConfig as ao, isDocument as b, isEmptyExternalReference as c, isEmptyRenderableContent as d, isIdReferenceToDocumentExternalValue as e, isLocalValue as f, isNonEmptyRenderableContent as g, isRenderableContent as h, isTrulyResponsiveValue as i, isResolvedCompoundExternalDataValue as j, compileInternal as k, createCompilationContext as l, getSchemaDefinition as m, normalize as n, buildRichTextNoCodeEntry as o, getDevicesWidths as p, getDefaultLocale as q, resolveLocalisedValue as r, getFallbackForLocale as s, getFallbackLocaleForLocale as t, getExternalReferenceLocationKey as u, validateColor as v, getExternalValue as w, getResolvedExternalDataValue as x, isCompoundExternalDataValue as y, isLocalTextReference as z };
+export { configTraverse as A, deepClone as B, CompilationCache as C, traverseComponents as D, uniqueId as E, buildRichTextBlockElementComponentConfig as F, buildRichTextLineElementComponentConfig as G, buildRichTextPartComponentConfig as H, nonNullable as I, deepCompare as J, dotNotationGet as K, dotNotationSet as L, textStyles as M, scalarizeConfig as N, stripRichTextPartSelection as O, parsePath as P, findPathOfFirstAncestorOfType as Q, buildRichTextBulletedListBlockElementComponentConfig as R, buildRichTextComponentConfig as S, buildRichTextParagraphBlockElementComponentConfig as T, createCompilationContext as a, buildRichTextNoCodeEntry as b, compileInternal as c, getDevicesWidths as d, getDefaultLocale as e, getFallbackForLocale as f, getSchemaDefinition as g, getFallbackLocaleForLocale as h, responsiveValueAt as i, responsiveValueFill as j, responsiveValueFindDeviceWithDefinedValue as k, responsiveValueFindHigherDeviceWithDefinedValue as l, responsiveValueFindLowerDeviceWithDefinedValue as m, normalize as n, responsiveValueFlatten as o, responsiveValueForceGet as p, responsiveValueGet as q, resolveLocalisedValue as r, responsiveValueGetDefinedValue as s, responsiveValueGetFirstHigherValue as t, responsiveValueGetFirstLowerValue as u, validateColor as v, responsiveValueGetHighestDefinedDevice as w, responsiveValueNormalize as x, parseSpacing as y, spacingToPx as z };

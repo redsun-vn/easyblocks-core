@@ -2,10 +2,27 @@
 import React, { createContext, useContext } from "react";
 import { ExternalData } from "../types";
 
-const EasyblocksExternalDataContext = createContext<ExternalData | null>(null);
+/**
+ * Created on first use rather than at module scope.
+ *
+ * The package root re-exports this module, so any consumer that imports an unrelated
+ * helper from the root pulls this file into its module graph. In a React Server
+ * Components environment `react` resolves to a build without `createContext`, so calling
+ * it while the module evaluates throws before the consumer renders anything — even though
+ * the provider itself is only ever used on the client.
+ */
+let externalDataContext: React.Context<ExternalData | null> | null = null;
+
+function getExternalDataContext() {
+  if (!externalDataContext) {
+    externalDataContext = createContext<ExternalData | null>(null);
+  }
+
+  return externalDataContext;
+}
 
 function useEasyblocksExternalData() {
-  const context = useContext(EasyblocksExternalDataContext);
+  const context = useContext(getExternalDataContext());
 
   if (!context) {
     throw new Error(
@@ -23,10 +40,12 @@ function EasyblocksExternalDataProvider({
   children: React.ReactNode;
   externalData: ExternalData;
 }) {
+  const ExternalDataContext = getExternalDataContext();
+
   return (
-    <EasyblocksExternalDataContext.Provider value={externalData}>
+    <ExternalDataContext.Provider value={externalData}>
       {children}
-    </EasyblocksExternalDataContext.Provider>
+    </ExternalDataContext.Provider>
   );
 }
 
