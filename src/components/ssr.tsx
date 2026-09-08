@@ -7,9 +7,11 @@ export type EasyblocksStitches = {
   /** Every rule this instance has generated, as CSS text. Does not consume anything. */
   getCssText: () => string;
   /**
-   * The rules generated since the previous call, wrapped in a `<style>` element ready to
-   * stream into the document. Streaming SSR asks for this once per flush, so returning only
-   * what is new keeps each response carrying the stylesheet once rather than once per flush.
+   * Every rule so far, wrapped in a `<style>` element ready to stream into the document.
+   *
+   * Streaming SSR asks for this once per flush and each answer repeats what came before, so
+   * a response carries the stylesheet more than once. That redundancy is deliberate — see
+   * the note on `getStyleTag` in `createEasyblocksStitches`.
    */
   getStyleTag: () => React.ReactElement;
 };
@@ -31,19 +33,21 @@ export function createEasyblocksStitches(): EasyblocksStitches {
 
   const getCssText = () => stitches.getCssText();
 
-  const getStyleTag = () => {
-    const css = getCssText();
-
-    // Emptying the sheet is what makes the next flush a delta rather than a repeat of
-    // everything so far. Nothing is lost: these rules are already in the markup being sent,
-    // and class names are content hashes, so a style that appears again later resolves to
-    // the same name. Server only — in a browser this sheet is the live CSSOM.
-    if (typeof document === "undefined") {
-      stitches.sheet.reset();
-    }
-
-    return <style id="stitches" dangerouslySetInnerHTML={{ __html: css }} />;
-  };
+  /**
+   * Deliberately cumulative: every flush repeats the rules the earlier ones already carried.
+   *
+   * Emptying the sheet between flushes would be smaller, and is wrong. `Box` gives every
+   * element a shared reset class alongside its own generated one, and the reset only works
+   * because it is inserted first. Drain the sheet and the next element re-inserts that reset
+   * *after* the component rules already streamed — same specificity, later wins, and every
+   * padding, margin and border those rules set is silently flattened to the reset's zero.
+   *
+   * Repeating the rules keeps each tag internally ordered, so the reset stays ahead of what
+   * overrides it no matter which tag the browser reads last.
+   */
+  const getStyleTag = () => (
+    <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
+  );
 
   return { stitches, getCssText, getStyleTag };
 }

@@ -3,7 +3,7 @@
 
 var _extends = require('@babel/runtime/helpers/extends');
 var React = require('react');
-var ComponentBuilder = require('./ComponentBuilder-f2a79698.js');
+var ComponentBuilder = require('./ComponentBuilder-d1d5c475.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
