@@ -5,9 +5,11 @@ export type EasyblocksStitches = {
     /** Every rule this instance has generated, as CSS text. Does not consume anything. */
     getCssText: () => string;
     /**
-     * The rules generated since the previous call, wrapped in a `<style>` element ready to
-     * stream into the document. Streaming SSR asks for this once per flush, so returning only
-     * what is new keeps each response carrying the stylesheet once rather than once per flush.
+     * Every rule so far, wrapped in a `<style>` element ready to stream into the document.
+     *
+     * Streaming SSR asks for this once per flush and each answer repeats what came before, so
+     * a response carries the stylesheet more than once. That redundancy is deliberate — see
+     * the note on `getStyleTag` in `createEasyblocksStitches`.
      */
     getStyleTag: () => React.ReactElement;
 };
