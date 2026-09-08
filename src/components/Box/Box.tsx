@@ -2,13 +2,29 @@ import React, { useMemo } from "react";
 import { getBoxStyles } from "../../compiler/box";
 import { Devices } from "../../types";
 
+/**
+ * Wrapped in `:where()` so the rule carries no specificity at all.
+ *
+ * Every Box gets this reset plus a class generated from its own styles, and both are single
+ * classes — equal specificity, so whichever the browser reads last wins. That is fine while
+ * they live in one stylesheet, and stops being fine the moment they do not: server-rendered
+ * CSS is streamed into the body, the browser's own instance writes into the head, and the
+ * head is read first. A component whose styles are generated only in the browser then loses
+ * every padding, margin and border to a reset that happens to sit further down the page.
+ *
+ * At zero specificity the reset always loses to the component rule and position stops
+ * mattering. It also now loses to a bare element selector, which is the intended trade: an
+ * author who writes `ul { padding-left: 2rem }` means it.
+ */
 const boxStyles = {
-  boxSizing: "border-box",
-  minWidth: "0px",
-  margin: 0,
-  padding: 0,
-  border: 0,
-  listStyle: "none",
+  ":where(&)": {
+    boxSizing: "border-box",
+    minWidth: "0px",
+    margin: 0,
+    padding: 0,
+    border: 0,
+    listStyle: "none",
+  },
 };
 
 type BoxProps = {
