@@ -18,7 +18,8 @@
  */
 export { Easyblocks, type ComponentOverrides, type EasyblocksProps, } from "./components/Easyblocks";
 export { LazyEasyblocks, type LazyEasyblocksProps, } from "./components/LazyEasyblocks";
-export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
+export { createEasyblocksStitches, easyblocksGetCssText, easyblocksGetStyleTag, } from "./components/ssr";
+export type { EasyblocksStitches } from "./components/ssr";
 export { EasyblocksMetadataProvider } from "./components/EasyblocksMetadataProvider";
 export { EasyblocksExternalDataProvider } from "./components/EasyblocksExternalDataProvider";
 //# sourceMappingURL=client.d.ts.map

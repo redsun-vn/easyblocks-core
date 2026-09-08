@@ -23,14 +23,20 @@ function getMetadataContext() {
 type EasyblocksMetadataProviderProps = {
   children: ReactNode;
   meta: CompilationMetadata;
+  /**
+   * Stitches instance to generate class names with. Supply one per render tree — see
+   * `createEasyblocksStitches` — so concurrent server renders cannot share a sheet. Without
+   * it the process-wide fallback is used, which is only safe when one tree exists at a time.
+   */
+  stitches?: any;
 };
 
 const EasyblocksMetadataProvider: React.FC<EasyblocksMetadataProviderProps> = ({
   meta,
   children,
+  stitches,
 }) => {
-  // Let's load stitches instance
-  if (easyblocksStitchesInstances.length === 0) {
+  if (!stitches && easyblocksStitchesInstances.length === 0) {
     easyblocksStitchesInstances.push(createStitches({}));
   }
 
@@ -40,7 +46,7 @@ const EasyblocksMetadataProvider: React.FC<EasyblocksMetadataProviderProps> = ({
     <MetadataContext.Provider
       value={{
         ...meta,
-        stitches: easyblocksStitchesInstances[0],
+        stitches: stitches ?? easyblocksStitchesInstances[0],
       }}
     >
       {children}
