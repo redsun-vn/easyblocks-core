@@ -28,6 +28,11 @@ export {
   LazyEasyblocks,
   type LazyEasyblocksProps,
 } from "./components/LazyEasyblocks";
-export { easyblocksGetCssText, easyblocksGetStyleTag } from "./components/ssr";
+export {
+  createEasyblocksStitches,
+  easyblocksGetCssText,
+  easyblocksGetStyleTag,
+} from "./components/ssr";
+export type { EasyblocksStitches } from "./components/ssr";
 export { EasyblocksMetadataProvider } from "./components/EasyblocksMetadataProvider";
 export { EasyblocksExternalDataProvider } from "./components/EasyblocksExternalDataProvider";

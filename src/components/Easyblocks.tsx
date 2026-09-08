@@ -22,6 +22,11 @@ export type EasyblocksProps = {
   components?: Record<string, React.ComponentType<any>>;
   componentOverrides?: ComponentOverrides;
   fonts?: ExtractedFont[];
+  /**
+   * Stitches instance owning this tree's generated CSS. Pass one from
+   * `createEasyblocksStitches` when rendering on a server, so requests do not share a sheet.
+   */
+  stitches?: any;
 };
 
 export type ComponentOverrides = Record<string, ReactElement>;
@@ -42,6 +47,7 @@ function Easyblocks({
   componentOverrides,
   components,
   fonts,
+  stitches,
 }: EasyblocksProps) {
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -75,7 +81,7 @@ function Easyblocks({
   }, [fonts]);
 
   return (
-    <EasyblocksMetadataProvider meta={renderableDocument.meta}>
+    <EasyblocksMetadataProvider meta={renderableDocument.meta} stitches={stitches}>
       <EasyblocksExternalDataProvider externalData={externalData ?? {}}>
         <ComponentBuilder
           compiled={renderableContent}

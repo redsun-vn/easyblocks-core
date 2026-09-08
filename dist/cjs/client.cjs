@@ -4,8 +4,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var LazyEasyblocks = require('./LazyEasyblocks-de7a9862.js');
-var ComponentBuilder = require('./ComponentBuilder-b73f0fd3.js');
+var LazyEasyblocks = require('./LazyEasyblocks-56b41312.js');
+var ComponentBuilder = require('./ComponentBuilder-f2a79698.js');
 require('@babel/runtime/helpers/extends');
 require('react');
 require('./findComponentDefinition-13d8e05b.js');
@@ -18,5 +18,6 @@ exports.Easyblocks = LazyEasyblocks.Easyblocks;
 exports.LazyEasyblocks = LazyEasyblocks.LazyEasyblocks;
 exports.EasyblocksExternalDataProvider = ComponentBuilder.EasyblocksExternalDataProvider;
 exports.EasyblocksMetadataProvider = ComponentBuilder.EasyblocksMetadataProvider;
+exports.createEasyblocksStitches = ComponentBuilder.createEasyblocksStitches;
 exports.easyblocksGetCssText = ComponentBuilder.easyblocksGetCssText;
 exports.easyblocksGetStyleTag = ComponentBuilder.easyblocksGetStyleTag;
