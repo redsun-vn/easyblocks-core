@@ -27,6 +27,103 @@ const boxStyles = {
   },
 };
 
+type BoxClassNames = {
+  boxClassName: string;
+  componentClassName: string;
+};
+
+/**
+ * Class names for one set of compiled styles, remembered per Stitches instance.
+ *
+ * A page repeats its styles far more than it varies them: the webino home page compiles
+ * 2,350 Box style objects out of 387 distinct ones. Every Box still paid full price for its
+ * own copy — a deep clone, a responsive pass and two Stitches registrations — because
+ * `useMemo` spans re-renders of a single element and a server render has none. Six of every
+ * seven of those calls were recomputing a result already known.
+ *
+ * `__hash` is a content hash of the styles, and the memo below already trusted it to say
+ * when two style objects are the same; this only widens that trust from one element to the
+ * whole tree. The cache hangs off the Stitches instance, so it is discarded with the request
+ * that owns it and can never reach another tenant, and off `devices`, which the responsive
+ * pass reads.
+ */
+const classNamesByStitches = new WeakMap<
+  object,
+  WeakMap<object, Map<string, BoxClassNames>>
+>();
+
+/** The reset is a module constant, so its class is generated once per Stitches instance. */
+const resetClassByStitches = new WeakMap<object, string>();
+
+function getResetClassName(stitches: any): string {
+  let className = resetClassByStitches.get(stitches);
+
+  if (className === undefined) {
+    className = stitches.css(boxStyles)() as string;
+    resetClassByStitches.set(stitches, className);
+  }
+
+  return className;
+}
+
+function buildClassNames(
+  stitches: any,
+  devices: Devices,
+  styles: Record<string, any>,
+): BoxClassNames {
+  /**
+   * Styles have to be owned by the current JS realm for Stitches/CSSOM: the editor renders
+   * its canvas in an iframe and passes objects across that boundary. `structuredClone` is
+   * faster than a JSON round trip and covers the same case; the round trip is there for
+   * browsers without it.
+   */
+  const cloned =
+    typeof structuredClone === "function"
+      ? structuredClone(styles)
+      : JSON.parse(JSON.stringify(styles));
+
+  return {
+    boxClassName: getResetClassName(stitches),
+    componentClassName: stitches.css(getBoxStyles(cloned, devices))() as string,
+  };
+}
+
+function getClassNames(
+  stitches: any,
+  devices: Devices,
+  styles: Record<string, any>,
+): BoxClassNames {
+  const hash = styles.__hash;
+
+  // Styles compiled without a hash cannot be told apart, so they are never cached.
+  if (typeof hash !== "string") {
+    return buildClassNames(stitches, devices, styles);
+  }
+
+  let byDevices = classNamesByStitches.get(stitches);
+
+  if (!byDevices) {
+    byDevices = new WeakMap();
+    classNamesByStitches.set(stitches, byDevices);
+  }
+
+  let byHash = byDevices.get(devices);
+
+  if (!byHash) {
+    byHash = new Map();
+    byDevices.set(devices, byHash);
+  }
+
+  let classNames = byHash.get(hash);
+
+  if (!classNames) {
+    classNames = buildClassNames(stitches, devices, styles);
+    byHash.set(hash, classNames);
+  }
+
+  return classNames;
+}
+
 type BoxProps = {
   __compiled: any;
   __name?: string;
@@ -53,27 +150,12 @@ const Box = React.forwardRef<HTMLElement, BoxProps>((props, ref) => {
 
   const { as, itemWrappers, className, ...restPassedProps } = realProps;
 
-  const { boxClassName, componentClassName } = useMemo(() => {
-    /**
-     * We need styles to be "owned" by the current JS realm for Stitches/CSSOM.
-     * structuredClone is faster than JSON.parse(JSON.stringify()) and handles
-     * the same cross-realm object issue. Fall back to JSON round-trip if
-     * structuredClone isn't available (older browsers).
-     */
-    const cloned =
-      typeof structuredClone === "function"
-        ? structuredClone(styles)
-        : JSON.parse(JSON.stringify(styles));
-    const correctedStyles = getBoxStyles(cloned, devices);
-
-    const generateBoxClass = stitches.css(boxStyles);
-    const generateClassName = stitches.css(correctedStyles);
-
-    return {
-      boxClassName: generateBoxClass(),
-      componentClassName: generateClassName(),
-    };
-  }, [styles.__hash]);
+  const { boxClassName, componentClassName } = useMemo(
+    () => getClassNames(stitches, devices, styles),
+    // `stitches` and `devices` join the hash because the class names are only valid for the
+    // instance that generated them and the devices they were compiled against.
+    [stitches, devices, styles.__hash],
+  );
 
   return React.createElement(
     as || __as || "div",
