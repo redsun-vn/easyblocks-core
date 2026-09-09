@@ -11,7 +11,7 @@ var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-2a9a02a5.js');
+var ComponentBuilder = require('./ComponentBuilder-1abaa8b3.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');

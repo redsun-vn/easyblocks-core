@@ -1,15 +1,22 @@
 /* with love from shopstory */
-import _extends from '@babel/runtime/helpers/extends';
-import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { b as cleanString, E as EasyblocksMetadataProvider, d as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './ComponentBuilder-0c8106d7.js';
+'use strict';
+
+var _extends = require('@babel/runtime/helpers/extends');
+var React = require('react');
+var ComponentBuilder = require('./ComponentBuilder-1abaa8b3.js');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
+var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
 function RichTextClient(props) {
   const {
     elements: Elements,
     Root
   } = props;
-  return /*#__PURE__*/React.createElement(Root.type, Root.props, Elements.map((Element, index) => {
-    return /*#__PURE__*/React.createElement(Element.type, _extends({}, Element.props, {
+  return /*#__PURE__*/React__default["default"].createElement(Root.type, Root.props, Elements.map((Element, index) => {
+    return /*#__PURE__*/React__default["default"].createElement(Element.type, _extends__default["default"]({}, Element.props, {
       key: index
     }));
   }));
@@ -23,22 +30,22 @@ function RichTextBlockElementClient(props) {
     NumberedList,
     Paragraph
   } = props;
-  const elements = Elements.map((Element, index) => /*#__PURE__*/React.createElement(Element.type, _extends({}, Element.props, {
+  const elements = Elements.map((Element, index) => /*#__PURE__*/React__default["default"].createElement(Element.type, _extends__default["default"]({}, Element.props, {
     key: index
   })));
   if (type === "paragraph") {
-    return /*#__PURE__*/React.createElement(Paragraph.type, Paragraph.props, elements);
+    return /*#__PURE__*/React__default["default"].createElement(Paragraph.type, Paragraph.props, elements);
   }
   if (type === "bulleted-list") {
-    return /*#__PURE__*/React.createElement(BulletedList.type, BulletedList.props, elements);
+    return /*#__PURE__*/React__default["default"].createElement(BulletedList.type, BulletedList.props, elements);
   }
   if (type === "numbered-list") {
-    return /*#__PURE__*/React.createElement(NumberedList.type, NumberedList.props, elements);
+    return /*#__PURE__*/React__default["default"].createElement(NumberedList.type, NumberedList.props, elements);
   }
   if (process.env.NODE_ENV === "development") {
     console.warn(`Unknown @easyblocks/rich-text-block-element type "${type}"`);
   }
-  return /*#__PURE__*/React.createElement("div", null, elements);
+  return /*#__PURE__*/React__default["default"].createElement("div", null, elements);
 }
 
 function RichTextLineElementClient(props) {
@@ -48,19 +55,19 @@ function RichTextLineElementClient(props) {
     ListItem,
     TextLine
   } = props;
-  const elements = Elements.map((Element, index) => /*#__PURE__*/React.createElement(Element.type, _extends({}, Element.props, {
+  const elements = Elements.map((Element, index) => /*#__PURE__*/React__default["default"].createElement(Element.type, _extends__default["default"]({}, Element.props, {
     key: index
   })));
   if (blockType === "paragraph") {
-    return /*#__PURE__*/React.createElement(TextLine.type, TextLine.props, elements);
+    return /*#__PURE__*/React__default["default"].createElement(TextLine.type, TextLine.props, elements);
   }
   if (blockType === "bulleted-list" || blockType === "numbered-list") {
-    return /*#__PURE__*/React.createElement(ListItem.type, ListItem.props, /*#__PURE__*/React.createElement("div", null, elements));
+    return /*#__PURE__*/React__default["default"].createElement(ListItem.type, ListItem.props, /*#__PURE__*/React__default["default"].createElement("div", null, elements));
   }
   if (process.env.NODE_ENV === "development") {
     console.warn(`Unknown @easyblocks/rich-text-line-element blockType "${blockType}"`);
   }
-  return /*#__PURE__*/React.createElement("div", null, elements);
+  return /*#__PURE__*/React__default["default"].createElement("div", null, elements);
 }
 
 function TextClient(props) {
@@ -70,19 +77,19 @@ function TextClient(props) {
   } = props;
 
   // We need to transform new lines into <br />
-  const lines = cleanString(value || "").split(/(?:\r\n|\r|\n)/g);
+  const lines = ComponentBuilder.cleanString(value || "").split(/(?:\r\n|\r|\n)/g);
   const elements = [];
   lines.forEach((line, index) => {
-    elements.push(/*#__PURE__*/React.createElement(React.Fragment, {
+    elements.push(/*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, {
       key: index
     }, line));
     if (index !== lines.length - 1) {
-      elements.push(/*#__PURE__*/React.createElement("br", {
+      elements.push(/*#__PURE__*/React__default["default"].createElement("br", {
         key: "br" + index
       }));
     }
   });
-  return /*#__PURE__*/React.createElement(Text.type, Text.props, elements);
+  return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, elements);
 }
 
 const defaultFontFamily = "Roboto";
@@ -442,13 +449,13 @@ function MissingComponent(_ref3) {
   } else if (isButton) {
     type = "BUTTON";
   }
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React__default["default"].createElement("div", {
     style: rootStyles
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React__default["default"].createElement("div", {
     style: ratioStyles({
       type
     })
-  }), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React__default["default"].createElement("div", {
     style: contentStyles({
       type,
       error
@@ -461,9 +468,9 @@ const builtinComponents = {
   "@easyblocks/rich-text.client": RichTextClient,
   "@easyblocks/rich-text-block-element": RichTextBlockElementClient,
   "@easyblocks/rich-text-line-element": RichTextLineElementClient,
-  "@easyblocks/rich-text-part": RichTextPartClient,
+  "@easyblocks/rich-text-part": ComponentBuilder.RichTextPartClient,
   "@easyblocks/text.client": TextClient,
-  "EditableComponentBuilder.client": ComponentBuilder
+  "EditableComponentBuilder.client": ComponentBuilder.ComponentBuilder
 };
 function Easyblocks(_ref) {
   let {
@@ -474,7 +481,7 @@ function Easyblocks(_ref) {
     fonts,
     stitches
   } = _ref;
-  useEffect(() => {
+  React.useEffect(() => {
     document.documentElement.style.setProperty("--shopstory-viewport-width", `calc(100vw - ${window.innerWidth - document.documentElement.clientWidth}px)`);
   });
   const renderableContent = renderableDocument.renderableContent;
@@ -488,7 +495,7 @@ function Easyblocks(_ref) {
       renderableContent.components[componentProp] = [componentOverride];
     });
   }
-  useEffect(() => {
+  React.useEffect(() => {
     if (fonts?.length) {
       loadGoogleFonts({
         fonts
@@ -497,12 +504,12 @@ function Easyblocks(_ref) {
       });
     }
   }, [fonts]);
-  return /*#__PURE__*/React.createElement(EasyblocksMetadataProvider, {
+  return /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.EasyblocksMetadataProvider, {
     meta: renderableDocument.meta,
     stitches: stitches
-  }, /*#__PURE__*/React.createElement(EasyblocksExternalDataProvider, {
+  }, /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.EasyblocksExternalDataProvider, {
     externalData: externalData ?? {}
-  }, /*#__PURE__*/React.createElement(ComponentBuilder, {
+  }, /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.ComponentBuilder, {
     compiled: renderableContent,
     path: "",
     components: {
@@ -591,13 +598,13 @@ function LazyEasyblocks(_ref) {
   const resolvedSlot = slot ?? autoDetectSlot(renderableContent?.components);
   const children = renderableContent && resolvedSlot ? renderableContent.components[resolvedSlot] : undefined;
   const total = children?.length ?? 0;
-  const [visibleCount, setVisibleCount] = useState(() => Math.min(initialCount, total));
+  const [visibleCount, setVisibleCount] = React.useState(() => Math.min(initialCount, total));
   const hasMore = visibleCount < total;
-  const sentinelRef = useRef(null);
+  const sentinelRef = React.useRef(null);
 
   // Reset visible count when the document, slot, or initial count changes so a
   // new document does not inherit the previous scroll position.
-  useEffect(() => {
+  React.useEffect(() => {
     setVisibleCount(Math.min(initialCount, total));
   }, [renderableDocument, resolvedSlot, initialCount, total]);
 
@@ -607,7 +614,7 @@ function LazyEasyblocks(_ref) {
   // view (short items / tall viewport), the next batch loads immediately and
   // loops until the viewport is filled — IntersectionObserver otherwise only
   // fires on threshold *crossings*, so a stationary sentinel would stall.
-  useEffect(() => {
+  React.useEffect(() => {
     if (!hasMore || typeof IntersectionObserver === "undefined") {
       return;
     }
@@ -632,19 +639,19 @@ function LazyEasyblocks(_ref) {
 
   // Build a sliced document that reuses child references. Falls back to the
   // original document when there is no non-empty collection to lazy-mount.
-  const slicedDocument = useMemo(() => buildSlicedDocument(renderableDocument, resolvedSlot, visibleCount), [renderableDocument, resolvedSlot, visibleCount]);
+  const slicedDocument = React.useMemo(() => buildSlicedDocument(renderableDocument, resolvedSlot, visibleCount), [renderableDocument, resolvedSlot, visibleCount]);
 
   // No collection to lazy-mount: behave exactly like a plain <Easyblocks />
   // (including its `componentOverrides` mutation behavior — the clone-based
   // protection only applies when there is a slot to slice).
   if (total === 0) {
-    return /*#__PURE__*/React.createElement(Easyblocks, _extends({}, easyblocksProps, {
+    return /*#__PURE__*/React__default["default"].createElement(Easyblocks, _extends__default["default"]({}, easyblocksProps, {
       renderableDocument: renderableDocument
     }));
   }
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Easyblocks, _extends({}, easyblocksProps, {
+  return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, /*#__PURE__*/React__default["default"].createElement(Easyblocks, _extends__default["default"]({}, easyblocksProps, {
     renderableDocument: slicedDocument
-  })), hasMore ? /*#__PURE__*/React.createElement("div", {
+  })), hasMore ? /*#__PURE__*/React__default["default"].createElement("div", {
     ref: sentinelRef,
     "aria-hidden": "true",
     style: {
@@ -653,4 +660,15 @@ function LazyEasyblocks(_ref) {
   }) : null);
 }
 
-export { Easyblocks as E, LazyEasyblocks as L, defaultFontSize as a, defaultFontWeight as b, defaultLineHeight as c, defaultFontFamily as d, getFontSizes as e, fontFamilies as f, getFontFamilies as g, getFontWeights as h, getLineHeights as i, loadGoogleFonts as l };
+exports.Easyblocks = Easyblocks;
+exports.LazyEasyblocks = LazyEasyblocks;
+exports.defaultFontFamily = defaultFontFamily;
+exports.defaultFontSize = defaultFontSize;
+exports.defaultFontWeight = defaultFontWeight;
+exports.defaultLineHeight = defaultLineHeight;
+exports.fontFamilies = fontFamilies;
+exports.getFontFamilies = getFontFamilies;
+exports.getFontSizes = getFontSizes;
+exports.getFontWeights = getFontWeights;
+exports.getLineHeights = getLineHeights;
+exports.loadGoogleFonts = loadGoogleFonts;

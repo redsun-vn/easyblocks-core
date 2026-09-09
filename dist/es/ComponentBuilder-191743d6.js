@@ -303,8 +303,11 @@ const boxStyles = {
     listStyle: "none"
   }
 };
+
+/** What one render tree has generated so far: the shared reset, and a class set per style. */
+
 /**
- * Class names for one set of compiled styles, remembered per Stitches instance.
+ * Class names for one set of compiled styles, remembered for the length of a render tree.
  *
  * A page repeats its styles far more than it varies them: the webino home page compiles
  * 2,350 Box style objects out of 387 distinct ones. Every Box still paid full price for its
@@ -314,23 +317,21 @@ const boxStyles = {
  *
  * `__hash` is a content hash of the styles, and the memo below already trusted it to say
  * when two style objects are the same; this only widens that trust from one element to the
- * whole tree. The cache hangs off the Stitches instance, so it is discarded with the request
- * that owns it and can never reach another tenant, and off `devices`, which the responsive
- * pass reads.
+ * whole tree.
+ *
+ * **A cached class name is only worth anything while its rule is still in the sheet**, and
+ * the sheet does not live as long as the Stitches instance does. `createStitches` is
+ * memoised on the JSON of its config, so every `createEasyblocksStitches()` call hands back
+ * the same instance and empties its sheet on the way — a cache tied to the instance therefore
+ * outlives the very rules it is naming, and hands out a class whose CSS was thrown away.
+ *
+ * `devices` is what gives the entry the right lifetime: it arrives with the compiled document
+ * and is a new object per render tree, so an entry is reachable exactly as long as the sheet
+ * it was written into. Keying on the instance as well keeps one tenant's entries away from
+ * another's.
  */
 const classNamesByStitches = new WeakMap();
-
-/** The reset is a module constant, so its class is generated once per Stitches instance. */
-const resetClassByStitches = new WeakMap();
-function getResetClassName(stitches) {
-  let className = resetClassByStitches.get(stitches);
-  if (className === undefined) {
-    className = stitches.css(boxStyles)();
-    resetClassByStitches.set(stitches, className);
-  }
-  return className;
-}
-function buildClassNames(stitches, devices, styles) {
+function buildComponentClassName(stitches, devices, styles) {
   /**
    * Styles have to be owned by the current JS realm for Stitches/CSSOM: the editor renders
    * its canvas in an iframe and passes objects across that boundary. `structuredClone` is
@@ -338,32 +339,44 @@ function buildClassNames(stitches, devices, styles) {
    * browsers without it.
    */
   const cloned = typeof structuredClone === "function" ? structuredClone(styles) : JSON.parse(JSON.stringify(styles));
-  return {
-    boxClassName: getResetClassName(stitches),
-    componentClassName: stitches.css(getBoxStyles(cloned, devices))()
-  };
+  return stitches.css(getBoxStyles(cloned, devices))();
 }
-function getClassNames(stitches, devices, styles) {
-  const hash = styles.__hash;
-
-  // Styles compiled without a hash cannot be told apart, so they are never cached.
-  if (typeof hash !== "string") {
-    return buildClassNames(stitches, devices, styles);
-  }
+function getCache(stitches, devices) {
   let byDevices = classNamesByStitches.get(stitches);
   if (!byDevices) {
     byDevices = new WeakMap();
     classNamesByStitches.set(stitches, byDevices);
   }
-  let byHash = byDevices.get(devices);
-  if (!byHash) {
-    byHash = new Map();
-    byDevices.set(devices, byHash);
+  let cache = byDevices.get(devices);
+  if (!cache) {
+    // Registered here rather than per element, and re-registered for each render tree,
+    // because the sheet this writes into is emptied between trees.
+    cache = {
+      resetClassName: stitches.css(boxStyles)(),
+      byHash: new Map()
+    };
+    byDevices.set(devices, cache);
   }
-  let classNames = byHash.get(hash);
+  return cache;
+}
+function getClassNames(stitches, devices, styles) {
+  const cache = getCache(stitches, devices);
+  const hash = styles.__hash;
+
+  // Styles compiled without a hash cannot be told apart, so they are never cached.
+  if (typeof hash !== "string") {
+    return {
+      boxClassName: cache.resetClassName,
+      componentClassName: buildComponentClassName(stitches, devices, styles)
+    };
+  }
+  let classNames = cache.byHash.get(hash);
   if (!classNames) {
-    classNames = buildClassNames(stitches, devices, styles);
-    byHash.set(hash, classNames);
+    classNames = {
+      boxClassName: cache.resetClassName,
+      componentClassName: buildComponentClassName(stitches, devices, styles)
+    };
+    cache.byHash.set(hash, classNames);
   }
   return classNames;
 }

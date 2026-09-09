@@ -139,6 +139,34 @@ describe("Box class generation", () => {
     expect(second.getCssCalls()).toBe(2);
   });
 
+  it("re-registers the reset for each render tree, since the sheet is emptied between them", () => {
+    // The condition this reproduces is the real one, and the reason the first version of this
+    // cache shipped broken. `createEasyblocksStitches()` hands back the same Stitches instance
+    // every time and empties its sheet on the way, while each render tree brings a fresh
+    // `devices` object with its compiled document. A reset cached against the instance alone
+    // survived that emptying: every Box kept the class in its markup and the rule naming it
+    // was gone from the CSS, so the whole page lost box-sizing, margin, padding and border.
+    const { stitches, getCssCalls } = countingStitches();
+    const render = (devicesForTree: Devices) =>
+      renderToString(
+        <Box
+          __compiled={compiled("shared", "12px")}
+          devices={devicesForTree}
+          stitches={stitches}
+        />,
+      );
+
+    render([...devices]);
+    expect(getCssCalls()).toBe(2); // the reset, and the styles
+
+    stitches.reset();
+    render([...devices]);
+
+    // Four, not three: the second tree registers the reset again rather than handing out a
+    // class name whose rule the reset above discarded.
+    expect(getCssCalls()).toBe(4);
+  });
+
   it("names identical styles identically across instances, so hydration matches", () => {
     // The server and the browser each build their own instance. Class names are derived from
     // the styles, not the instance, which is the only reason the markup one produces can be
