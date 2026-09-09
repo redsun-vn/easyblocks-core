@@ -10,6 +10,7 @@ import { renderToString } from "react-dom/server";
 import { Devices } from "../../types";
 import { createStitches } from "@stitches/core";
 import { Box } from "./Box";
+import { startBoxClassNameScope } from "./box-class-names";
 
 const devices: Devices = [
   { id: "xs", w: 375, h: 667, breakpoint: 568 },
@@ -139,31 +140,32 @@ describe("Box class generation", () => {
     expect(second.getCssCalls()).toBe(2);
   });
 
-  it("re-registers the reset for each render tree, since the sheet is emptied between them", () => {
+  it("puts the reset back for each render tree, since the sheet is emptied between them", () => {
     // The condition this reproduces is the real one, and the reason the first version of this
     // cache shipped broken. `createEasyblocksStitches()` hands back the same Stitches instance
-    // every time and empties its sheet on the way, while each render tree brings a fresh
-    // `devices` object with its compiled document. A reset cached against the instance alone
-    // survived that emptying: every Box kept the class in its markup and the rule naming it
-    // was gone from the CSS, so the whole page lost box-sizing, margin, padding and border.
+    // every time and empties its sheet on the way. A cache that survived that emptying kept
+    // handing every Box the reset class while the rule defining it was gone from the CSS, so
+    // the served page lost box-sizing, margin, padding and border on every Box.
     const { stitches, getCssCalls } = countingStitches();
-    const render = (devicesForTree: Devices) =>
+    const render = () =>
       renderToString(
         <Box
           __compiled={compiled("shared", "12px")}
-          devices={devicesForTree}
+          devices={devices}
           stitches={stitches}
         />,
       );
 
-    render([...devices]);
+    render();
     expect(getCssCalls()).toBe(2); // the reset, and the styles
-
+    // What `createEasyblocksStitches` does at the start of the next tree.
     stitches.reset();
-    render([...devices]);
+    startBoxClassNameScope(stitches);
+    render();
 
-    // Four, not three: the second tree registers the reset again rather than handing out a
-    // class name whose rule the reset above discarded.
+    // Four, not three: the second tree registers the reset again rather than naming a rule
+    // the emptying above discarded. Counted rather than read back out of the sheet, because
+    // `getCssText` stops answering once `reset` has been called on the instance by hand.
     expect(getCssCalls()).toBe(4);
   });
 
