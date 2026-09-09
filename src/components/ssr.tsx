@@ -10,8 +10,8 @@ export type EasyblocksStitches = {
    * Every rule so far, wrapped in a `<style>` element ready to stream into the document.
    *
    * Streaming SSR asks for this once per flush and each answer repeats what came before, so
-   * a response carries the stylesheet more than once. That redundancy is deliberate — see
-   * the note on `getStyleTag` in `createEasyblocksStitches`.
+   * a caller that returns it unchanged ships the whole stylesheet once per flush. See the
+   * note on `getStyleTag` in `createEasyblocksStitches` for what to return instead.
    */
   getStyleTag: () => React.ReactElement;
 };
@@ -19,12 +19,22 @@ export type EasyblocksStitches = {
 /**
  * A Stitches instance plus the helpers to serialise what it has collected.
  *
- * Create one per render tree — `useState(() => createEasyblocksStitches())` — and pass it to
- * `<Easyblocks stitches={...} />`. On a server that means one per request, which is the
- * point: a Stitches sheet only ever grows, so a shared one would serve every request the
- * accumulated CSS of every request before it, across tenants, for the lifetime of the
- * process. Owning it per tree also makes `getCssText` exact — it returns this page's rules
- * and nothing else.
+ * Call it once per render tree — `useState(() => createEasyblocksStitches())` — and pass the
+ * result to `<Easyblocks stitches={...} />`.
+ *
+ * Be aware of what that does and does not buy, because it is less than it looks. Stitches
+ * memoises `createStitches` on the JSON of its config, so every call here with the same empty
+ * config answers with the same object: two calls in one process are one instance and one
+ * sheet, and on a server without a `document` that sheet is shared further still. A response
+ * therefore carries whatever the process has generated since it started, across tenants, not
+ * this page's rules alone — which is most of why the emitted `<style>` is as large as it is.
+ *
+ * Nothing here is wrong on screen: class names are derived from the styles rather than from
+ * the instance, so a shared sheet names everything exactly as a private one would and a
+ * browser instance still agrees with the server's markup at hydration. What it costs is
+ * weight. Giving a call its own instance takes a config that serialises differently, and that
+ * trades the growing sheet for a memo entry per call that is never released, so it is not a
+ * fix to apply casually. `Box.test.tsx` pins the naming behaviour this all rests on.
  */
 export function createEasyblocksStitches(): EasyblocksStitches {
   // Typed loosely on purpose: `sheet` is part of the runtime surface but not the published
@@ -34,16 +44,22 @@ export function createEasyblocksStitches(): EasyblocksStitches {
   const getCssText = () => stitches.getCssText();
 
   /**
-   * Deliberately cumulative: every flush repeats the rules the earlier ones already carried.
+   * Cumulative: the sheet is never drained, so this answers with every rule generated so far.
    *
-   * Emptying the sheet between flushes would be smaller, and is wrong. `Box` gives every
-   * element a shared reset class alongside its own generated one, and the reset only works
-   * because it is inserted first. Drain the sheet and the next element re-inserts that reset
-   * *after* the component rules already streamed — same specificity, later wins, and every
-   * padding, margin and border those rules set is silently flattened to the reset's zero.
+   * Draining it between flushes is the mistake to avoid. Stitches re-inserts a rule it no
+   * longer knows about, so the shared `Box` reset would reappear in a later tag, after the
+   * component rules that already streamed.
    *
-   * Repeating the rules keeps each tag internally ordered, so the reset stays ahead of what
-   * overrides it no matter which tag the browser reads last.
+   * That used to decide the cascade, and no longer does: the reset is wrapped in `:where()`
+   * and carries no specificity, so a component rule wins wherever either one sits. What is
+   * left is pure weight — a streaming caller that returns this on every flush ships the whole
+   * sheet each time, measured at twenty copies of 113 KB in one document.
+   *
+   * A caller streaming this into a response should therefore remember what it has already
+   * sent and return only the rest: identical text means send nothing, and text that extends
+   * what was sent means send the extension. Keep the fallback for text that does not extend
+   * it — the sheet groups rules by layer, so a rule landing in an earlier group rewrites the
+   * middle of the string, and sending the whole sheet again is the only safe answer there.
    */
   const getStyleTag = () => (
     <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
