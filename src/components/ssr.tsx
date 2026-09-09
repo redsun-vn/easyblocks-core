@@ -1,5 +1,6 @@
 import { createStitches } from "@stitches/core";
 import React from "react";
+import { startBoxClassNameScope } from "./Box/box-class-names";
 
 export type EasyblocksStitches = {
   /** The raw Stitches instance handed to `Box` for class generation. */
@@ -40,6 +41,11 @@ export function createEasyblocksStitches(): EasyblocksStitches {
   // Typed loosely on purpose: `sheet` is part of the runtime surface but not the published
   // types, and `Box` already receives this instance as `any`.
   const stitches: any = createStitches({});
+
+  // Creating the instance empties its sheet, so whatever `Box` generated for the previous
+  // tree is gone. Its cache of class names has to go with it, or Boxes will keep being
+  // handed names for rules that are no longer there.
+  startBoxClassNameScope(stitches);
 
   const getCssText = () => stitches.getCssText();
 
