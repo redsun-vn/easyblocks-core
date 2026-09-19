@@ -182,12 +182,20 @@ function getCompiledSubcomponents(
   ) {
     const type = getComponentMainType(schemaProp.accepts);
 
+    // Opt-in only. Slots that do not set the flag pass `accepts` as undefined,
+    // which keeps the placeholder on its original single-type drop check.
+    const strictAccepts = (schemaProp as ComponentSchemaProp)
+      .placeholderStrictAccepts
+      ? schemaProp.accepts
+      : undefined;
+
     elements = [
       <Placeholder
         key="placeholder"
         id={id}
         path={path}
         type={type}
+        accepts={strictAccepts}
         appearance={(schemaProp as ComponentSchemaProp).placeholderAppearance}
         onClick={() => {
           function handleComponentPickerCloseMessage(

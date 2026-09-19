@@ -102,6 +102,13 @@ export type ComponentSchemaProp = SchemaPropShared<"component"> & {
     required?: boolean;
     noInline?: boolean;
     placeholderAppearance?: PlaceholderAppearance;
+    /**
+     * Opt-in. When true, the empty-slot placeholder accepts a dragged component
+     * whose type matches ANY entry of `accepts`, instead of matching the single
+     * type that `accepts` collapses to. Slots that leave this unset keep the
+     * collapsed-type behaviour byte for byte.
+     */
+    placeholderStrictAccepts?: boolean;
     tab?: TTabSchemaProp;
 };
 export type ComponentCollectionSchemaProp = SchemaPropShared<"component-collection"> & {
@@ -112,6 +119,10 @@ export type ComponentCollectionSchemaProp = SchemaPropShared<"component-collecti
     passFields?: PassedField[];
     noInline?: boolean;
     placeholderAppearance?: PlaceholderAppearance;
+    /**
+     * Opt-in. See `ComponentSchemaProp.placeholderStrictAccepts`.
+     */
+    placeholderStrictAccepts?: boolean;
     tab?: TTabSchemaProp;
 };
 export type ComponentCollectionLocalisedSchemaProp = Omit<ComponentCollectionSchemaProp, "type"> & {

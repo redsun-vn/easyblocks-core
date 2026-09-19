@@ -668,11 +668,16 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
   // We don't want to show add button for this type
   schemaProp.type !== "component-collection-localised") {
     const type = getComponentMainType(schemaProp.accepts);
+
+    // Opt-in only. Slots that do not set the flag pass `accepts` as undefined,
+    // which keeps the placeholder on its original single-type drop check.
+    const strictAccepts = schemaProp.placeholderStrictAccepts ? schemaProp.accepts : undefined;
     elements = [/*#__PURE__*/React.createElement(Placeholder, {
       key: "placeholder",
       id: id,
       path: path,
       type: type,
+      accepts: strictAccepts,
       appearance: schemaProp.placeholderAppearance,
       onClick: () => {
         function handleComponentPickerCloseMessage(event) {

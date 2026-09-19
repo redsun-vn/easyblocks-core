@@ -4,8 +4,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var LazyEasyblocks = require('./LazyEasyblocks-d764437d.js');
-var ComponentBuilder = require('./ComponentBuilder-14d137ad.js');
+var LazyEasyblocks = require('./LazyEasyblocks-58718b74.js');
+var ComponentBuilder = require('./ComponentBuilder-0aad994d.js');
 require('@babel/runtime/helpers/extends');
 require('react');
 require('./findComponentDefinition-13d8e05b.js');
