@@ -471,6 +471,15 @@ export type Config = {
     globalSections?: IThemeConfig["globalSections"];
     onGlobalSectionChange?: (payload: TGlobalSectionChange) => Promise<void>;
     types?: Record<string, CustomTypeDefinition>;
+    /**
+     * The order the editor lists component categories in.
+     *
+     * Sorting by name is the default, and it sorts the raw `group` strings, which
+     * are English. An app whose editor speaks another language gets an order that
+     * means nothing to the person reading it, so it can state the order it wants
+     * instead. A category missing from the list sorts after the ones named here.
+     */
+    categoryOrder?: string[];
     disableCustomTemplates?: boolean;
     hideCloseButton?: boolean;
     templates?: Template[];
@@ -535,6 +544,12 @@ export type ComponentDefinitionShared<Identifier extends string = string> = {
     type?: string | string[];
     schema: SchemaProp[];
     thumbnail?: string;
+    /**
+     * What the picker writes in place of the thumbnail when there is no picture.
+     * Declared here because the picker reads it off the template it builds from a
+     * definition, and that template can only carry what the definition declares.
+     */
+    thumbnailLabel?: string;
     change?: NoCodeComponentChangeFunction;
     icon?: "link" | "grid_3x3";
     preview?: (input: {
