@@ -105,8 +105,19 @@ export function useTextValue(
     setLocalInputValue(valueFromProps);
   }, [valueFromProps]);
 
+  // Dimmed means "this text belongs to another locale". It has to be decided
+  // by whether this locale has its own text, not by whether the string happens
+  // to match the fallback: with no fallback to follow, `getFallbackForLocale`
+  // hands back the first translation there is, which on the default locale is
+  // the very value being shown. Every field of a single-locale document was
+  // greyed out, and greyed out is how this editor says a value is not really
+  // there.
+  const hasOwnValue = isExternal
+    ? typeof value.value?.[locale] === "string"
+    : value !== undefined && value !== null;
+
   const style: any = {
-    opacity: localInputValue === fallbackValue ? 0.5 : 1,
+    opacity: !hasOwnValue && localInputValue === fallbackValue ? 0.5 : 1,
   };
 
   return {
