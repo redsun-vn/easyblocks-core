@@ -220,6 +220,16 @@ export type TokenTypeWidgetComponentProps<Type extends NonNullish = NonNullish> 
 export type Widget = {
     id: string;
     label: string;
+    /**
+     * Put the control under its label instead of beside it.
+     *
+     * The panel is a narrow column, and a field laid out in a row gives its
+     * control only what is left after the label — enough for a dropdown or a
+     * short input, and not enough for a textarea or a grid of pictures, which
+     * arrive squeezed into a strip. A widget that needs the full width says so
+     * here; leaving it out keeps the row layout every existing field has.
+     */
+    fullWidth?: boolean;
 };
 export type ExternalDefinition = {
     widgets: Array<Widget>;
