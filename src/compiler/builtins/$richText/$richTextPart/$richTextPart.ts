@@ -33,6 +33,15 @@ const editing: RichTextEditingFunction = ({
     editorContext.form
   );
 
+  // Every field below borrows a path from an ancestor. With no ancestor to
+  // borrow from, the part shows only its own fields — fewer controls in the
+  // panel, rather than an editor with nothing in it.
+  if (richTextPath === undefined || richTextBlockPath === undefined) {
+    return {
+      fields: editingInfo.fields,
+    };
+  }
+
   resultFields.push(
     {
       type: "fields",

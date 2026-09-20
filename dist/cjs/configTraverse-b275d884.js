@@ -1,7 +1,13 @@
 /* with love from shopstory */
-import { xxHash32 } from 'js-xxhash';
-import { i as isTrulyResponsiveValue, u as isSchemaPropComponentOrComponentCollection, v as findComponentDefinitionById, w as entries, x as isSchemaPropComponent, y as isSchemaPropCollection, a as isComponentConfig, s as isExternalSchemaProp, z as isSchemaPropComponentCollectionLocalised, A as findComponentDefinition, B as isSchemaPropActionTextModifier, C as isSchemaPropTextModifier, D as compileBox, E as toArray, q as responsiveValueMap, F as findComponentDefinitionsByType, f as isLocalValue } from './findComponentDefinition-2b190cc9.js';
-import valueParser from 'postcss-value-parser';
+'use strict';
+
+var jsXxhash = require('js-xxhash');
+var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
+var valueParser = require('postcss-value-parser');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var valueParser__default = /*#__PURE__*/_interopDefaultLegacy(valueParser);
 
 function bubbleDown(matcher, items) {
   const originalOrder = [];
@@ -129,13 +135,13 @@ function raiseError(errorMessage) {
 }
 
 function responsiveValueGet(value, deviceId) {
-  if (isTrulyResponsiveValue(value)) {
+  if (findComponentDefinition.isTrulyResponsiveValue(value)) {
     return value[deviceId];
   }
   return value;
 }
 function responsiveValueForceGet(value, deviceId) {
-  if (isTrulyResponsiveValue(value)) {
+  if (findComponentDefinition.isTrulyResponsiveValue(value)) {
     if (value[deviceId] === undefined) {
       // const error = `You called responsiveValueForceGet with value ${JSON.stringify(
       //   value,
@@ -179,7 +185,7 @@ function getDeviceWidthPairsFromDevices(devices) {
 }
 
 function responsiveValueFill(value, devices, widths) {
-  if (!isTrulyResponsiveValue(value)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(value)) {
     return value;
   }
   const componentWidths = getDeviceWidthPairs(widths, devices);
@@ -212,7 +218,15 @@ function responsiveValueFill(value, devices, widths) {
         }
       }
       if (result[deviceId] === undefined) {
-        throw new Error("Can't fill");
+        // Nothing defined at any width, so there is nothing to borrow. That
+        // means a component's `auto` function returned an empty responsive
+        // value, or one keyed only to a device this config no longer has —
+        // both of which depend on the values in a saved document, so a throw
+        // here blanked the page for one combination of them.
+        //
+        // Leaving the breakpoint undefined is what the property would have
+        // been without the `auto` function at all.
+        console.warn(`easyblocks: a responsive value had nothing defined at any breakpoint, so "${deviceId}" is left unset`);
       }
     }
   });
@@ -285,7 +299,7 @@ function responsiveValueGetFirstLowerValue(value, breakpoint, devices, widths) {
   return value[lowerDefinedDevice.id];
 }
 function responsiveValueGetDefinedValue(value, breakpoint, devices, widths) {
-  if (!isTrulyResponsiveValue(value)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(value)) {
     return value;
   }
   const definedDevice = responsiveValueFindDeviceWithDefinedValue(value, breakpoint, devices, widths);
@@ -353,14 +367,23 @@ function responsiveValueGetHighestDefinedDevice(input, devices) {
     }
   }
   if (highestDefinedDevice === undefined) {
-    throw new Error("highest defined value doesn't exist");
+    // A responsive value with nothing defined at any width. It reaches here
+    // from the output of a component's `auto` function and from params a
+    // parent's `styles` passes down, both of which follow document data, so a
+    // throw took the page out for one saved combination of values.
+    //
+    // The widest device is the honest answer to "which is the highest", and
+    // the caller goes on to read `undefined` from it — the same as it would
+    // have read for a property nobody set.
+    console.warn("easyblocks: a responsive value had nothing defined at any breakpoint; treating the widest as the highest");
+    return devices[devices.length - 1];
   }
   return highestDefinedDevice;
 }
 
 // Flattens recursively (max 2 levels)
 function responsiveValueFlatten(resVal, devices) {
-  if (!isTrulyResponsiveValue(resVal)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(resVal)) {
     return resVal;
   }
   const result = {
@@ -376,7 +399,7 @@ function responsiveValueFlatten(resVal, devices) {
   const maxBreakpoint = devices[devices.length - 1].id;
 
   // Important condition. Sometimes if b5 is missing, b3 can be responsive and have b5 inside. Then b5 is defined.
-  if (!resValCopy[maxBreakpoint] && isTrulyResponsiveValue(resValCopy[maxDeviceInValue.id])) {
+  if (!resValCopy[maxBreakpoint] && findComponentDefinition.isTrulyResponsiveValue(resValCopy[maxDeviceInValue.id])) {
     activeNestedValue = resValCopy[maxDeviceInValue.id];
   }
   for (let i = devices.length - 1; i >= 0; i--) {
@@ -388,7 +411,7 @@ function responsiveValueFlatten(resVal, devices) {
         result[breakpoint] = responsiveValueGetDefinedValue(activeNestedValue, breakpoint, devices, getDevicesWidths(devices) /** FOR NOW TOKENS ARE ALWAYS RELATIVE TO SCREEN WIDTH */);
       }
       continue;
-    } else if (!isTrulyResponsiveValue(value)) {
+    } else if (!findComponentDefinition.isTrulyResponsiveValue(value)) {
       activeNestedValue = undefined;
       result[breakpoint] = value;
     } else {
@@ -413,7 +436,7 @@ function responsiveValueAt(responsiveValue, breakpointIndex) {
 }
 
 function responsiveValueNormalize(arg, devices) {
-  if (!isTrulyResponsiveValue(arg)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(arg)) {
     return arg;
   }
   let previousVal = undefined;
@@ -476,12 +499,28 @@ class CompilationCache {
   }
 }
 
+/**
+ * The locale marked default, or the first one when none is.
+ *
+ * `locales` is shop data, not a developer constant, so a shop whose languages
+ * carry no default flag is a configuration a real tenant can end up in. This
+ * used to throw, and it is reached from the fallback lookup for every
+ * untranslated text on a page — so one unflagged language list blanked the
+ * published site and the editor together.
+ *
+ * The first language is the answer a person would give.
+ */
 function getDefaultLocale(locales) {
   const defaultLocale = locales.find(locale => locale.isDefault);
-  if (!defaultLocale) {
-    throw new Error("No default locale found");
+  if (defaultLocale) {
+    return defaultLocale;
   }
-  return defaultLocale;
+  if (locales.length === 0) {
+    // No languages at all is a setup mistake, and there is nothing to return.
+    throw new Error("getDefaultLocale: the list of locales is empty");
+  }
+  console.warn(`easyblocks: no locale is marked as default; using "${locales[0].code}"`);
+  return locales[0];
 }
 function getFallbackLocaleForLocale(locale, locales) {
   do {
@@ -638,7 +677,7 @@ function buildRichTextPartComponentConfig(_ref5) {
 }
 
 function applyAutoUsingResponsiveTokens(input, compilationContext) {
-  if (!isTrulyResponsiveValue(input)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(input)) {
     return input;
   }
   const highestDefinedDevice = responsiveValueGetHighestDefinedDevice(input, compilationContext.devices);
@@ -649,7 +688,7 @@ function applyAutoUsingResponsiveTokens(input, compilationContext) {
   for (let i = compilationContext.devices.length - 1; i >= 0; i--) {
     const device = compilationContext.devices[i];
     const value = responsiveValueGet(input, device.id);
-    if (value === undefined && isTrulyResponsiveValue(highestDefinedValue.value)) {
+    if (value === undefined && findComponentDefinition.isTrulyResponsiveValue(highestDefinedValue.value)) {
       inputAfterAuto[device.id] = highestDefinedValue;
     }
     if (value !== undefined) {
@@ -672,7 +711,7 @@ function compileFromSchema(value, schemaProp, compilationContext, cache, context
 function compileComponentValues(inputValues, componentDefinition, compilationContext, cache) {
   const values = {};
   componentDefinition.schema.forEach(schemaProp => {
-    if (!isSchemaPropComponentOrComponentCollection(schemaProp)) {
+    if (!findComponentDefinition.isSchemaPropComponentOrComponentCollection(schemaProp)) {
       values[schemaProp.prop] = compileFromSchema(inputValues[schemaProp.prop], schemaProp, compilationContext, cache);
     }
   });
@@ -728,11 +767,23 @@ function parsePath(path, form) {
   }
   return pathInfo;
 }
+
+/**
+ * The path of the nearest ancestor of that type, or `undefined` when the tree
+ * does not hold one.
+ *
+ * It answers rather than throwing because the caller is the `editing` function
+ * of a rich-text part, which runs inside the editor's render. A part that has
+ * somehow ended up outside its rich-text tree — after a paste, an undo, or a
+ * document edited by hand — used to empty the whole canvas, and an author with
+ * an empty canvas has no way to undo whatever put them there.
+ */
 function findPathOfFirstAncestorOfType(path, templateId, form) {
   while (true) {
     const parseResult = parsePath(path, form);
     if (!parseResult.parent) {
-      throw new Error(`couldn't find ancestor of type ${templateId}`);
+      console.warn(`easyblocks: no ancestor of type ${templateId} above "${path}"`);
+      return undefined;
     }
     if (parseResult.parent.templateId === templateId) {
       return parseResult.parent.path;
@@ -803,6 +854,15 @@ const editing$1 = _ref => {
   const resultFields = [];
   const richTextPath = findPathOfFirstAncestorOfType(pathPrefix, "@easyblocks/rich-text", editorContext.form);
   const richTextBlockPath = findPathOfFirstAncestorOfType(pathPrefix, "@easyblocks/rich-text-block-element", editorContext.form);
+
+  // Every field below borrows a path from an ancestor. With no ancestor to
+  // borrow from, the part shows only its own fields — fewer controls in the
+  // panel, rather than an editor with nothing in it.
+  if (richTextPath === undefined || richTextBlockPath === undefined) {
+    return {
+      fields: editingInfo.fields
+    };
+  }
   resultFields.push({
     type: "fields",
     path: richTextPath,
@@ -898,7 +958,7 @@ function getMostCommonValueFromRichTextParts(richTextComponentConfig, prop, comp
       return lineElement.elements;
     });
   });
-  const richTextPartComponentDefinition = findComponentDefinitionById(richTextPartEditableComponent.id, compilationContext);
+  const richTextPartComponentDefinition = findComponentDefinition.findComponentDefinitionById(richTextPartEditableComponent.id, compilationContext);
   const deviceIdToRichTextPartValuesGroupedByPropValue = Object.fromEntries(compilationContext.devices.map(device => {
     const richTextPartsCompiledPropValues = richTextParts.flatMap(richTextPart => {
       return mapRichTextPartToCompiledPropValue(richTextPart, richTextPartComponentDefinition, compilationContext, prop, cache);
@@ -917,7 +977,7 @@ function getMostCommonValueFromRichTextParts(richTextComponentConfig, prop, comp
   };
 }
 function getCompiledValueFromEntryWithMaxTotalValueLength(entry) {
-  const compiledPropValue = entries(entry[1]).reduce((maxEntry, currentEntry) => currentEntry[1] > maxEntry[1] ? currentEntry : maxEntry)[0];
+  const compiledPropValue = findComponentDefinition.entries(entry[1]).reduce((maxEntry, currentEntry) => currentEntry[1] > maxEntry[1] ? currentEntry : maxEntry)[0];
   try {
     return JSON.parse(compiledPropValue);
   } catch {
@@ -4492,12 +4552,12 @@ function calculateAllViewportValues(ast, map) {
 function reduceCSSCalc(value) {
   let precision = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
   let map = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  return valueParser(value).walk(node => {
+  return valueParser__default["default"](value).walk(node => {
     // skip anything which isn't a calc() function
     if (node.type !== "function" || !MATCH_CALC.test(node.value)) return;
 
     // stringify calc expression and produce an AST
-    const contents = valueParser.stringify(node.nodes);
+    const contents = valueParser__default["default"].stringify(node.nodes);
 
     // skip constant() and env()
     if (contents.indexOf("constant") >= 0 || contents.indexOf("env") >= 0) return;
@@ -4513,39 +4573,61 @@ function reduceCSSCalc(value) {
   }, true).toString();
 }
 
+/**
+ * A spacing as a number and a unit, or `null` when the string is not one.
+ *
+ * It answers with `null` rather than throwing because of where it is called
+ * from. Every caller is on the path that compiles a saved document: the
+ * built-in `space` type's validator, the theme's own space tokens, and
+ * `linearizeSpace` for every spacing prop on the page. A throw there does not
+ * reject one value — it takes down the whole build, which is a blank page on
+ * the published site and an editor canvas that empties and does not come back.
+ *
+ * And the values reaching it are typed by hand: the spacing field in the
+ * sidebar is a free-text input, so `1rem`, `5%`, `2em`, `auto` and a bare `10`
+ * all arrive here without anybody having made a mistake beyond knowing some
+ * CSS.
+ */
 function parseSpacing(spacing) {
-  if (spacing.endsWith("px")) {
-    const value = parseFloat(spacing);
-    if (isNaN(value)) {
-      throw new Error(`incorrect spacing: ${spacing}`);
+  for (const unit of ["px", "vw"]) {
+    if (spacing.endsWith(unit)) {
+      const value = parseFloat(spacing);
+      return isNaN(value) ? null : {
+        unit,
+        value
+      };
     }
-    return {
-      unit: "px",
-      value
-    };
   }
-  if (spacing.endsWith("vw")) {
-    const value = parseFloat(spacing);
-    if (isNaN(value)) {
-      throw new Error(`incorrect spacing: ${spacing}`);
-    }
-    return {
-      unit: "vw",
-      value
-    };
-  }
-  throw new Error(`incorrect spacing: ${spacing}.`);
+  return null;
 }
+
+/**
+ * A spacing in pixels, or `0` when it cannot be worked out.
+ *
+ * Zero because this is exported and components do arithmetic with the result —
+ * a column gap, a card width, an edge margin. Zero is the neutral value there:
+ * the layout is wrong in a way somebody can see and report, rather than absent.
+ *
+ * `reduceCSSCalc` throws on an expression it cannot parse, so the call is
+ * wrapped: it is third-party code reached with values a shop owner typed.
+ */
 function spacingToPx(spacing, width) {
-  const reducedSpacing = reduceCSSCalc(`calc(${spacing})` /* wrapping calc is necessary, otherwise max(10px,20px) doesn't work */, 5, {
-    vw: width,
-    percent: width
-  });
+  let reducedSpacing;
+  try {
+    reducedSpacing = reduceCSSCalc(`calc(${spacing})` /* wrapping calc is necessary, otherwise max(10px,20px) doesn't work */, 5, {
+      vw: width,
+      percent: width
+    });
+  } catch {
+    console.warn(`easyblocks: could not read the spacing "${spacing}", using 0`);
+    return 0;
+  }
   const parsed = parseSpacing(reducedSpacing);
-  if (parsed.unit === "px") {
+  if (parsed?.unit === "px") {
     return parsed.value;
   }
-  throw new Error(`Error while running spacingToPx for spacing: ${spacing} and width: ${width}`);
+  console.warn(`easyblocks: could not turn the spacing "${spacing}" into pixels at width ${width}, using 0`);
+  return 0;
 }
 
 function areWidthsFullyDefined(widths, devices) {
@@ -4560,7 +4642,7 @@ function areWidthsFullyDefined(widths, devices) {
 
 function linearizeSpace(input, compilationContext, widths) {
   let constant = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-  if (!isTrulyResponsiveValue(input)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(input)) {
     return input;
   }
 
@@ -4592,7 +4674,7 @@ function linearizeSpace(input, compilationContext, widths) {
       return;
     }
     const refValue = responsiveValueGetDefinedValue(inputAfterResponsiveTokenAuto, device.id, compilationContext.devices, getDevicesWidths(compilationContext.devices));
-    if (isTrulyResponsiveValue(refValue.value)) {
+    if (findComponentDefinition.isTrulyResponsiveValue(refValue.value)) {
       inputWithScalarNonRefValues[device.id] = spacingToPx(responsiveValueGetDefinedValue(refValue.value, device.id, compilationContext.devices, getDevicesWidths(compilationContext.devices)), device.w);
     } else {
       inputWithScalarNonRefValues[device.id] = spacingToPx(refValue.value, device.w);
@@ -4616,12 +4698,16 @@ function snapValueToToken(value, lowerDefinedValue, higherDefinedValue, spaces, 
   let minDelta = Number.MAX_VALUE;
   for (const tokenId in spaces) {
     const tokenValue = spaces[tokenId].value;
-    if (isTrulyResponsiveValue(tokenValue)) {
+    if (findComponentDefinition.isTrulyResponsiveValue(tokenValue)) {
       // only non-responsive
       continue;
     }
     const parsedValue = parseSpacing(tokenValue);
-    if (parsedValue.unit === "vw") {
+
+    // A token nobody can read is no candidate, the same as a vw one. Skipping
+    // it leaves the rest of the scale to choose from; throwing would have lost
+    // the page over one bad entry in the shop's theme.
+    if (!parsedValue || parsedValue.unit === "vw") {
       continue;
     }
     const tokenPxValue = parsedValue.value;
@@ -4670,7 +4756,7 @@ function snapValueToToken(value, lowerDefinedValue, higherDefinedValue, spaces, 
 }
 function linearizeSpaceWithoutNesting(input, compilationContext, widths) {
   let constant = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-  if (!isTrulyResponsiveValue(input)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(input)) {
     return input;
   }
 
@@ -4813,7 +4899,27 @@ function squashCSSResults(scalarValues, devices, disableNesting) {
 
   // Only one flag can be > 0!!! Otherwise breakpoints return incompatible types
   if (objectsNum > 0 && (noObjectsNum > 0 || arraysNum > 0) || arraysNum > 0 && (noObjectsNum > 0 || objectsNum > 0) || noObjectsNum > 0 && (arraysNum > 0 || objectsNum > 0)) {
-    throw new Error("This shouldn't happen. Mismatched types for different breakpoints!!!");
+    // A `styles` function that returns an object at one breakpoint and a plain
+    // value at another. It used to take the whole page down — published site
+    // and editor canvas together — for a component whose own branch happened
+    // to produce different shapes for one particular saved value.
+    //
+    // The shape used by the most breakpoints wins and the odd ones out are
+    // dropped, so the block loses a property at some widths instead of the
+    // page losing everything. The warning names the shapes, because this is a
+    // mistake in a component that somebody has to go and fix.
+    const winner = arraysNum >= objectsNum && arraysNum >= noObjectsNum ? "array" : objectsNum >= noObjectsNum ? "object" : "scalar";
+    console.error(`easyblocks: a styles function returned different shapes at different breakpoints (${arraysNum} array, ${objectsNum} object, ${noObjectsNum} plain); keeping the ${winner} ones`);
+    for (const breakpointName in scalarValues) {
+      const val = scalarValues[breakpointName];
+      const kind = Array.isArray(val) && !disableNesting ? "array" : typeof val === "object" && val !== null && !Array.isArray(val) && !disableNesting ? "object" : "scalar";
+      if (kind !== winner) {
+        scalarValues[breakpointName] = undefined;
+      }
+    }
+    arraysNum = winner === "array" ? arraysNum : 0;
+    objectsNum = winner === "object" ? objectsNum : 0;
+    noObjectsNum = winner === "scalar" ? noObjectsNum : 0;
   }
   if (arraysNum > 0) {
     let biggestArrayLength = 0;
@@ -4988,12 +5094,12 @@ function scalarizeConfig(config, breakpoint, devices, schema) {
     // If schemaProp is defined, it means "own prop". Otherwise it must be a context prop (they're not "typed" yet and we don't have any information what types of context props we have)
     if (schemaProp) {
       // subcomponents don't get scalarized
-      if (isSchemaPropComponent(schemaProp)) {
+      if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
         ret[prop] = config[prop];
       }
       // component collection should have item props scalarized. We know the types of item props!
       // component collection localised is already dealing with value that is NON-LOCALISED (it was flattened earlier)
-      else if (isSchemaPropCollection(schemaProp)) {
+      else if (findComponentDefinition.isSchemaPropCollection(schemaProp)) {
         ret[prop] = scalarizeCollection(config[prop], breakpoint, devices, schemaProp.itemFields || []);
       } else {
         ret[prop] = scalarizeNonComponentProp(config[prop], breakpoint, schemaProp);
@@ -5017,6 +5123,47 @@ function getUndefinedBreakpoints(resVal, devices) {
 function hasDefinedBreakpoints(resVal, devices) {
   const undefinedBreakpoints = getUndefinedBreakpoints(resVal, devices);
   return undefinedBreakpoints.length < devices.length;
+}
+
+/**
+ * Give every breakpoint a value, borrowing from the nearest one that has one.
+ *
+ * A `styles` function that answers at some widths and not others — the common
+ * shape being `device.id === "xs" ? {...} : undefined` — used to throw, and a
+ * throw here loses the entire page rather than one property. Borrowing is what
+ * a responsive value means everywhere else in this engine, so it is also the
+ * least surprising answer: the property simply carries across the widths the
+ * component forgot to answer for.
+ *
+ * Returns whether anything had to be borrowed, so the caller can say so.
+ */
+function fillUndefinedBreakpoints(resVal, devices) {
+  const missing = getUndefinedBreakpoints(resVal, devices);
+  if (missing.length === 0) {
+    return false;
+  }
+  let nearest = undefined;
+
+  // Downwards first, so a value set at a wide breakpoint reaches the narrow
+  // ones below it — the direction this engine already fills in.
+  devices.forEach(device => {
+    if (resVal[device.id] === undefined) {
+      resVal[device.id] = nearest;
+    } else {
+      nearest = resVal[device.id];
+    }
+  });
+
+  // Anything still missing sat above every defined value, so it borrows upwards.
+  nearest = undefined;
+  [...devices].reverse().forEach(device => {
+    if (resVal[device.id] === undefined) {
+      resVal[device.id] = nearest;
+    } else {
+      nearest = resVal[device.id];
+    }
+  });
+  return true;
 }
 function resop2(input, callback, devices, componentDefinition) {
   const schema = componentDefinition?.schema ?? [];
@@ -5046,10 +5193,10 @@ function resop2(input, callback, devices, componentDefinition) {
 
   // Let's add keys
   schema.forEach(schemaProp => {
-    if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropComponentOrComponentCollection(schemaProp)) {
       componentPropNames[schemaProp.prop] = new Set();
     }
-    if (isSchemaPropCollection(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropCollection(schemaProp)) {
       componentItemPropsNamesAndLength[schemaProp.prop] = {
         lengths: new Set(),
         names: new Set()
@@ -5062,7 +5209,13 @@ function resop2(input, callback, devices, componentDefinition) {
     // prop names
     const propsObject = scalarOutputs[device.id].props ?? {};
     if (typeof propsObject !== "object" || propsObject === null) {
-      throw new Error(`__props must be object, it is not for breakpoint: ${device.id}`);
+      // A styles function returning the wrong shape is a mistake in one
+      // component. Everything below used to throw, which meant that mistake
+      // blanked the whole page it happened to sit on, published site and
+      // editor canvas alike. The block now loses the offending piece and the
+      // rest of the page still renders, with a message naming what to fix.
+      console.error(`easyblocks: __props must be an object; ignoring it for breakpoint ${device.id}. Template: ${componentDefinition?.id}`);
+      return;
     }
     for (const propName in propsObject) {
       propNames.add(propName);
@@ -5070,10 +5223,11 @@ function resop2(input, callback, devices, componentDefinition) {
 
     // component prop names
     schema.forEach(schemaProp => {
-      if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
+      if (findComponentDefinition.isSchemaPropComponentOrComponentCollection(schemaProp)) {
         const componentObject = scalarOutputs[device.id].components?.[schemaProp.prop] ?? {};
         if (typeof componentObject !== "object" || componentObject === null) {
-          throw new Error(`resop error: component must be undefined or an object, it is not for device ${device.id} and prop ${schemaProp.prop}. Template: ${componentDefinition?.id}`);
+          console.error(`easyblocks: components.${schemaProp.prop} must be undefined or an object; ignoring it for breakpoint ${device.id}. Template: ${componentDefinition?.id}`);
+          return;
         }
         for (const key in componentObject) {
           if (key === "itemProps") {
@@ -5081,14 +5235,16 @@ function resop2(input, callback, devices, componentDefinition) {
           }
           componentPropNames[schemaProp.prop].add(key);
         }
-        if (isSchemaPropCollection(schemaProp)) {
-          const itemPropsArray = componentObject.itemProps ?? [];
-          if (!Array.isArray(itemPropsArray)) {
-            throw new Error(`resop error: item props must be undefined or an array (${schemaProp.prop}). Template: ${componentDefinition?.id}`);
+        if (findComponentDefinition.isSchemaPropCollection(schemaProp)) {
+          const rawItemProps = componentObject.itemProps ?? [];
+          const itemPropsArray = Array.isArray(rawItemProps) ? rawItemProps : [];
+          if (!Array.isArray(rawItemProps)) {
+            console.error(`easyblocks: itemProps for ${schemaProp.prop} must be undefined or an array; treating it as empty. Template: ${componentDefinition?.id}`);
           }
           itemPropsArray.forEach((itemObject, index) => {
             if (typeof itemObject !== "object" || itemObject === null) {
-              throw new Error(`resop error: item in itemProps array must be object (${schemaProp.prop}.itemProps.${index}). Template: ${componentDefinition?.id}`);
+              console.error(`easyblocks: itemProps.${index} of ${schemaProp.prop} must be an object; ignoring it. Template: ${componentDefinition?.id}`);
+              return;
             }
             for (const key in itemObject) {
               componentItemPropsNamesAndLength[schemaProp.prop].names.add(key);
@@ -5100,21 +5256,36 @@ function resop2(input, callback, devices, componentDefinition) {
     });
   });
 
-  // Let's verify array lengths
+  // Let's settle on one array length per component.
+  //
+  // Both mismatches below used to throw, and both are reachable from ordinary
+  // document data: a styles function that sizes `itemProps` from a layout
+  // prop rather than from the collection, next to a saved page where the
+  // author has since added or removed a child. Nothing in the engine keeps
+  // those two numbers in step, so the page died over a disagreement it could
+  // simply settle.
   for (const componentName in componentItemPropsNamesAndLength) {
     const lengths = componentItemPropsNamesAndLength[componentName].lengths;
     if (lengths.size > 1) {
-      throw new Error(`resop: incompatible item props arrays length for component: ${componentName}. Template: ${componentDefinition?.id}`);
+      console.error(`easyblocks: itemProps for ${componentName} came back at different lengths across breakpoints (${Array.from(lengths).join(", ")}); using the longest. Template: ${componentDefinition?.id}`);
     }
-    const length = Array.from(lengths)[0];
+    let length = Math.max(0, ...Array.from(lengths));
 
-    // If non-zero length, then there are extra requirements
+    // The number of children actually in the document wins: an itemProps entry
+    // with no child to apply to does nothing, and a child with no entry simply
+    // takes the styles it would have had anyway.
+    //
+    // An empty collection keeps its single placeholder entry, which is what the
+    // engine has always allowed and what the editor's drop target is built on.
     if (length > 0) {
-      const itemsLength = input.values[componentName].length;
-      if (itemsLength === 0 ? length > 1 : itemsLength !== length) {
-        throw new Error(`resop: item props arrays length incompatible with items length for component: ${componentName}. Template: ${componentDefinition?.id}`);
+      const itemsLength = input.values[componentName]?.length ?? 0;
+      const allowed = itemsLength === 0 ? Math.min(length, 1) : itemsLength;
+      if (allowed !== length) {
+        console.error(`easyblocks: ${componentName} has ${itemsLength} item(s) but its styles returned ${length} itemProps; using ${allowed}. Template: ${componentDefinition?.id}`);
+        length = allowed;
       }
     }
+    componentItemPropsNamesAndLength[componentName].lengths = new Set([length]);
   }
 
   // Let's compress
@@ -5133,9 +5304,8 @@ function resop2(input, callback, devices, componentDefinition) {
       squashedValue[device.id] = scalarOutputs[device.id]?.props?.[propName];
     });
     if (hasDefinedBreakpoints(squashedValue, devices)) {
-      const undefinedBreakpoints = getUndefinedBreakpoints(squashedValue, devices);
-      if (undefinedBreakpoints.length > 0) {
-        throw new Error(`resop: undefined value (breakpoints: ${undefinedBreakpoints}) for __props.${propName}. Template: ${componentDefinition?.id}`);
+      if (fillUndefinedBreakpoints(squashedValue, devices)) {
+        console.error(`easyblocks: __props.${propName} was missing at some breakpoints; borrowed from the nearest one. Template: ${componentDefinition?.id}`);
       }
       output.props[propName] = responsiveValueNormalize(squashedValue, devices); // props should be normalized
     }
@@ -5152,9 +5322,8 @@ function resop2(input, callback, devices, componentDefinition) {
         squashedValue[device.id] = scalarOutputs[device.id].components?.[componentName]?.[componentPropName];
       });
       if (hasDefinedBreakpoints(squashedValue, devices)) {
-        const undefinedBreakpoints = getUndefinedBreakpoints(squashedValue, devices);
-        if (undefinedBreakpoints.length > 0) {
-          throw new Error(`resop: undefined value (breakpoints ${undefinedBreakpoints}) for ${componentName}.${componentPropName}. Template: ${componentDefinition?.id}`);
+        if (fillUndefinedBreakpoints(squashedValue, devices)) {
+          console.error(`easyblocks: ${componentName}.${componentPropName} was missing at some breakpoints; borrowed from the nearest one. Template: ${componentDefinition?.id}`);
         }
         output.components[componentName][componentPropName] = squashedValue;
       }
@@ -5175,9 +5344,8 @@ function resop2(input, callback, devices, componentDefinition) {
           squashedValue[device.id] = scalarOutputs[device.id].components?.[componentName]?.itemProps?.[i]?.[itemPropName];
         });
         if (hasDefinedBreakpoints(squashedValue, devices)) {
-          const undefinedBreakpoints = getUndefinedBreakpoints(squashedValue, devices);
-          if (undefinedBreakpoints.length > 0) {
-            throw new Error(`resop: undefined value (breakpoints ${undefinedBreakpoints}) for ${componentName}.${i}.${itemPropName}. Template: ${componentDefinition?.id}`);
+          if (fillUndefinedBreakpoints(squashedValue, devices)) {
+            console.error(`easyblocks: ${componentName}.${i}.${itemPropName} was missing at some breakpoints; borrowed from the nearest one. Template: ${componentDefinition?.id}`);
           }
           output.components[componentName].itemProps[i][itemPropName] = squashedValue;
         }
@@ -5341,7 +5509,20 @@ const tinaFieldProviders = {
       return tinaFieldProviders.external(schemaProp, editorContext, value);
     }
     if (customTypeDefinition.type === "token") {
-      let tokens = assertDefined(editorContext.theme[customTypeDefinition.token], `Missing token values within the Easyblocks config for "${customTypeDefinition.token}"`);
+      // An empty scale rather than a fatal one. `theme` is seeded only with the
+      // token groups a shop's own config declares, so a page holding a block
+      // whose field uses `boxShadow` or `aspectRatio` — groups nothing seeds —
+      // used to empty the editor. Which fields get built depends on which
+      // blocks are on the page, so the trigger is the document.
+      //
+      // With no scale the field offers no presets and still takes a typed
+      // value, which is the field a shop that has not defined that scale
+      // should have had all along.
+      let tokens = editorContext.theme[customTypeDefinition.token];
+      if (!tokens) {
+        console.warn(`easyblocks: this config defines no "${customTypeDefinition.token}" tokens, so the field offers no presets`);
+        tokens = {};
+      }
       if ("params" in schemaProp && schemaProp.params && "prefix" in schemaProp.params && typeof schemaProp.params.prefix === "string") {
         // Copy tokens to prevent mutating original tokens
         tokens = {
@@ -5413,7 +5594,7 @@ function compileComponent(editableElement, compilationContext, contextProps,
 // contextProps are already compiled! They're result of compilation function.
 meta, cache, parentComponentEditingInfo) {
   let configPrefix = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : "";
-  if (!isComponentConfig(editableElement)) {
+  if (!findComponentDefinition.isComponentConfig(editableElement)) {
     console.error("[compile] wrong input for compileComponent", editableElement);
     throw new Error("[compile] wrong input for compileComponent");
   }
@@ -5421,9 +5602,9 @@ meta, cache, parentComponentEditingInfo) {
     throw new Error(`assertion failed: incorrect $width in compileComponent: ${contextProps.$width}, component: ${editableElement._id}, ${editableElement._component}`);
   }
   const cachedResult = cache.get(editableElement._id);
-  let componentDefinition = findComponentDefinitionById(editableElement._component, compilationContext);
+  let componentDefinition = findComponentDefinition.findComponentDefinitionById(editableElement._component, compilationContext);
   if (!componentDefinition) {
-    componentDefinition = assertDefined(findComponentDefinitionById("@easyblocks/missing-component", compilationContext));
+    componentDefinition = assertDefined(findComponentDefinition.findComponentDefinitionById("@easyblocks/missing-component", compilationContext));
     const error = `Easyblocks can’t find definition for component "${editableElement._component}" in your config. Please contact your developers to resolve this issue.`;
     editableElement = {
       _component: componentDefinition.id,
@@ -5679,7 +5860,7 @@ meta, cache, parentComponentEditingInfo) {
       if ("buildOnly" in schemaProp && schemaProp.buildOnly) {
         return;
       }
-      if (isExternalSchemaProp(schemaProp, compilationContext.types) || schemaProp.type === "text") {
+      if (findComponentDefinition.isExternalSchemaProp(schemaProp, compilationContext.types) || schemaProp.type === "text") {
         // We simply copy ONLY the breakpoints which are defined in the raw data
         compiled.props[schemaProp.prop] = Object.fromEntries(Object.keys(editableElement[schemaProp.prop]).map(deviceId => {
           return [deviceId, compiledValues[schemaProp.prop][deviceId]];
@@ -5808,18 +5989,18 @@ function createOwnComponentProps(_ref4) {
   } = _ref4;
   // Copy all values and refs defined in schema, for component fields copy only _id, _component and its _itemProps but flattened
   const values = Object.fromEntries(componentDefinition.schema.map(schemaProp => {
-    if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropComponentOrComponentCollection(schemaProp)) {
       let configValue = config[schemaProp.prop];
       if (configValue.length === 0) {
         return [schemaProp.prop, []];
       }
-      if (isSchemaPropComponent(schemaProp)) {
+      if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
         return [schemaProp.prop, [{
           _id: configValue[0]._id,
           _component: configValue[0]._component
         }]];
       }
-      if (isSchemaPropComponentCollectionLocalised(schemaProp)) {
+      if (findComponentDefinition.isSchemaPropComponentCollectionLocalised(schemaProp)) {
         configValue = resolveLocalisedValue$1(config[schemaProp.prop], compilationContext)?.value ?? [];
       }
       const configValuesWithFlattenedItemProps = configValue.map(config => {
@@ -5866,7 +6047,7 @@ function addComponentToSerializedComponentDefinitions(component, meta, component
   if (definitions.find(def => def.id === component._component)) {
     return;
   }
-  const internalDefinition = findComponentDefinition(component, compilationContext);
+  const internalDefinition = findComponentDefinition.findComponentDefinition(component, compilationContext);
   const newDef = {
     id: internalDefinition.id,
     label: internalDefinition.label,
@@ -5881,11 +6062,11 @@ function addComponentToSerializedComponentDefinitions(component, meta, component
 function compileSubcomponents(editableElement, contextProps, subcomponentsContextProps, compilationContext, meta, editingInfoComponents, configPrefix, compiledComponentConfig, configAfterAuto,
 // null means that we don't want auto
 cache) {
-  const componentDefinition = findComponentDefinition(editableElement, compilationContext);
+  const componentDefinition = findComponentDefinition.findComponentDefinition(editableElement, compilationContext);
   componentDefinition.schema.forEach(schemaProp => {
-    if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropComponentOrComponentCollection(schemaProp)) {
       // Currently these are processed outside of compileSubcomponents
-      if (isSchemaPropActionTextModifier(schemaProp) || isSchemaPropTextModifier(schemaProp)) {
+      if (findComponentDefinition.isSchemaPropActionTextModifier(schemaProp) || findComponentDefinition.isSchemaPropTextModifier(schemaProp)) {
         return;
       }
       const childContextProps = subcomponentsContextProps[schemaProp.prop] || {};
@@ -5900,10 +6081,13 @@ cache) {
           value = editableElement[schemaProp.prop];
         } else {
           const resolvedValue = resolveLocalisedValue$1(editableElement[schemaProp.prop], compilationContext);
-          if (!resolvedValue) {
-            throw new Error(`Can't resolve localised value for prop "${schemaProp.prop}" of component ${editableElement._component}`);
-          }
-          value = resolvedValue?.value;
+
+          // Empty rather than fatal, which is what the `compile` branch of this
+          // same schema prop already does (`definitions.ts`, `?? []`). This was
+          // the one place in the pair that did not: a collection saved under a
+          // locale that later stopped being the default, on a page whose new
+          // default has no entry and no fallback, took the whole page with it.
+          value = resolvedValue?.value ?? [];
         }
         value?.forEach((_, index) => {
           childContextProps.itemProps[index] = childContextProps.itemProps[index] ?? {};
@@ -5961,9 +6145,9 @@ function calculateWidths(compilationContext, contextProps) {
   };
 }
 function itemFieldsForEach(config, compilationContext, callback) {
-  const componentDefinition = findComponentDefinition(config, compilationContext);
+  const componentDefinition = findComponentDefinition.findComponentDefinition(config, compilationContext);
   componentDefinition.schema.forEach(schemaProp => {
-    if (isSchemaPropCollection(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropCollection(schemaProp)) {
       const itemFields = schemaProp.itemFields;
       let path = schemaProp.prop;
       if (schemaProp.type === "component-collection-localised") {
@@ -6025,7 +6209,7 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
   const schema = [...definition.schema];
   let defaultFields = schema
   // Right now, component-collection schema prop isn't shown in the sidebar
-  .filter(schemaProp => !isSchemaPropCollection(schemaProp)).filter(schemaProp => {
+  .filter(schemaProp => !findComponentDefinition.isSchemaPropCollection(schemaProp)).filter(schemaProp => {
     if (compiledValues.noTrace && schemaProp.prop.startsWith("trace")) {
       return false;
     }
@@ -6039,7 +6223,7 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
   const pathInfo = parsePath(configPrefix, editorContext.form);
   const parentInfo = pathInfo.parent;
   if (parentInfo) {
-    const parentDefinition = findComponentDefinitionById(parentInfo.templateId, editorContext);
+    const parentDefinition = findComponentDefinition.findComponentDefinitionById(parentInfo.templateId, editorContext);
     if (!parentDefinition) {
       throw new Error(`Can't find parent definition: ${parentInfo.templateId}`);
     }
@@ -6072,7 +6256,7 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
     };
     defaultFields.unshift(headerField);
   } else {
-    const rootComponentDefinition = assertDefined(findComponentDefinitionById(dotNotationGet(editorContext.form.values, "")._component, editorContext));
+    const rootComponentDefinition = assertDefined(findComponentDefinition.findComponentDefinitionById(dotNotationGet(editorContext.form.values, "")._component, editorContext));
     const headerSchemaProp = {
       prop: "$myself",
       label: "Component type",
@@ -6097,13 +6281,13 @@ function buildDefaultEditingInfo(definition, configPrefix, editorContext, compil
     components: {}
   };
   definition.schema.forEach(schemaProp => {
-    if (isSchemaPropCollection(schemaProp)) {
+    if (findComponentDefinition.isSchemaPropCollection(schemaProp)) {
       editingInfo.components[schemaProp.prop] = {
         items: (scalarizedConfig[schemaProp.prop] ?? []).map((x, index) => ({
           fields: (schemaProp.itemFields ?? []).map(itemSchemaProp => getDefaultFieldDefinition(itemSchemaProp, `${configPrefix}${configPrefix === "" ? "" : "."}${schemaProp.prop}.${index}._itemProps.${definition.id}.${schemaProp.prop}`, definition, editorContext, scalarizedConfig))
         }))
       };
-    } else if (isSchemaPropComponent(schemaProp)) {
+    } else if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
       editingInfo.components[schemaProp.prop] = {
         fields: []
       };
@@ -6150,7 +6334,7 @@ function compileRichTextValuesFromRichTextParts(richTextConfig, compilationConte
   };
 }
 function mapResponsiveFontToResponsiveFontSize(responsiveFontValue) {
-  return Object.fromEntries(entries(responsiveFontValue).map(_ref5 => {
+  return Object.fromEntries(findComponentDefinition.entries(responsiveFontValue).map(_ref5 => {
     let [breakpoint, fontValue] = _ref5;
     if (breakpoint === "$res") {
       return [breakpoint, fontValue];
@@ -6162,7 +6346,7 @@ function addStylesHash(styles) {
   if ("__hash" in styles) {
     delete styles["__hash"];
   }
-  const hash = xxHash32(JSON.stringify(styles));
+  const hash = jsXxhash.xxHash32(JSON.stringify(styles));
   styles.__hash = hash.toString();
   return styles;
 }
@@ -6171,7 +6355,7 @@ function compileBoxes(value, compilationContext) {
     return value.map(x => compileBoxes(x, compilationContext));
   } else if (typeof value === "object" && value !== null) {
     if (value.__isBox) {
-      return addStylesHash(compileBox(value, compilationContext.devices));
+      return addStylesHash(findComponentDefinition.compileBox(value, compilationContext.devices));
     }
     const ret = {};
     for (const key in value) {
@@ -6186,7 +6370,7 @@ function getDefaultFieldDefinition(schemaProp, configPrefix, definition, editorC
     ...schemaProp,
     definition
   }, editorContext, compiledValues[schemaProp.prop]);
-  let visible = !isSchemaPropComponentOrComponentCollection(schemaProp);
+  let visible = !findComponentDefinition.isSchemaPropComponentOrComponentCollection(schemaProp);
   if (typeof schemaProp.visible === "boolean") {
     visible = schemaProp.visible;
   } else if (typeof schemaProp.visible === "function") {
@@ -6337,7 +6521,7 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
     const isAbsolutePath = isFieldPathAbsolutePath(field, editorContext);
     if (isAbsolutePath) {
       if (field.type === "fields") {
-        const groups = field.filters?.group ? toArray(field.filters.group) : undefined;
+        const groups = field.filters?.group ? findComponentDefinition.toArray(field.filters.group) : undefined;
         return {
           portal: "component",
           source: field.path,
@@ -6362,9 +6546,9 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
       const pathFragments = field.path.split(".");
       const isPathToComponentField = pathFragments.length > 1;
       if (isPathToComponentField) {
-        const componentSchemaProp = componentDefinition.schema.find(isSchemaPropComponentOrComponentCollection);
+        const componentSchemaProp = componentDefinition.schema.find(findComponentDefinition.isSchemaPropComponentOrComponentCollection);
         if (componentSchemaProp) {
-          if (isSchemaPropCollection(componentSchemaProp)) {
+          if (findComponentDefinition.isSchemaPropCollection(componentSchemaProp)) {
             const itemField = componentSchemaProp.itemFields?.find(f => f.prop === pathFragments.at(-1));
             if (itemField) {
               const componentItemIndex = +pathFragments[1];
@@ -6406,7 +6590,7 @@ function convertEditingFieldToInternalEditingField(field, internalEditingInfo, c
       portal: "component",
       source: absoluteFieldPath,
       ...(field.filters?.group !== undefined && {
-        groups: toArray(field.filters.group)
+        groups: findComponentDefinition.toArray(field.filters.group)
       })
     };
   }
@@ -6464,7 +6648,29 @@ const textProvider = (schemaProp, compilationContext) => {
       if (checkIfValid(x)) {
         return x;
       }
-      throw new Error(`incorrect text type: ${x}`);
+
+      // Anything else is wrapped as a local text rather than thrown away with
+      // the page around it.
+      //
+      // `normalize` runs for every prop of every component before anything is
+      // rendered, so a throw here is a blank page — published site and editor
+      // canvas alike. And the shapes that land here are old ones this very
+      // file still remembers: a bare string from when `text` was stored that
+      // way (see the `typeof value === "string"` branch in `getHash` below), a
+      // prop a developer switched from `string` to `text` after pages had been
+      // saved, or a local text whose `value` is a string instead of a map of
+      // locales.
+      //
+      // Wrapping keeps the words the shop wrote and shows them. Throwing lost
+      // the whole page over one of them.
+      console.warn(`easyblocks: a text value was stored in an older shape and has been converted; prop "${schemaProp.prop}"`);
+      return {
+        id: "local." + uniqueId(),
+        value: {
+          [compilationContext.contextParams.locale]: typeof x === "string" ? x : typeof x?.value === "string" ? x.value : schemaProp.defaultValue ?? ""
+        },
+        widgetId: "@easyblocks/local-text"
+      };
     },
     compile: x => {
       if ("value" in x) {
@@ -6523,7 +6729,7 @@ const schemaPropDefinitions = {
       normalize,
       compile: x => x,
       getHash: (value, breakpointIndex) => {
-        if (isTrulyResponsiveValue(value)) {
+        if (findComponentDefinition.isTrulyResponsiveValue(value)) {
           return responsiveValueAt(value, breakpointIndex);
         }
         return value;
@@ -6536,7 +6742,7 @@ const schemaPropDefinitions = {
       normalize,
       compile: x => x,
       getHash: (value, breakpointIndex) => {
-        if (isTrulyResponsiveValue(value)) {
+        if (findComponentDefinition.isTrulyResponsiveValue(value)) {
           const breakpointValue = responsiveValueAt(value, breakpointIndex);
           return breakpointValue?.toString();
         }
@@ -6554,9 +6760,9 @@ const schemaPropDefinitions = {
       if (!Array.isArray(x) || x.length === 0) {
         let componentDefinition;
         for (const componentIdOrType of schemaProp.accepts) {
-          componentDefinition = findComponentDefinitionById(componentIdOrType, compilationContext);
+          componentDefinition = findComponentDefinition.findComponentDefinitionById(componentIdOrType, compilationContext);
           if (!componentDefinition) {
-            const componentDefinitionsByType = findComponentDefinitionsByType(componentIdOrType, compilationContext);
+            const componentDefinitionsByType = findComponentDefinition.findComponentDefinitionsByType(componentIdOrType, compilationContext);
             if (componentDefinitionsByType.length > 0) {
               componentDefinition = componentDefinitionsByType[0];
               break;
@@ -6719,7 +6925,7 @@ const schemaPropDefinitions = {
       }),
       compile: x => x,
       getHash: (value, currentBreakpoint) => {
-        if (isTrulyResponsiveValue(value)) {
+        if (findComponentDefinition.isTrulyResponsiveValue(value)) {
           const breakpointValue = responsiveValueAt(value, currentBreakpoint);
           return breakpointValue?.toString();
         }
@@ -6734,7 +6940,7 @@ const schemaPropDefinitions = {
         if (customTypeDefinition.type === "inline") {
           const defaultValue = schemaProp.defaultValue ?? customTypeDefinition.defaultValue;
           const normalizeScalar = v => {
-            if (isLocalValue(v)) {
+            if (findComponentDefinition.isLocalValue(v)) {
               if (customTypeDefinition.validate) {
                 const isValueValid = customTypeDefinition.validate(v.value);
                 if (isValueValid) {
@@ -6844,7 +7050,7 @@ const schemaPropDefinitions = {
         throw new Error("Unknown type definition");
       },
       compile: x => {
-        const val = responsiveValueMap(x, y => {
+        const val = findComponentDefinition.responsiveValueMap(x, y => {
           if ("value" in y) {
             return y.value;
           }
@@ -6873,7 +7079,7 @@ const schemaPropDefinitions = {
         if (customTypeDefinition.type === "external") {
           return externalReferenceGetHash(value, breakpointIndex);
         }
-        if (isTrulyResponsiveValue(value)) {
+        if (findComponentDefinition.isTrulyResponsiveValue(value)) {
           const breakpointValue = responsiveValueAt(value, breakpointIndex);
           if (!breakpointValue) {
             return;
@@ -6907,7 +7113,7 @@ function getNormalize(compilationContext, defaultValue, fallbackDefaultValue) {
 }
 function getResponsiveNormalize(compilationContext, defaultValue, fallbackDefaultValue) {
   let normalize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : x => x;
-  if (isTrulyResponsiveValue(defaultValue)) {
+  if (findComponentDefinition.isTrulyResponsiveValue(defaultValue)) {
     /**
      * Here we must decide how this behaves. It's not obvious. If default is responsive, we cannot easily use default breakpoints.
      * It's because auto might be different. Changing one breakpoint changes "context" for others.
@@ -6918,13 +7124,13 @@ function getResponsiveNormalize(compilationContext, defaultValue, fallbackDefaul
     const scalarNormalize = getNormalize(compilationContext, defaultValue, fallbackDefaultValue, normalize);
 
     // if value is not really responsive
-    if (!isTrulyResponsiveValue(val)) {
+    if (!findComponentDefinition.isTrulyResponsiveValue(val)) {
       return {
         $res: true,
         [compilationContext.mainBreakpointIndex]: scalarNormalize(val)
       };
     }
-    const responsiveVal = responsiveValueMap(val, x => {
+    const responsiveVal = findComponentDefinition.responsiveValueMap(val, x => {
       return normalize(x, compilationContext);
     });
 
@@ -6945,7 +7151,7 @@ function getSelectSchemaPropDefinition() {
       }),
       compile: x => x,
       getHash: (value, currentBreakpoint) => {
-        if (isTrulyResponsiveValue(value)) {
+        if (findComponentDefinition.isTrulyResponsiveValue(value)) {
           const breakpointValue = responsiveValueAt(value, currentBreakpoint);
           return breakpointValue?.toString();
         }
@@ -7035,7 +7241,7 @@ function externalNormalize(externalType) {
   };
 }
 function externalReferenceGetHash(value, breakpointIndex) {
-  if (isTrulyResponsiveValue(value)) {
+  if (findComponentDefinition.isTrulyResponsiveValue(value)) {
     const breakpointValue = responsiveValueAt(value, breakpointIndex);
     if (breakpointValue) {
       return externalReferenceGetHash(breakpointValue, breakpointIndex);
@@ -7060,7 +7266,7 @@ function normalizeComponent(configComponent, compilationContext) {
       for (const fieldName in configComponent._itemProps[templateId]) {
         ret._itemProps[templateId][fieldName] = {};
         const values = configComponent._itemProps[templateId][fieldName];
-        const ownerDefinition = findComponentDefinitionById(templateId, compilationContext);
+        const ownerDefinition = findComponentDefinition.findComponentDefinitionById(templateId, compilationContext);
         const ownerSchemaProp = ownerDefinition.schema.find(x => x.prop === fieldName);
         if (!ownerSchemaProp) {
           continue;
@@ -7071,7 +7277,7 @@ function normalizeComponent(configComponent, compilationContext) {
       }
     }
   }
-  const componentDefinition = findComponentDefinitionById(configComponent._component, compilationContext);
+  const componentDefinition = findComponentDefinition.findComponentDefinitionById(configComponent._component, compilationContext);
   if (!componentDefinition) {
     console.warn(`[normalize] Unknown _component ${configComponent._component}`);
     return ret;
@@ -7178,7 +7384,7 @@ function traverseComponentsArray(array, context, callback, path) {
   });
 }
 function traverseComponentsInternal(componentConfig, context, callback, path) {
-  const componentDefinition = findComponentDefinition(componentConfig, context);
+  const componentDefinition = findComponentDefinition.findComponentDefinition(componentConfig, context);
   if (!componentDefinition) {
     console.warn("[traverseComponents] Unknown component definition", componentConfig);
     return;
@@ -7189,7 +7395,7 @@ function traverseComponentsInternal(componentConfig, context, callback, path) {
     path
   });
   componentDefinition.schema.forEach(schemaProp => {
-    if (isSchemaPropComponent(schemaProp) || schemaProp.type === "component-collection") {
+    if (findComponentDefinition.isSchemaPropComponent(schemaProp) || schemaProp.type === "component-collection") {
       traverseComponentsArray(componentConfig[schemaProp.prop], context, callback, `${pathPrefix}${schemaProp.prop}`);
     } else if (schemaProp.type === "component-collection-localised") {
       for (const locale in componentConfig[schemaProp.prop]) {
@@ -7682,7 +7888,7 @@ const textEditableComponent = {
 };
 
 function themeScalarValueToResponsiveValue(input, devices) {
-  if (!isTrulyResponsiveValue(input)) {
+  if (!findComponentDefinition.isTrulyResponsiveValue(input)) {
     return input;
   }
   const output = {
@@ -7832,7 +8038,7 @@ const validateColor = color => {
 };
 
 function normalizeSpace(space) {
-  return responsiveValueMap(space, val => {
+  return findComponentDefinition.responsiveValueMap(space, val => {
     if (typeof val === "number") {
       return `${val}px`;
     }
@@ -7886,7 +8092,10 @@ function createCompilationContext(config, contextParams, rootComponentId) {
       // Why? Because responsive token behaves differently from non-responsive in terms of auto.
       // Responsive token automatically "fills" all the breakpoints.
       // If someone does 10vw it is responsive in nature, it's NEVER a scalar.
-      if (typeof val === "string" && parseSpacing(val).unit === "vw") {
+      // A theme's own space tokens come from shop data too, so an unreadable
+      // one must not decide whether the page renders. `parseSpacing` answers
+      // `null` for those, and a token that is not vw is simply not responsive.
+      if (typeof val === "string" && parseSpacing(val)?.unit === "vw") {
         val = {
           $res: true,
           [mainDevice.id]: val
@@ -7932,9 +8141,26 @@ function createCompilationContext(config, contextParams, rootComponentId) {
       visible: false
     }]
   }];
-  const rootComponent = (config.components ?? []).find(component => component.id === rootComponentId);
+  const configuredComponents = config.components ?? [];
+  let rootComponent = configuredComponents.find(component => component.id === rootComponentId);
   if (!rootComponent) {
-    throw new Error(`createCompilationContext: rootComponentId "${rootComponentId}" doesn't exist in config.components`);
+    // `rootComponentId` is the saved document's own `_component`, so renaming
+    // or removing a root component used to kill every page already saved under
+    // the old name — at once, published site and editor together.
+    //
+    // `compileComponent` already knows how to survive a component it cannot
+    // find: it swaps in `@easyblocks/missing-component` and warns. That
+    // recovery simply runs later than this, so the root node never reached it.
+    // Falling back to the first configured component gets the page as far as
+    // that machinery, where the missing piece shows up as one broken block
+    // instead of nothing at all.
+    console.warn(`easyblocks: the document's root component "${rootComponentId}" is not in this config; falling back to "${configuredComponents[0]?.id}"`);
+    rootComponent = configuredComponents[0];
+  }
+  if (!rootComponent) {
+    // Nothing configured at all is a setup mistake, not document data, and
+    // there is no page to save by carrying on.
+    throw new Error(`createCompilationContext: config.components is empty, so there is no component to build "${rootComponentId}" from`);
   }
   if (rootComponent.rootParams && rootComponent.rootParams.length > 0) {
     ensureDocumentDataWidgetForExternalTypes(types);
@@ -8041,24 +8267,10 @@ function createBuiltinTypes() {
           return false;
         }
 
-        // `parseSpacing` throws on anything that is not px or vw, and this
-        // function is called while a document is being compiled. Letting the
-        // throw through does not reject one value: it takes down the whole
-        // build, which means a blank page on the published site and a canvas
-        // that disappears and does not come back in the editor.
-        //
-        // The field it comes from is a free-text input, so reaching it needs no
-        // mistake beyond typing `1rem`, `5%`, `2em` or `auto` — all of them
-        // things somebody who has seen any CSS would try. Measured: typing
-        // `1rem` emptied the canvas and the editor stayed empty until reload.
-        //
-        // A validator's answer is a boolean. Anything it cannot parse is simply
-        // not a valid spacing.
-        try {
-          return !!parseSpacing(value);
-        } catch {
-          return false;
-        }
+        // A validator's answer is a boolean, and anything `parseSpacing`
+        // cannot read is simply not a valid spacing — see the note on that
+        // function for why it answers rather than throwing.
+        return parseSpacing(value) !== null;
       }
     },
     color: {
@@ -8165,14 +8377,14 @@ function configTraverseArray(array, context, callback, path) {
   });
 }
 function configTraverseInternal(config, context, callback, path) {
-  const componentDefinition = findComponentDefinition(config, context);
+  const componentDefinition = findComponentDefinition.findComponentDefinition(config, context);
   if (!componentDefinition) {
     console.warn(`[configTraverse] Unknown component definition for: ${config._component}`);
     return;
   }
   const pathPrefix = path === "" ? "" : path + ".";
   componentDefinition.schema.forEach(schemaProp => {
-    if (isSchemaPropComponent(schemaProp) || schemaProp.type === "component-collection") {
+    if (findComponentDefinition.isSchemaPropComponent(schemaProp) || schemaProp.type === "component-collection") {
       callback({
         config,
         value: config[schemaProp.prop],
@@ -8204,4 +8416,49 @@ function configTraverseInternal(config, context, callback, path) {
   });
 }
 
-export { configTraverse as A, deepClone as B, CompilationCache as C, traverseComponents as D, uniqueId as E, buildRichTextBlockElementComponentConfig as F, buildRichTextLineElementComponentConfig as G, buildRichTextPartComponentConfig as H, nonNullable as I, deepCompare as J, dotNotationGet as K, dotNotationSet as L, textStyles as M, scalarizeConfig as N, stripRichTextPartSelection as O, parsePath as P, findPathOfFirstAncestorOfType as Q, buildRichTextBulletedListBlockElementComponentConfig as R, buildRichTextComponentConfig as S, buildRichTextParagraphBlockElementComponentConfig as T, createCompilationContext as a, buildRichTextNoCodeEntry as b, compileInternal as c, getDevicesWidths as d, getDefaultLocale as e, getFallbackForLocale as f, getSchemaDefinition as g, getFallbackLocaleForLocale as h, responsiveValueAt as i, responsiveValueFill as j, responsiveValueFindDeviceWithDefinedValue as k, responsiveValueFindHigherDeviceWithDefinedValue as l, responsiveValueFindLowerDeviceWithDefinedValue as m, normalize as n, responsiveValueFlatten as o, responsiveValueForceGet as p, responsiveValueGet as q, resolveLocalisedValue as r, responsiveValueGetDefinedValue as s, responsiveValueGetFirstHigherValue as t, responsiveValueGetFirstLowerValue as u, validateColor as v, responsiveValueGetHighestDefinedDevice as w, responsiveValueNormalize as x, parseSpacing as y, spacingToPx as z };
+exports.CompilationCache = CompilationCache;
+exports.buildRichTextBlockElementComponentConfig = buildRichTextBlockElementComponentConfig;
+exports.buildRichTextBulletedListBlockElementComponentConfig = buildRichTextBulletedListBlockElementComponentConfig;
+exports.buildRichTextComponentConfig = buildRichTextComponentConfig;
+exports.buildRichTextLineElementComponentConfig = buildRichTextLineElementComponentConfig;
+exports.buildRichTextNoCodeEntry = buildRichTextNoCodeEntry;
+exports.buildRichTextParagraphBlockElementComponentConfig = buildRichTextParagraphBlockElementComponentConfig;
+exports.buildRichTextPartComponentConfig = buildRichTextPartComponentConfig;
+exports.compileInternal = compileInternal;
+exports.configTraverse = configTraverse;
+exports.createCompilationContext = createCompilationContext;
+exports.deepClone = deepClone;
+exports.deepCompare = deepCompare;
+exports.dotNotationGet = dotNotationGet;
+exports.dotNotationSet = dotNotationSet;
+exports.findPathOfFirstAncestorOfType = findPathOfFirstAncestorOfType;
+exports.getDefaultLocale = getDefaultLocale;
+exports.getDevicesWidths = getDevicesWidths;
+exports.getFallbackForLocale = getFallbackForLocale;
+exports.getFallbackLocaleForLocale = getFallbackLocaleForLocale;
+exports.getSchemaDefinition = getSchemaDefinition;
+exports.nonNullable = nonNullable;
+exports.normalize = normalize;
+exports.parsePath = parsePath;
+exports.parseSpacing = parseSpacing;
+exports.resolveLocalisedValue = resolveLocalisedValue;
+exports.responsiveValueAt = responsiveValueAt;
+exports.responsiveValueFill = responsiveValueFill;
+exports.responsiveValueFindDeviceWithDefinedValue = responsiveValueFindDeviceWithDefinedValue;
+exports.responsiveValueFindHigherDeviceWithDefinedValue = responsiveValueFindHigherDeviceWithDefinedValue;
+exports.responsiveValueFindLowerDeviceWithDefinedValue = responsiveValueFindLowerDeviceWithDefinedValue;
+exports.responsiveValueFlatten = responsiveValueFlatten;
+exports.responsiveValueForceGet = responsiveValueForceGet;
+exports.responsiveValueGet = responsiveValueGet;
+exports.responsiveValueGetDefinedValue = responsiveValueGetDefinedValue;
+exports.responsiveValueGetFirstHigherValue = responsiveValueGetFirstHigherValue;
+exports.responsiveValueGetFirstLowerValue = responsiveValueGetFirstLowerValue;
+exports.responsiveValueGetHighestDefinedDevice = responsiveValueGetHighestDefinedDevice;
+exports.responsiveValueNormalize = responsiveValueNormalize;
+exports.scalarizeConfig = scalarizeConfig;
+exports.spacingToPx = spacingToPx;
+exports.stripRichTextPartSelection = stripRichTextPartSelection;
+exports.textStyles = textStyles;
+exports.traverseComponents = traverseComponents;
+exports.uniqueId = uniqueId;
+exports.validateColor = validateColor;

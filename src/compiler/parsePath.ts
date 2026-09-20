@@ -83,16 +83,30 @@ export function parsePath(path: string, form: any): PathInfo {
   return pathInfo;
 }
 
+/**
+ * The path of the nearest ancestor of that type, or `undefined` when the tree
+ * does not hold one.
+ *
+ * It answers rather than throwing because the caller is the `editing` function
+ * of a rich-text part, which runs inside the editor's render. A part that has
+ * somehow ended up outside its rich-text tree — after a paste, an undo, or a
+ * document edited by hand — used to empty the whole canvas, and an author with
+ * an empty canvas has no way to undo whatever put them there.
+ */
 export function findPathOfFirstAncestorOfType(
   path: string,
   templateId: string,
   form: any
-): string {
+): string | undefined {
   while (true) {
     const parseResult = parsePath(path, form);
 
     if (!parseResult.parent) {
-      throw new Error(`couldn't find ancestor of type ${templateId}`);
+      console.warn(
+        `easyblocks: no ancestor of type ${templateId} above "${path}"`
+      );
+
+      return undefined;
     }
 
     if (parseResult.parent.templateId === templateId) {

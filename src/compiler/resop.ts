@@ -54,9 +54,42 @@ function squashCSSResults(
     (arraysNum > 0 && (noObjectsNum > 0 || objectsNum > 0)) ||
     (noObjectsNum > 0 && (arraysNum > 0 || objectsNum > 0))
   ) {
-    throw new Error(
-      "This shouldn't happen. Mismatched types for different breakpoints!!!"
+    // A `styles` function that returns an object at one breakpoint and a plain
+    // value at another. It used to take the whole page down — published site
+    // and editor canvas together — for a component whose own branch happened
+    // to produce different shapes for one particular saved value.
+    //
+    // The shape used by the most breakpoints wins and the odd ones out are
+    // dropped, so the block loses a property at some widths instead of the
+    // page losing everything. The warning names the shapes, because this is a
+    // mistake in a component that somebody has to go and fix.
+    const winner =
+      arraysNum >= objectsNum && arraysNum >= noObjectsNum
+        ? "array"
+        : objectsNum >= noObjectsNum
+          ? "object"
+          : "scalar";
+
+    console.error(
+      `easyblocks: a styles function returned different shapes at different breakpoints (${arraysNum} array, ${objectsNum} object, ${noObjectsNum} plain); keeping the ${winner} ones`
     );
+
+    for (const breakpointName in scalarValues) {
+      const val = scalarValues[breakpointName];
+      const kind = Array.isArray(val) && !disableNesting
+        ? "array"
+        : typeof val === "object" && val !== null && !Array.isArray(val) && !disableNesting
+          ? "object"
+          : "scalar";
+
+      if (kind !== winner) {
+        scalarValues[breakpointName] = undefined;
+      }
+    }
+
+    arraysNum = winner === "array" ? arraysNum : 0;
+    objectsNum = winner === "object" ? objectsNum : 0;
+    noObjectsNum = winner === "scalar" ? noObjectsNum : 0;
   }
 
   if (arraysNum > 0) {
@@ -312,6 +345,54 @@ function hasDefinedBreakpoints(
   return undefinedBreakpoints.length < devices.length;
 }
 
+/**
+ * Give every breakpoint a value, borrowing from the nearest one that has one.
+ *
+ * A `styles` function that answers at some widths and not others — the common
+ * shape being `device.id === "xs" ? {...} : undefined` — used to throw, and a
+ * throw here loses the entire page rather than one property. Borrowing is what
+ * a responsive value means everywhere else in this engine, so it is also the
+ * least surprising answer: the property simply carries across the widths the
+ * component forgot to answer for.
+ *
+ * Returns whether anything had to be borrowed, so the caller can say so.
+ */
+function fillUndefinedBreakpoints(
+  resVal: TrulyResponsiveValue<any>,
+  devices: Devices
+): boolean {
+  const missing = getUndefinedBreakpoints(resVal, devices);
+
+  if (missing.length === 0) {
+    return false;
+  }
+
+  let nearest: any = undefined;
+
+  // Downwards first, so a value set at a wide breakpoint reaches the narrow
+  // ones below it — the direction this engine already fills in.
+  devices.forEach((device) => {
+    if (resVal[device.id] === undefined) {
+      resVal[device.id] = nearest;
+    } else {
+      nearest = resVal[device.id];
+    }
+  });
+
+  // Anything still missing sat above every defined value, so it borrows upwards.
+  nearest = undefined;
+
+  [...devices].reverse().forEach((device) => {
+    if (resVal[device.id] === undefined) {
+      resVal[device.id] = nearest;
+    } else {
+      nearest = resVal[device.id];
+    }
+  });
+
+  return true;
+}
+
 type Resop2Result = Required<NoCodeComponentStylesFunctionResult>;
 
 export function resop2(
@@ -384,9 +465,16 @@ export function resop2(
     const propsObject = scalarOutputs[device.id].props ?? {};
 
     if (typeof propsObject !== "object" || propsObject === null) {
-      throw new Error(
-        `__props must be object, it is not for breakpoint: ${device.id}`
+      // A styles function returning the wrong shape is a mistake in one
+      // component. Everything below used to throw, which meant that mistake
+      // blanked the whole page it happened to sit on, published site and
+      // editor canvas alike. The block now loses the offending piece and the
+      // rest of the page still renders, with a message naming what to fix.
+      console.error(
+        `easyblocks: __props must be an object; ignoring it for breakpoint ${device.id}. Template: ${componentDefinition?.id}`
       );
+
+      return;
     }
 
     for (const propName in propsObject) {
@@ -400,9 +488,11 @@ export function resop2(
           scalarOutputs[device.id].components?.[schemaProp.prop] ?? {};
 
         if (typeof componentObject !== "object" || componentObject === null) {
-          throw new Error(
-            `resop error: component must be undefined or an object, it is not for device ${device.id} and prop ${schemaProp.prop}. Template: ${componentDefinition?.id}`
+          console.error(
+            `easyblocks: components.${schemaProp.prop} must be undefined or an object; ignoring it for breakpoint ${device.id}. Template: ${componentDefinition?.id}`
           );
+
+          return;
         }
 
         for (const key in componentObject) {
@@ -413,19 +503,22 @@ export function resop2(
         }
 
         if (isSchemaPropCollection(schemaProp)) {
-          const itemPropsArray = componentObject.itemProps ?? [];
+          const rawItemProps = componentObject.itemProps ?? [];
+          const itemPropsArray = Array.isArray(rawItemProps) ? rawItemProps : [];
 
-          if (!Array.isArray(itemPropsArray)) {
-            throw new Error(
-              `resop error: item props must be undefined or an array (${schemaProp.prop}). Template: ${componentDefinition?.id}`
+          if (!Array.isArray(rawItemProps)) {
+            console.error(
+              `easyblocks: itemProps for ${schemaProp.prop} must be undefined or an array; treating it as empty. Template: ${componentDefinition?.id}`
             );
           }
 
           itemPropsArray.forEach((itemObject: any, index: number) => {
             if (typeof itemObject !== "object" || itemObject === null) {
-              throw new Error(
-                `resop error: item in itemProps array must be object (${schemaProp.prop}.itemProps.${index}). Template: ${componentDefinition?.id}`
+              console.error(
+                `easyblocks: itemProps.${index} of ${schemaProp.prop} must be an object; ignoring it. Template: ${componentDefinition?.id}`
               );
+
+              return;
             }
 
             for (const key in itemObject) {
@@ -441,27 +534,45 @@ export function resop2(
     });
   });
 
-  // Let's verify array lengths
+  // Let's settle on one array length per component.
+  //
+  // Both mismatches below used to throw, and both are reachable from ordinary
+  // document data: a styles function that sizes `itemProps` from a layout
+  // prop rather than from the collection, next to a saved page where the
+  // author has since added or removed a child. Nothing in the engine keeps
+  // those two numbers in step, so the page died over a disagreement it could
+  // simply settle.
   for (const componentName in componentItemPropsNamesAndLength) {
     const lengths = componentItemPropsNamesAndLength[componentName].lengths;
+
     if (lengths.size > 1) {
-      throw new Error(
-        `resop: incompatible item props arrays length for component: ${componentName}. Template: ${componentDefinition?.id}`
+      console.error(
+        `easyblocks: itemProps for ${componentName} came back at different lengths across breakpoints (${Array.from(lengths).join(", ")}); using the longest. Template: ${componentDefinition?.id}`
       );
     }
 
-    const length = Array.from(lengths)[0];
+    let length = Math.max(0, ...Array.from(lengths));
 
-    // If non-zero length, then there are extra requirements
+    // The number of children actually in the document wins: an itemProps entry
+    // with no child to apply to does nothing, and a child with no entry simply
+    // takes the styles it would have had anyway.
+    //
+    // An empty collection keeps its single placeholder entry, which is what the
+    // engine has always allowed and what the editor's drop target is built on.
     if (length > 0) {
-      const itemsLength = (input.values as any)[componentName].length;
+      const itemsLength = (input.values as any)[componentName]?.length ?? 0;
+      const allowed = itemsLength === 0 ? Math.min(length, 1) : itemsLength;
 
-      if (itemsLength === 0 ? length > 1 : itemsLength !== length) {
-        throw new Error(
-          `resop: item props arrays length incompatible with items length for component: ${componentName}. Template: ${componentDefinition?.id}`
+      if (allowed !== length) {
+        console.error(
+          `easyblocks: ${componentName} has ${itemsLength} item(s) but its styles returned ${length} itemProps; using ${allowed}. Template: ${componentDefinition?.id}`
         );
+
+        length = allowed;
       }
     }
+
+    componentItemPropsNamesAndLength[componentName].lengths = new Set([length]);
   }
 
   // Let's compress
@@ -482,15 +593,12 @@ export function resop2(
     });
 
     if (hasDefinedBreakpoints(squashedValue, devices)) {
-      const undefinedBreakpoints = getUndefinedBreakpoints(
-        squashedValue,
-        devices
-      );
-      if (undefinedBreakpoints.length > 0) {
-        throw new Error(
-          `resop: undefined value (breakpoints: ${undefinedBreakpoints}) for __props.${propName}. Template: ${componentDefinition?.id}`
+      if (fillUndefinedBreakpoints(squashedValue, devices)) {
+        console.error(
+          `easyblocks: __props.${propName} was missing at some breakpoints; borrowed from the nearest one. Template: ${componentDefinition?.id}`
         );
       }
+
       output.props[propName] = responsiveValueNormalize(squashedValue, devices); // props should be normalized
     }
   });
@@ -511,15 +619,12 @@ export function resop2(
       });
 
       if (hasDefinedBreakpoints(squashedValue, devices)) {
-        const undefinedBreakpoints = getUndefinedBreakpoints(
-          squashedValue,
-          devices
-        );
-        if (undefinedBreakpoints.length > 0) {
-          throw new Error(
-            `resop: undefined value (breakpoints ${undefinedBreakpoints}) for ${componentName}.${componentPropName}. Template: ${componentDefinition?.id}`
+        if (fillUndefinedBreakpoints(squashedValue, devices)) {
+          console.error(
+            `easyblocks: ${componentName}.${componentPropName} was missing at some breakpoints; borrowed from the nearest one. Template: ${componentDefinition?.id}`
           );
         }
+
         output.components[componentName][componentPropName] = squashedValue;
       }
     });
@@ -550,15 +655,12 @@ export function resop2(
           });
 
           if (hasDefinedBreakpoints(squashedValue, devices)) {
-            const undefinedBreakpoints = getUndefinedBreakpoints(
-              squashedValue,
-              devices
-            );
-            if (undefinedBreakpoints.length > 0) {
-              throw new Error(
-                `resop: undefined value (breakpoints ${undefinedBreakpoints}) for ${componentName}.${i}.${itemPropName}. Template: ${componentDefinition?.id}`
+            if (fillUndefinedBreakpoints(squashedValue, devices)) {
+              console.error(
+                `easyblocks: ${componentName}.${i}.${itemPropName} was missing at some breakpoints; borrowed from the nearest one. Template: ${componentDefinition?.id}`
               );
             }
+
             output.components[componentName].itemProps![i][itemPropName] =
               squashedValue;
           }

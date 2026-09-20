@@ -146,7 +146,10 @@ function snapValueToToken(
 
     const parsedValue = parseSpacing(tokenValue);
 
-    if (parsedValue.unit === "vw") {
+    // A token nobody can read is no candidate, the same as a vw one. Skipping
+    // it leaves the rest of the scale to choose from; throwing would have lost
+    // the page over one bad entry in the shop's theme.
+    if (!parsedValue || parsedValue.unit === "vw") {
       continue;
     }
 

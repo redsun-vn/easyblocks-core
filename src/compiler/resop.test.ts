@@ -588,21 +588,19 @@ describe("resop2", () => {
 
   describe("props, subcomponents", () => {
     describe("props", () => {
-      test("incorrect props should throw", () => {
-        expect(() =>
-          resop2(
-            input2,
-            () => {
-              return {
-                props: "xxx" as any,
-              };
-            },
-            devices,
-            testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"__props must be object, it is not for breakpoint: b1"`
+      test("incorrect props are ignored rather than fatal", () => {
+        const result = resop2(
+          input2,
+          () => {
+            return {
+              props: "xxx" as any,
+            };
+          },
+          devices,
+          testComponentDefinition
         );
+
+        expect(result.props).toEqual({});
       });
 
       test("if prop for each breakpoint is undefined, then it's OK", () => {
@@ -622,23 +620,23 @@ describe("resop2", () => {
         expect(result.props.myProp).toBeUndefined();
       });
 
-      test("if prop is defined for some breakpoints and not for others, throw", () => {
-        expect(() =>
-          resop2(
-            input2,
-            (values, breakpointIndex) => {
-              return {
-                props: {
-                  myProp: breakpointIndex === "b1" ? undefined : "xxx",
-                },
-              };
-            },
-            devices,
-            testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"resop: undefined value (breakpoints: b1) for __props.myProp. Template: $TestComponent"`
+      test("a prop missing at some breakpoints borrows from the nearest one", () => {
+        const result = resop2(
+          input2,
+          (values, breakpointIndex) => {
+            return {
+              props: {
+                myProp: breakpointIndex === "b1" ? undefined : "xxx",
+              },
+            };
+          },
+          devices,
+          testComponentDefinition
         );
+
+        // b1 had nothing of its own, so it takes the value from above it
+        // rather than the whole page being lost over one missing breakpoint.
+        expect(result.props.myProp).toBe("xxx");
       });
 
       test("props are normalized", () => {
@@ -663,23 +661,21 @@ describe("resop2", () => {
     });
 
     describe("subcomponents", () => {
-      test("incorrect subcomponent value should throw", () => {
-        expect(() =>
-          resop2(
-            input2,
-            () => {
-              return {
-                components: {
-                  Card: "xxx" as any,
-                },
-              };
-            },
-            devices,
-            testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"resop error: component must be undefined or an object, it is not for device b1 and prop Card. Template: $TestComponent"`
+      test("an incorrect subcomponent value is ignored rather than fatal", () => {
+        const result = resop2(
+          input2,
+          () => {
+            return {
+              components: {
+                Card: "xxx" as any,
+              },
+            };
+          },
+          devices,
+          testComponentDefinition
         );
+
+        expect(result.components.Card).toEqual({});
       });
 
       test("if Component prop for each breakpoint is undefined, then it's OK", () => {
@@ -701,25 +697,23 @@ describe("resop2", () => {
         expect(result.components.Card.myProp).toBeUndefined();
       });
 
-      test("if component prop is defined for some breakpoints and not for others, throw", () => {
-        expect(() =>
-          resop2(
-            input2,
-            (values, breakpointIndex) => {
-              return {
-                components: {
-                  Card: {
-                    myProp: breakpointIndex === "b1" ? undefined : "xxx",
-                  },
+      test("a component prop missing at some breakpoints borrows from the nearest one", () => {
+        const result = resop2(
+          input2,
+          (values, breakpointIndex) => {
+            return {
+              components: {
+                Card: {
+                  myProp: breakpointIndex === "b1" ? undefined : "xxx",
                 },
-              };
-            },
-            devices,
-            testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"resop: undefined value (breakpoints b1) for Card.myProp. Template: $TestComponent"`
+              },
+            };
+          },
+          devices,
+          testComponentDefinition
         );
+
+        expect(result.components.Card.myProp.b1).toBe("xxx");
       });
 
       test("component props are not normalized", () => {
@@ -760,64 +754,60 @@ describe("resop2", () => {
         params: {},
       };
 
-      test("non-array item props should throw", () => {
-        expect(() =>
-          resop2(
+      test("non-array item props are treated as empty rather than fatal", () => {
+        const result = resop2(
+          input,
+          () => {
+            return {
+              components: {
+                Cards: { itemProps: "incorrect value" } as any,
+              },
+            };
+          },
+          devices,
+          testComponentDefinition
+        );
+
+        expect(result.components.Cards.itemProps).toEqual([]);
+      });
+
+      describe("length verification", () => {
+        test("inconsistent lengths settle on the number of items", () => {
+          const result = resop2(
             input,
-            () => {
+            (values, breakpointIndex) => {
               return {
                 components: {
-                  Cards: { itemProps: "incorrect value" } as any,
+                  Cards: {
+                    itemProps: breakpointIndex === "b1" ? [{}, {}] : [{}],
+                  },
                 },
               };
             },
             devices,
             testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"resop error: item props must be undefined or an array (Cards). Template: $TestComponent"`
-        );
-      });
-
-      describe("length verification", () => {
-        test("inconsistent lengths should throw", () => {
-          expect(() =>
-            resop2(
-              input,
-              (values, breakpointIndex) => {
-                return {
-                  components: {
-                    Cards: {
-                      itemProps: breakpointIndex === "b1" ? [{}, {}] : [{}],
-                    },
-                  },
-                };
-              },
-              devices,
-              testComponentDefinition
-            )
-          ).toThrowErrorMatchingInlineSnapshot(
-            `"resop: incompatible item props arrays length for component: Cards. Template: $TestComponent"`
           );
+
+          // `input` holds three cards, so three entries — rather than the page
+          // being lost because the styles function disagreed with itself.
+          expect(result.components.Cards.itemProps).toHaveLength(3);
         });
 
-        test("item props array length unequal to number of items - should throw", () => {
-          expect(() =>
-            resop2(
-              input,
-              (values, breakpointIndex) => {
-                return {
-                  components: {
-                    Cards: { itemProps: [{}, {}, {}, {}] },
-                  },
-                };
-              },
-              devices,
-              testComponentDefinition
-            )
-          ).toThrowErrorMatchingInlineSnapshot(
-            `"resop: item props arrays length incompatible with items length for component: Cards. Template: $TestComponent"`
+        test("more item props than items are cut down to the items", () => {
+          const result = resop2(
+            input,
+            () => {
+              return {
+                components: {
+                  Cards: { itemProps: [{}, {}, {}, {}] },
+                },
+              };
+            },
+            devices,
+            testComponentDefinition
           );
+
+          expect(result.components.Cards.itemProps).toHaveLength(3);
         });
 
         test("if item props array is empty, then item props array should have one element", () => {
@@ -862,23 +852,22 @@ describe("resop2", () => {
         });
       });
 
-      test("incorrect item props values should throw", () => {
-        expect(() =>
-          resop2(
-            input,
-            () => {
-              return {
-                components: {
-                  Cards: { itemProps: ["xxx", {}, {}] },
-                },
-              };
-            },
-            devices,
-            testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"resop error: item in itemProps array must be object (Cards.itemProps.0). Template: $TestComponent"`
+      test("an incorrect item prop value is ignored rather than fatal", () => {
+        const result = resop2(
+          input,
+          () => {
+            return {
+              components: {
+                Cards: { itemProps: ["xxx", {}, {}] as any },
+              },
+            };
+          },
+          devices,
+          testComponentDefinition
         );
+
+        // The bad entry contributes no names; the cards still get their slots.
+        expect(result.components.Cards.itemProps).toEqual([{}, {}, {}]);
       });
 
       test("if item prop for each breakpoint is undefined, then it's OK", () => {
@@ -904,29 +893,27 @@ describe("resop2", () => {
         expect(result.components.Cards.itemProps).toEqual([{}, {}, {}]);
       });
 
-      test("if item prop is defined for some breakpoints and not for others, throw", () => {
-        expect(() =>
-          resop2(
-            input,
-            (values, breakpointIndex) => {
-              const item = {
-                prop: breakpointIndex === "b1" ? undefined : "xxx",
-              };
+      test("an item prop missing at some breakpoints borrows from the nearest one", () => {
+        const result: any = resop2(
+          input,
+          (values, breakpointIndex) => {
+            const item = {
+              prop: breakpointIndex === "b1" ? undefined : "xxx",
+            };
 
-              return {
-                components: {
-                  Cards: {
-                    itemProps: [item, item, item],
-                  },
+            return {
+              components: {
+                Cards: {
+                  itemProps: [item, item, item],
                 },
-              };
-            },
-            devices,
-            testComponentDefinition
-          )
-        ).toThrowErrorMatchingInlineSnapshot(
-          `"resop: undefined value (breakpoints b1) for Cards.0.prop. Template: $TestComponent"`
+              },
+            };
+          },
+          devices,
+          testComponentDefinition
         );
+
+        expect(result.components.Cards.itemProps[0].prop.b1).toBe("xxx");
       });
 
       test("component props are not normalized", () => {

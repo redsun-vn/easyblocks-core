@@ -98,7 +98,10 @@ export function createCompilationContext(
       // Why? Because responsive token behaves differently from non-responsive in terms of auto.
       // Responsive token automatically "fills" all the breakpoints.
       // If someone does 10vw it is responsive in nature, it's NEVER a scalar.
-      if (typeof val === "string" && parseSpacing(val).unit === "vw") {
+      // A theme's own space tokens come from shop data too, so an unreadable
+      // one must not decide whether the page renders. `parseSpacing` answers
+      // `null` for those, and a token that is not vw is simply not responsive.
+      if (typeof val === "string" && parseSpacing(val)?.unit === "vw") {
         val = { $res: true, [mainDevice.id]: val };
       }
 
@@ -169,13 +172,35 @@ export function createCompilationContext(
     },
   ];
 
-  const rootComponent = (config.components ?? []).find(
+  const configuredComponents = config.components ?? [];
+
+  let rootComponent = configuredComponents.find(
     (component) => component.id === rootComponentId,
   );
 
   if (!rootComponent) {
+    // `rootComponentId` is the saved document's own `_component`, so renaming
+    // or removing a root component used to kill every page already saved under
+    // the old name — at once, published site and editor together.
+    //
+    // `compileComponent` already knows how to survive a component it cannot
+    // find: it swaps in `@easyblocks/missing-component` and warns. That
+    // recovery simply runs later than this, so the root node never reached it.
+    // Falling back to the first configured component gets the page as far as
+    // that machinery, where the missing piece shows up as one broken block
+    // instead of nothing at all.
+    console.warn(
+      `easyblocks: the document's root component "${rootComponentId}" is not in this config; falling back to "${configuredComponents[0]?.id}"`,
+    );
+
+    rootComponent = configuredComponents[0];
+  }
+
+  if (!rootComponent) {
+    // Nothing configured at all is a setup mistake, not document data, and
+    // there is no page to save by carrying on.
     throw new Error(
-      `createCompilationContext: rootComponentId "${rootComponentId}" doesn't exist in config.components`,
+      `createCompilationContext: config.components is empty, so there is no component to build "${rootComponentId}" from`,
     );
   }
 
@@ -328,24 +353,10 @@ function createBuiltinTypes(): Record<
           return false;
         }
 
-        // `parseSpacing` throws on anything that is not px or vw, and this
-        // function is called while a document is being compiled. Letting the
-        // throw through does not reject one value: it takes down the whole
-        // build, which means a blank page on the published site and a canvas
-        // that disappears and does not come back in the editor.
-        //
-        // The field it comes from is a free-text input, so reaching it needs no
-        // mistake beyond typing `1rem`, `5%`, `2em` or `auto` — all of them
-        // things somebody who has seen any CSS would try. Measured: typing
-        // `1rem` emptied the canvas and the editor stayed empty until reload.
-        //
-        // A validator's answer is a boolean. Anything it cannot parse is simply
-        // not a valid spacing.
-        try {
-          return !!parseSpacing(value);
-        } catch {
-          return false;
-        }
+        // A validator's answer is a boolean, and anything `parseSpacing`
+        // cannot read is simply not a valid spacing — see the note on that
+        // function for why it answers rather than throwing.
+        return parseSpacing(value) !== null;
       },
     },
     color: {

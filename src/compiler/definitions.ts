@@ -232,7 +232,36 @@ const textProvider: SchemaPropDefinitionProviders["text"] = (
         return x;
       }
 
-      throw new Error(`incorrect text type: ${x}`);
+      // Anything else is wrapped as a local text rather than thrown away with
+      // the page around it.
+      //
+      // `normalize` runs for every prop of every component before anything is
+      // rendered, so a throw here is a blank page — published site and editor
+      // canvas alike. And the shapes that land here are old ones this very
+      // file still remembers: a bare string from when `text` was stored that
+      // way (see the `typeof value === "string"` branch in `getHash` below), a
+      // prop a developer switched from `string` to `text` after pages had been
+      // saved, or a local text whose `value` is a string instead of a map of
+      // locales.
+      //
+      // Wrapping keeps the words the shop wrote and shows them. Throwing lost
+      // the whole page over one of them.
+      console.warn(
+        `easyblocks: a text value was stored in an older shape and has been converted; prop "${schemaProp.prop}"`,
+      );
+
+      return {
+        id: "local." + uniqueId(),
+        value: {
+          [compilationContext.contextParams.locale]:
+            typeof x === "string"
+              ? x
+              : typeof x?.value === "string"
+                ? x.value
+                : (schemaProp.defaultValue ?? ""),
+        },
+        widgetId: "@easyblocks/local-text",
+      };
     },
     compile: (x: any) => {
       if ("value" in x) {

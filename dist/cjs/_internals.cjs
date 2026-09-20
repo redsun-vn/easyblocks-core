@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-9ac27162.js');
+var configTraverse = require('./configTraverse-b275d884.js');
 var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
@@ -987,14 +987,20 @@ function RichTextEditor(props) {
     } = _ref;
     const Element = Elements.find(Element => Element._id === element.id || NORMALIZED_IDS_TO_IDS.get(element.id) === Element._id);
     if (!Element) {
-      // This can only happen if the current locale has no value and has no fallback
-      if (Elements.length === 0) {
-        if (element.type === "list-item") {
-          return /*#__PURE__*/React__default["default"].createElement("div", attributes, /*#__PURE__*/React__default["default"].createElement("div", null, children));
-        }
-        return /*#__PURE__*/React__default["default"].createElement("div", attributes, children);
+      // Originally only for a locale with no value and no fallback, where the
+      // whole list comes back empty. A part-translated rich text hits the same
+      // wall with a list that is not empty but is missing the very id being
+      // drawn — add a language, translate half of it, and the canvas emptied.
+      //
+      // The plain element below is the same thing this already fell back to;
+      // it just no longer insists the list be empty first.
+      if (Elements.length > 0) {
+        console.warn(`easyblocks: no compiled element for rich-text id "${element.id}"; drawing it unstyled`);
       }
-      throw new Error("Missing element");
+      if (element.type === "list-item") {
+        return /*#__PURE__*/React__default["default"].createElement("div", attributes, /*#__PURE__*/React__default["default"].createElement("div", null, children));
+      }
+      return /*#__PURE__*/React__default["default"].createElement("div", attributes, children);
     }
     const compiledStyles = (() => {
       if (Element._component === "@easyblocks/rich-text-block-element") {
@@ -1041,11 +1047,12 @@ function RichTextEditor(props) {
       });
     }
     if (!TextPart) {
-      // This can only happen if the current locale has no value and has no fallback
-      if (TextParts.length === 0) {
-        return /*#__PURE__*/React__default["default"].createElement("span", attributes, children);
+      // Same as the element case above: the empty-list guard was too narrow,
+      // and a part-translated rich text emptied the canvas.
+      if (TextParts.length > 0) {
+        console.warn(`easyblocks: no compiled part for rich-text id "${leaf.id}"; drawing it unstyled`);
       }
-      throw new Error("Missing part");
+      return /*#__PURE__*/React__default["default"].createElement("span", attributes, children);
     }
     const TextPartComponent = /*#__PURE__*/React__default["default"].createElement(ComponentBuilder.RichTextPartClient, {
       value: children,

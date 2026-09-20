@@ -232,10 +232,24 @@ const tinaFieldProviders: TinaFieldProviders = {
     }
 
     if (customTypeDefinition.type === "token") {
-      let tokens = assertDefined(
-        editorContext.theme[customTypeDefinition.token],
-        `Missing token values within the Easyblocks config for "${customTypeDefinition.token}"`
-      );
+      // An empty scale rather than a fatal one. `theme` is seeded only with the
+      // token groups a shop's own config declares, so a page holding a block
+      // whose field uses `boxShadow` or `aspectRatio` — groups nothing seeds —
+      // used to empty the editor. Which fields get built depends on which
+      // blocks are on the page, so the trigger is the document.
+      //
+      // With no scale the field offers no presets and still takes a typed
+      // value, which is the field a shop that has not defined that scale
+      // should have had all along.
+      let tokens = editorContext.theme[customTypeDefinition.token];
+
+      if (!tokens) {
+        console.warn(
+          `easyblocks: this config defines no "${customTypeDefinition.token}" tokens, so the field offers no presets`
+        );
+
+        tokens = {};
+      }
 
       if (
         "params" in schemaProp &&

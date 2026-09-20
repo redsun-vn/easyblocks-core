@@ -380,20 +380,28 @@ function RichTextEditor(props: RichTextProps) {
     );
 
     if (!Element) {
-      // This can only happen if the current locale has no value and has no fallback
-      if (Elements.length === 0) {
-        if (element.type === "list-item") {
-          return (
-            <div {...attributes}>
-              <div>{children}</div>
-            </div>
-          );
-        }
-
-        return <div {...attributes}>{children}</div>;
+      // Originally only for a locale with no value and no fallback, where the
+      // whole list comes back empty. A part-translated rich text hits the same
+      // wall with a list that is not empty but is missing the very id being
+      // drawn — add a language, translate half of it, and the canvas emptied.
+      //
+      // The plain element below is the same thing this already fell back to;
+      // it just no longer insists the list be empty first.
+      if (Elements.length > 0) {
+        console.warn(
+          `easyblocks: no compiled element for rich-text id "${element.id}"; drawing it unstyled`
+        );
       }
 
-      throw new Error("Missing element");
+      if (element.type === "list-item") {
+        return (
+          <div {...attributes}>
+            <div>{children}</div>
+          </div>
+        );
+      }
+
+      return <div {...attributes}>{children}</div>;
     }
 
     const compiledStyles = (() => {
@@ -449,12 +457,15 @@ function RichTextEditor(props: RichTextProps) {
     }
 
     if (!TextPart) {
-      // This can only happen if the current locale has no value and has no fallback
-      if (TextParts.length === 0) {
-        return <span {...attributes}>{children}</span>;
+      // Same as the element case above: the empty-list guard was too narrow,
+      // and a part-translated rich text emptied the canvas.
+      if (TextParts.length > 0) {
+        console.warn(
+          `easyblocks: no compiled part for rich-text id "${leaf.id}"; drawing it unstyled`
+        );
       }
 
-      throw new Error("Missing part");
+      return <span {...attributes}>{children}</span>;
     }
 
     const TextPartComponent = (

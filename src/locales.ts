@@ -6,14 +6,34 @@ export type Locale = {
   icon?: string;
 };
 
+/**
+ * The locale marked default, or the first one when none is.
+ *
+ * `locales` is shop data, not a developer constant, so a shop whose languages
+ * carry no default flag is a configuration a real tenant can end up in. This
+ * used to throw, and it is reached from the fallback lookup for every
+ * untranslated text on a page — so one unflagged language list blanked the
+ * published site and the editor together.
+ *
+ * The first language is the answer a person would give.
+ */
 export function getDefaultLocale(locales: Locale[]): Locale {
   const defaultLocale = locales.find((locale) => locale.isDefault);
 
-  if (!defaultLocale) {
-    throw new Error("No default locale found");
+  if (defaultLocale) {
+    return defaultLocale;
   }
 
-  return defaultLocale;
+  if (locales.length === 0) {
+    // No languages at all is a setup mistake, and there is nothing to return.
+    throw new Error("getDefaultLocale: the list of locales is empty");
+  }
+
+  console.warn(
+    `easyblocks: no locale is marked as default; using "${locales[0].code}"`,
+  );
+
+  return locales[0];
 }
 
 export function getFallbackLocaleForLocale(

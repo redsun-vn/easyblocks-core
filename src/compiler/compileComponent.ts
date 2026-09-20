@@ -911,12 +911,13 @@ function compileSubcomponents(
             editableElement[schemaProp.prop],
             compilationContext,
           );
-          if (!resolvedValue) {
-            throw new Error(
-              `Can't resolve localised value for prop "${schemaProp.prop}" of component ${editableElement._component}`,
-            );
-          }
-          value = resolvedValue?.value as any[];
+
+          // Empty rather than fatal, which is what the `compile` branch of this
+          // same schema prop already does (`definitions.ts`, `?? []`). This was
+          // the one place in the pair that did not: a collection saved under a
+          // locale that later stopped being the default, on a page whose new
+          // default has no entry and no fallback, took the whole page with it.
+          value = (resolvedValue?.value as any[]) ?? [];
         }
 
         value?.forEach((_: any, index: number) => {
