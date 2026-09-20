@@ -559,6 +559,65 @@ test("change of context props triggers recompilation of component consuming them
   });
 });
 
+
+test("a localised collection keeps its children through compilation", () => {
+  // The values of a `component-collection-localised` prop arrive as an object
+  // keyed by locale, not as an array. Code that reads `.length` on it relies
+  // on getting `undefined` and carrying on; a guard that replaced anything
+  // non-array with `[]` silently emptied every such collection. The editor
+  // crash that followed was in a rich text whose `mainColor` had gone missing,
+  // several layers away from the cause, and nothing here caught it.
+  const childDefinition: InternalRenderableComponentDefinition = {
+    id: "$LocalisedChild",
+    schema: [
+      {
+        prop: "label",
+        type: "string",
+      },
+    ],
+  };
+
+  const parentDefinition: InternalRenderableComponentDefinition = {
+    id: "$LocalisedParent",
+    schema: [
+      {
+        prop: "items",
+        type: "component-collection-localised",
+        accepts: ["$LocalisedChild"],
+      },
+    ],
+  };
+
+  // What broke is the `values` a styles function is handed, not the compiled
+  // output, so that is what this watches.
+  let seenItems: unknown;
+
+  parentDefinition.styles = ({ values }) => {
+    seenItems = values.items;
+
+    return {};
+  };
+
+  compileInternal(
+    {
+      _component: "$LocalisedParent",
+      _id: "parent",
+      items: {
+        en: [
+          { _component: "$LocalisedChild", _id: "one", label: "First" },
+          { _component: "$LocalisedChild", _id: "two", label: "Second" },
+        ],
+      },
+    } as TestComponentConfig,
+    createTestCompilationContext({
+      components: [parentDefinition, childDefinition],
+    }),
+    new CompilationCache()
+  );
+
+  expect(seenItems).toHaveLength(2);
+});
+
 function createTestCompilationContext({
   components = [],
   devices = [

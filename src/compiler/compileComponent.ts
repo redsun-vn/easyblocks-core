@@ -735,15 +735,14 @@ function createOwnComponentProps({
   const values = Object.fromEntries(
     componentDefinition.schema.map((schemaProp) => {
       if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
-        // `normalize` guarantees an array here, so this only bites when
-        // something compiles a config that never went through it — but reading
-        // `.length` off undefined blanks the page, and an empty list is what
-        // normalize would have produced anyway.
-        let configValue: Array<NoCodeComponentEntry> = Array.isArray(
-          config[schemaProp.prop],
-        )
-          ? config[schemaProp.prop]
-          : [];
+        // Only a missing value is replaced. A localised collection arrives here
+        // as an object keyed by locale, not an array, and the code below is
+        // written for that: `.length` is undefined on it, the check falls
+        // through, and the object is carried on with. Treating anything
+        // non-array as empty threw all of those away — measured as a rich text
+        // losing its `mainColor` and the editor crashing on it.
+        let configValue: Array<NoCodeComponentEntry> =
+          config[schemaProp.prop] ?? [];
 
         if (configValue.length === 0) {
           return [schemaProp.prop, []];
