@@ -326,6 +326,21 @@ export function getTinaField<T extends SchemaProp>(
       ? tinaFieldProviders.custom
       : (tinaFieldProviders as any)[schemaProp.type];
 
+  if (typeof fieldProvider !== "function") {
+    // Unknown type: give the sidebar a plain text control rather than throwing.
+    // A throw here happens while the panel for the selected block is being
+    // built, so one unregistered type left the editor with no panel at all and
+    // nothing on screen to explain why.
+    console.warn(
+      `easyblocks: no editor field for schema prop "${schemaProp.prop}" of unknown type "${schemaProp.type}"; showing a plain field`,
+    );
+
+    return {
+      ...getCommonFieldProps(schemaProp),
+      component: "text",
+    };
+  }
+
   return fieldProvider(schemaProp, editorContext, value);
 }
 

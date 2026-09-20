@@ -376,6 +376,13 @@ function createBuiltinTypes(): Record<
       responsiveness: "always",
       defaultValue: { value: { fontFamily: "sans-serif", fontSize: "16px" } },
       allowCustom: true,
+      validate(value) {
+        // A font is a bag of CSS properties (`ThemeFont`). Without this check a
+        // number or a string was kept and reached the page as a declaration the
+        // browser drops, so the text silently lost its font instead of falling
+        // back to the theme default.
+        return typeof value === "object" && value !== null && !Array.isArray(value);
+      },
     },
     aspectRatio: {
       type: "token",

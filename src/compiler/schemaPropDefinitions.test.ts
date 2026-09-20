@@ -570,7 +570,10 @@ const editorContext: EditorContextType = {
         },
       },
     },
-    icons: {},
+    icons: {
+      $sliderLeft: { ...arrowLeftIcon, isDefault: true },
+      $sliderRight: arrowRightIcon,
+    },
     fonts: {
       devBody: {
         type: "dev",
@@ -829,7 +832,7 @@ function localTextValue(id: string, value: Record<string, string>) {
   };
 }
 
-describe.skip("text", () => {
+describe("text", () => {
   test("behaves correctly with correct default value", () => {
     const x = build(
       {
@@ -892,10 +895,11 @@ describe.skip("text", () => {
     ).toEqual({
       id: "local.123",
       value: "",
+      widgetId: "@easyblocks/local-text",
     });
   });
 
-  test("throws an error when value for given locale is not defined and is not editing", () => {
+  test("renders empty and warns when value for given locale is not defined and is not editing", () => {
     const testContext: EditorContextType = {
       ...editorContext,
     };
@@ -910,17 +914,32 @@ describe.skip("text", () => {
       testContext
     );
 
-    expect(() =>
-      textSchemaProp.def.compile({
+    // A missing translation used to throw here, which took down the whole
+    // document being built rather than the one text that was missing. The
+    // document now renders with an empty text and the build says so.
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    try {
+      expect(
+        textSchemaProp.def.compile({
+          id: "local.123",
+          value: {
+            de: "test",
+            pl: "test",
+          },
+        })
+      ).toEqual({
         id: "local.123",
-        value: {
-          de: "test",
-          pl: "test",
-        },
-      })
-    ).toThrowError(
-      `The content passed to the buildDocument is not available in a locale: "en" (available locales: "de","pl"). Please make sure to provide a valid locale code.`
-    );
+        value: "",
+        widgetId: "@easyblocks/local-text",
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`no value for locale "en"`)
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });
 
@@ -1294,8 +1313,17 @@ function testThemeValue(
     mapped: any;
     unmappedMaster: any;
   },
-  useMatchObject?: true
+  useMatchObject?: true,
+  // Widget the type declares, if any. A normalized token value always carries
+  // it, so the expectations for plain values have to as well.
+  valueWidgetId?: string
 ) {
+  const scalarRes = (value: any, tokenId?: string) => ({
+    value,
+    ...(tokenId === undefined ? {} : { tokenId }),
+    ...(valueWidgetId === undefined ? {} : { widgetId: valueWidgetId }),
+  });
+
   // null -> default
 
   test("null -> default value", () => {
@@ -1335,7 +1363,7 @@ function testThemeValue(
   test("string that is correct token name -> the token represented by this string", () => {
     superTest(
       x,
-      refVal1.ref,
+      refVal1.tokenId,
       defres(refVal1),
       defres(refVal1),
       defresFilled(refVal1.value),
@@ -1347,12 +1375,8 @@ function testThemeValue(
     superTest(
       x,
       correctScalarValue,
-      defres({
-        value: correctScalarValue,
-      }),
-      defres({
-        value: correctScalarValue,
-      }),
+      defres(scalarRes(correctScalarValue)),
+      defres(scalarRes(correctScalarValue)),
       defresFilled(correctScalarValue),
       useMatchObject
     );
@@ -1365,14 +1389,8 @@ function testThemeValue(
         value: inCorrectScalarValue,
         tokenId: "nonExistentRef",
       },
-      defres({
-        value: globalDefaultValue.value,
-        tokenId: "nonExistentRef",
-      }),
-      defres({
-        value: globalDefaultValue.value,
-        tokenId: "nonExistentRef",
-      }),
+      defres(scalarRes(globalDefaultValue.value, "nonExistentRef")),
+      defres(scalarRes(globalDefaultValue.value, "nonExistentRef")),
       defresFilled(globalDefaultValue.value),
       useMatchObject
     );
@@ -1385,14 +1403,8 @@ function testThemeValue(
         value: correctScalarValue,
         tokenId: "nonExistentRef",
       },
-      defres({
-        value: correctScalarValue,
-        tokenId: "nonExistentRef",
-      }),
-      defres({
-        value: correctScalarValue,
-        tokenId: "nonExistentRef",
-      }),
+      defres(scalarRes(correctScalarValue, "nonExistentRef")),
+      defres(scalarRes(correctScalarValue, "nonExistentRef")),
       defresFilled(correctScalarValue),
       useMatchObject
     );
@@ -1413,8 +1425,8 @@ function testThemeValue(
     superTest(
       x,
       { value: correctScalarValue },
-      defres({ value: correctScalarValue }),
-      defres({ value: correctScalarValue }),
+      defres(scalarRes(correctScalarValue)),
+      defres(scalarRes(correctScalarValue)),
       defresFilled(correctScalarValue),
       useMatchObject
     );
@@ -1468,7 +1480,7 @@ function testThemeValue(
   test("correcting value for ref!!!", () => {
     superTest(
       x,
-      { value: inCorrectScalarValue, tokenId: refVal2.ref },
+      { value: inCorrectScalarValue, tokenId: refVal2.tokenId },
       defres(refVal2),
       defres(refVal2),
       defresFilled(refVal2.value),
@@ -1560,7 +1572,13 @@ function testThemeValue(
    * Mapping
    */
   if (mapping) {
-    test("mapping of master tokens works", () => {
+    // Master-token mapping (`mapTo` on a theme token, so a value referencing a
+    // semantic name such as `$light` resolves to whichever token claims it) is
+    // an upstream feature this fork never imported: nothing in `src` reads
+    // `mapTo`, `createCompilationContext` drops it when it builds the theme,
+    // and neither `ConfigTokenValue` nor `ThemeTokenValue` declares it. The
+    // test stays here, and skipped, to keep the gap visible.
+    test.skip("mapping of master tokens works", () => {
       superTest(
         x,
         {
@@ -1616,25 +1634,39 @@ function testThemeValue(
   }
 }
 
-// global color default value
+const COLOR_WIDGET = "@easyblocks/color";
+
+/**
+ * What a `color` prop with no default of its own normalizes to.
+ *
+ * No `tokenId`: the built-in colour type declares `{ value: "#000000" }` in
+ * `createBuiltinTypes`, a literal rather than a token. Upstream defaulted to a
+ * `$dark` token, and `verify:tokens` in the app reports `$dark` as a token the
+ * scale does not define — so the fixture followed upstream while the product
+ * had moved on. The `$light`/`$dark` pair below stays, because the mapping test
+ * is about mapping and needs two names to map between.
+ */
 const globalColorDefault = {
   value: "#000000",
-  tokenId: "$dark",
+  widgetId: COLOR_WIDGET,
 };
 
 // example values
 const colorRefVal1 = {
   value: editorContext.theme.colors.devRed.value,
   tokenId: "devRed",
+  widgetId: COLOR_WIDGET,
 };
 const colorRefVal2 = {
   value: editorContext.theme.colors.devBlue.value,
   tokenId: "devBlue",
+  widgetId: COLOR_WIDGET,
 };
-const colorRefVal3 = { value: "white", tokenId: "white" }; // built-in
+const colorRefVal3 = { value: "white", tokenId: "white", widgetId: COLOR_WIDGET }; // built-in
 const colorRefResponsiveVal1 = {
   value: editorContext.theme.colors.devResponsive.value,
   tokenId: "devResponsive",
+  widgetId: COLOR_WIDGET,
 };
 const colorScalarVal1 = "#fafafa";
 const colorIncorrectScalarVal = 123; // number is not correct color
@@ -1648,10 +1680,11 @@ const colorMappingFixture = {
   unmappedMaster: {
     tokenId: "$dark",
     value: "#000000",
+    widgetId: COLOR_WIDGET,
   },
 };
 
-describe.skip("color field", () => {
+describe("color field", () => {
   test("field is correct", () => {
     const x = build(
       {
@@ -1693,7 +1726,9 @@ describe.skip("color field", () => {
       colorRefResponsiveVal1,
       colorIncorrectScalarVal,
       colorScalarVal1,
-      colorMappingFixture
+      colorMappingFixture,
+      undefined,
+      COLOR_WIDGET
     );
   });
 
@@ -1701,6 +1736,7 @@ describe.skip("color field", () => {
     const defaultValue = {
       value: "white",
       tokenId: "non-existent",
+      widgetId: COLOR_WIDGET,
     };
 
     const x = build(
@@ -1722,7 +1758,9 @@ describe.skip("color field", () => {
       colorRefResponsiveVal1,
       colorIncorrectScalarVal,
       colorScalarVal1,
-      colorMappingFixture
+      colorMappingFixture,
+      undefined,
+      COLOR_WIDGET
     );
   });
 
@@ -1730,6 +1768,7 @@ describe.skip("color field", () => {
     const defaultValue = {
       value: "white",
       tokenId: "white",
+      widgetId: COLOR_WIDGET,
     };
 
     const x = build(
@@ -1751,7 +1790,9 @@ describe.skip("color field", () => {
       colorRefResponsiveVal1,
       colorIncorrectScalarVal,
       colorScalarVal1,
-      colorMappingFixture
+      colorMappingFixture,
+      undefined,
+      COLOR_WIDGET
     );
   });
 });
@@ -1775,7 +1816,7 @@ const spaceRefResponsiveVal1 = {
 const spaceScalarVal1 = "300px";
 const spaceIncorrectScalarVal = "xxx";
 
-describe.skip("space field", () => {
+describe("space field", () => {
   test("field is correct", () => {
     const x = build(
       {
@@ -1925,9 +1966,10 @@ describe.skip("space field", () => {
  * FONT
  */
 
+// Mirrors `createBuiltinTypes`: the font type declares no widget, so a font
+// value carries no widgetId either.
 const globalFontDefault = {
-  value: { fontFamily: "sans-serif", fontSize: 16 },
-  widgetId: "@easyblocks/font",
+  value: { fontFamily: "sans-serif", fontSize: "16px" },
 };
 
 const fontRefVal1 = {
@@ -1959,7 +2001,7 @@ const fontMappingFixture = {
   unmappedMaster: fontRefVal3,
 };
 
-describe.skip("font field", () => {
+describe("font field", () => {
   test("field is correct", () => {
     const x = build(
       {
@@ -2013,6 +2055,7 @@ function testIconWithDefaultIconAsResult(x: ReturnType<typeof build>) {
   const DEFAULT_ICON_VALUE = {
     tokenId: "$sliderLeft",
     value: DEFAULT_ICON,
+    widgetId: "@easyblocks/icon",
   };
 
   expect(x.field.label).toBe("blabla");
@@ -2065,7 +2108,7 @@ function testIconWithDefaultIconAsResult(x: ReturnType<typeof build>) {
   });
 }
 
-describe.skip("Icon field", () => {
+describe("Icon field", () => {
   describe("no default value", () => {
     const definition = build(
       {
@@ -2189,104 +2232,38 @@ test("[external] behaves correctly with empty default", () => {
 });
 
 /**
- * IMAGE
+ * UNKNOWN TYPE
+ *
+ * `image` and `video` used to be built into the engine and had their own tests
+ * here. This fork does not define them — the app registers `@easyblocks/image`
+ * instead — so what those tests now describe is a prop whose type nothing
+ * registered. That used to call an undefined provider and throw a TypeError out
+ * of normalize, taking down every page the component appeared on.
  */
 
-test.skip("[image] behaves correctly with empty default", () => {
-  const x = build(
-    {
-      prop: "blabla",
-      type: "image",
-    },
-    editorContext
-  );
+test("[unknown type] passes the value through and warns instead of throwing", () => {
+  const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
-  expect(x.field.label).toBe("blabla");
-  expect(x.field.name).toBe("blabla");
-  expect(x.field.component).toBe("responsive2");
-  expect(x.field.subComponent).toBe("external");
-  expect(x.field.externalField.type).toBe("custom");
+  try {
+    const x = build(
+      {
+        prop: "blabla",
+        // @ts-ignore No config registers this type, on purpose
+        type: "image",
+      },
+      editorContext
+    );
 
-  /**
-   * Important assumptions:
-   * 1. Image can be of any type.
-   * 2. We assume every image value to be correct. No matter if string, object, etc.
-   * 3. null value is special. It's default for "empty image", but breakpoint is set.
-   */
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('unknown type "image"')
+    );
 
-  // scalar incorrect value mapping to {} on mainBreakpoint: { id: undefined, value: undefined }}
-  simpleTest(x, undefined, defres({ id: null }));
-  simpleTest(x, 100, defres({ id: null }));
-  simpleTest(x, {}, defres({ id: null }));
-  simpleTest(x, { xxx: "xxx" }, defres({ id: null }));
-  simpleTest(x, { id: undefined }, defres({ id: null }));
-  simpleTest(x, { id: null }, defres({ id: null }));
-  simpleTest(x, { id: 100 }, defres({ id: null }));
-
-  // correct scalar value
-  simpleTest(x, { id: "test" }, defres({ id: "test" }));
-
-  // responsive value - all breakpoints incorrect
-  simpleTest(x, { b2: 100, b4: "xxx", $res: true }, defres({ id: null }));
-
-  // responsive value some breakpoints incorrect
-  simpleTest(
-    x,
-    { b1: "www", b4: { id: "xxx" }, $res: true },
-    { b4: { id: "xxx" }, $res: true }
-  );
-
-  // responsive value incorrect main breakpoint
-  simpleTest(
-    x,
-    { b1: { id: "xxx" }, b4: 111, $res: true },
-    { b1: { id: "xxx" }, b4: { id: null }, $res: true }
-  );
-
-  // responsive value all breakpoints correct, empty main
-  simpleTest(
-    x,
-    { b1: { id: "test" }, b3: { id: "xxx" }, $res: true },
-    { b1: { id: "test" }, b3: { id: "xxx" }, b4: { id: null }, $res: true }
-  );
-});
-
-/**
- * VIDEO
- */
-
-test.skip("[video] behaves correctly with empty default", () => {
-  const x = build(
-    {
-      prop: "blabla",
-      type: "video",
-    },
-    editorContext
-  );
-
-  expect(x.field.label).toBe("blabla");
-  expect(x.field.name).toBe("blabla");
-  expect(x.field.component).toBe("responsive2");
-  expect(x.field.subComponent).toBe("external");
-  expect(x.field.externalField.type).toBe("custom");
-
-  /**
-   * Every object is treated as correct image value. It's not normalized, it's just passed to the field. We fully
-   * rely on the field. Therefore, sometimes when incorrect object is passed to the field, null will be rendered.
-   */
-
-  const defaultResponsive = defres({ id: null });
-
-  simpleTest(x, undefined, defaultResponsive);
-  simpleTest(x, 100, defaultResponsive);
-  simpleTest(x, {}, defaultResponsive);
-  simpleTest(x, { xxx: "xxx" }, defaultResponsive);
-  simpleTest(x, { id: undefined }, defaultResponsive);
-  simpleTest(x, defaultResponsive, defaultResponsive);
-  simpleTest(x, { id: 100 }, defaultResponsive);
-
-  // correct value
-  simpleTest(x, { id: "test" }, defres({ id: "test" }));
+    const saved = { id: "test", widgetId: "whatever" };
+    expect(x.def.normalize(saved)).toEqual(saved);
+    expect(x.def.compile(saved)).toEqual(saved);
+  } finally {
+    warnSpy.mockRestore();
+  }
 });
 
 /**
@@ -2782,6 +2759,12 @@ test("[component] works with nesting", () => {
   expect(item.components.Cards[2].props.contextProp).toBe("v");
 });
 
+// Local component refs — a `_component` id of the form `MyProductCard$$$local.ref1`,
+// where several instances share one stored definition — are an upstream feature
+// this fork never imported: the string appears nowhere in `src` outside this
+// file, so the engine reads such an id as a component it cannot find and
+// renders the missing-component placeholder. Kept and skipped so the gap stays
+// visible.
 describe.skip("[component] with local refs", () => {
   const card1 = {
     _component: "MyProductCard",

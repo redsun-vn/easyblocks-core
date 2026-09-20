@@ -264,29 +264,43 @@ const textProvider: SchemaPropDefinitionProviders["text"] = (
       };
     },
     compile: (x: any) => {
+      // Whoever wrote the value said which widget owns it. Stamping every
+      // compiled text as local text relabelled a text that came from elsewhere,
+      // and the editor then offered the wrong control for it.
+      const widgetId = x.widgetId ?? "@easyblocks/local-text";
+
       if ("value" in x) {
-        const value = x.value[compilationContext.contextParams.locale];
+        const locale = compilationContext.contextParams.locale;
+        const value = x.value[locale];
 
         // Let's apply fallback
         if (typeof value !== "string") {
-          const fallbackValue =
-            getFallbackForLocale(
-              x.value,
-              compilationContext.contextParams.locale,
-              compilationContext.locales,
-            ) ?? "";
+          const fallbackValue = getFallbackForLocale(
+            x.value,
+            locale,
+            compilationContext.locales,
+          );
+
+          if (fallbackValue === undefined && Object.keys(x.value).length > 0) {
+            // Written in some language, just not this one, and no fallback
+            // leads anywhere. The page renders with a gap, which is quiet
+            // enough on its own — so say it out loud here.
+            console.warn(
+              `easyblocks: text "${x.id}" has no value for locale "${locale}" and no fallback resolves to one; it renders empty`,
+            );
+          }
 
           return {
             id: x.id,
-            value: fallbackValue,
-            widgetId: "@easyblocks/local-text",
+            value: fallbackValue ?? "",
+            widgetId,
           };
         }
 
         return {
           id: x.id,
           value,
-          widgetId: "@easyblocks/local-text",
+          widgetId,
         };
       }
 
@@ -811,6 +825,19 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
 
           const defaultWidgetId = customTypeDefinition.widget?.id;
 
+          /**
+           * A scalar the type itself refuses is not kept.
+           *
+           * The fallback here used to be the identity function, so a `color`
+           * prop holding the number `123`, or any string that is not a colour,
+           * came through untouched and reached the page as a CSS declaration
+           * the browser drops — the block simply lost its colour, with nothing
+           * to say why. The type already knows what it accepts; `space` was
+           * asking it by hand and everything else was not.
+           */
+          const chapNhanVoHuong = (x: any) =>
+            (customTypeDefinition.validate?.(x) ?? true) ? x : undefined;
+
           const createTokenNormalizer = (normalizeScalar?: (x: any) => any) => {
             return customTypeDefinition.responsiveness === "always" ||
               (customTypeDefinition.responsiveness === "optional" &&
@@ -825,11 +852,12 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
                       themeValues as ResponsiveValue<any>,
                       defaultValue,
                       defaultWidgetId,
-                      normalizeScalar ?? ((x) => x),
+                      normalizeScalar ?? chapNhanVoHuong,
+                      customTypeDefinition.defaultValue,
                     );
                   },
                 )
-              : getNormalize(
+              : getNormalize<any>(
                   compilationContext,
                   schemaProp.defaultValue,
                   customTypeDefinition.defaultValue,
@@ -839,7 +867,8 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
                       themeValues as ResponsiveValue<any>,
                       defaultValue,
                       defaultWidgetId,
-                      normalizeScalar ?? ((x) => x),
+                      normalizeScalar ?? chapNhanVoHuong,
+                      customTypeDefinition.defaultValue,
                     );
                   },
                 );
@@ -871,23 +900,50 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
               return;
             };
 
-            const iconDefaultValue =
-              normalizeTokenValue<string>(
-                schemaProp.defaultValue,
-                themeValues as Record<string, ThemeTokenValue<string>>,
-                customTypeDefinition.defaultValue,
-                defaultWidgetId,
-                scalarValueNormalize,
-              ) ?? customTypeDefinition.defaultValue;
+            // Icons never pass through `getNormalize`, so this branch resolves
+            // its own default. It asks the prop first, then the token the theme
+            // marks as default, then the type — a prop whose declared default is
+            // unreadable no longer beats a perfectly good one further down.
+            const iconDefaultValue = [
+              schemaProp.defaultValue,
+              defaultThemeValueEntry
+                ? { tokenId: defaultThemeValueEntry[0] }
+                : undefined,
+              customTypeDefinition.defaultValue,
+            ].reduce<TokenValue<string> | undefined>(
+              (resolved, candidate) =>
+                resolved ??
+                (candidate === undefined
+                  ? undefined
+                  : normalizeTokenValue<string>(
+                      candidate,
+                      themeValues as Record<string, ThemeTokenValue<string>>,
+                      candidate,
+                      defaultWidgetId,
+                      scalarValueNormalize,
+                    )),
+              undefined,
+            );
+
+            // Last resort, when even the type's own declared default is not a
+            // readable SVG: an empty icon draws nothing, which beats handing
+            // the renderer a shape it cannot use.
+            const iconFallback: TokenValue<string> = iconDefaultValue ?? {
+              value:
+                "value" in customTypeDefinition.defaultValue
+                  ? (customTypeDefinition.defaultValue.value as string)
+                  : "",
+              widgetId: defaultWidgetId,
+            };
 
             return (
               normalizeTokenValue<string>(
                 value,
                 themeValues as Record<string, ThemeTokenValue<string>>,
-                iconDefaultValue,
+                iconFallback,
                 defaultWidgetId,
                 scalarValueNormalize,
-              ) ?? value
+              ) ?? iconFallback
             );
           }
 
@@ -1159,6 +1215,7 @@ function normalizeTokenValue<T>(
   defaultValue: { tokenId: string } | { value: any },
   defaultWidgetId: string | undefined,
   scalarValueNormalize: (x: any) => T | undefined = (x) => undefined,
+  globalDefaultValue?: { tokenId: string } | { value: any },
 ): TokenValue<T> | undefined {
   const input = x ?? defaultValue;
   const widgetId = input?.widgetId ?? defaultWidgetId;
@@ -1174,6 +1231,18 @@ function normalizeTokenValue<T>(
   // The scalar is put through the same normalizer the `{ value }` branch uses,
   // so a readable one is kept and an unreadable one falls back to the default.
   if (input === null || typeof input !== "object") {
+    // A bare string is first offered to the theme: `"devRed"` saved on its own
+    // means the token of that name, the same as `{ tokenId: "devRed" }`. Only
+    // when no token answers to it is it read as a literal value, so renaming a
+    // token does not turn every page that used it into raw text.
+    if (typeof input === "string" && themeValues[input] !== undefined) {
+      return {
+        value: themeValues[input].value,
+        tokenId: input,
+        widgetId,
+      };
+    }
+
     const normalizedVal = scalarValueNormalize(input);
 
     if (normalizedVal !== undefined) {
@@ -1183,15 +1252,10 @@ function normalizeTokenValue<T>(
       };
     }
 
-    return x === undefined
-      ? undefined
-      : normalizeTokenValue(
-          undefined,
-          themeValues,
-          defaultValue,
-          defaultWidgetId,
-          scalarValueNormalize,
-        );
+    // Unreadable: say so rather than substituting a default here. The caller
+    // decides what a missing value means — the main breakpoint takes the
+    // default, a secondary breakpoint is simply dropped so it keeps inheriting.
+    return;
   }
 
   const hasTokenId = "tokenId" in input && typeof input.tokenId === "string";
@@ -1214,6 +1278,46 @@ function normalizeTokenValue<T>(
     if (normalizedVal !== undefined) {
       return {
         tokenId: hasTokenId ? input.tokenId : undefined,
+        value: normalizedVal,
+        widgetId,
+      };
+    }
+  }
+
+  // A token this theme does not define, with nothing readable saved next to it.
+  // The name is kept and only the value falls back: a shop that switches theme,
+  // or whose palette is still being edited, gets its colours back when the token
+  // reappears instead of having every reference to it quietly flattened.
+  if (hasTokenId && globalDefaultValue !== undefined) {
+    const globalDefault = normalizeTokenValue<T>(
+      undefined,
+      themeValues,
+      globalDefaultValue,
+      defaultWidgetId,
+      scalarValueNormalize,
+    );
+
+    if (globalDefault !== undefined) {
+      return {
+        ...globalDefault,
+        tokenId: input.tokenId,
+        widgetId,
+      };
+    }
+  }
+
+  // An object carrying none of the wrapper keys is not a wrapper at all — it is
+  // the value itself. A font is the case that matters: `{ fontFamily, fontSize }`
+  // is what the theme stores, and read as a wrapper it has no `value` to find,
+  // so the whole font was thrown away and the block fell back to the default.
+  const laVoBoc =
+    "tokenId" in input || "value" in input || "widgetId" in input;
+
+  if (!laVoBoc) {
+    const normalizedVal = scalarValueNormalize(input);
+
+    if (normalizedVal !== undefined) {
+      return {
         value: normalizedVal,
         widgetId,
       };
@@ -1395,6 +1499,22 @@ export function getSchemaDefinition<
       : schemaPropDefinitions[
           schemaProp.type as keyof SchemaPropDefinitionProviders
         ];
+
+  if (typeof provider !== "function") {
+    // A prop whose type the config never registered. Calling the missing
+    // provider threw a TypeError out of normalize, which blanks every page the
+    // component appears on — over one prop. The value is left exactly as saved
+    // so nothing is lost when the type is registered again.
+    console.warn(
+      `easyblocks: schema prop "${schemaProp.prop}" has unknown type "${schemaProp.type}"; its value is passed through untouched`,
+    );
+
+    return {
+      normalize: (x: any) => x,
+      compile: (x: any) => x,
+      getHash: () => undefined,
+    } as ReturnType<SchemaPropDefinitionProvider>;
+  }
 
   return provider(schemaProp as any, compilationContext);
 }

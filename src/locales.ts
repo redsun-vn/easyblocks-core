@@ -63,13 +63,11 @@ export function getFallbackForLocale<T>(
     const fallbackLocale = getFallbackLocaleForLocale(locale, locales);
 
     if (!fallbackLocale) {
-      const firstLocale = Object.keys(translatedValues)?.[0];
-
-      if (!firstLocale) {
-        return;
-      }
-
-      return translatedValues[firstLocale] ?? undefined;
+      // The chain is exhausted, so there is no answer. Reaching into whatever
+      // language happens to be stored first would put, say, Vietnamese words on
+      // an English page and look translated — the caller decides what an
+      // untranslated text should show, and it is not another language.
+      return;
     }
 
     const fallbackValue = translatedValues[fallbackLocale];
