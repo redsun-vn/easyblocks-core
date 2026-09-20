@@ -20,7 +20,16 @@ export function responsiveValueFindHigherDeviceWithDefinedValue<T>(
   const componentWidth = devices[componentWidthIndex];
 
   if (!componentWidth) {
-    throw new Error("undefined breakpoint");
+    // A breakpoint id that is not among the config's devices. Both of these
+    // functions already answer undefined for "no device found", and that is
+    // the honest answer here too: a saved document, or a param handed down
+    // from a parent's styles, can name a device the config no longer has, and
+    // throwing turned that into a blank page rather than one unset property.
+    console.warn(
+      `easyblocks: breakpoint "${breakpoint}" is not one of the configured devices`
+    );
+
+    return undefined;
   }
 
   //
@@ -54,7 +63,16 @@ export function responsiveValueFindLowerDeviceWithDefinedValue<T>(
   const componentWidth = devices[componentWidthIndex];
 
   if (!componentWidth) {
-    throw new Error("undefined breakpoint");
+    // A breakpoint id that is not among the config's devices. Both of these
+    // functions already answer undefined for "no device found", and that is
+    // the honest answer here too: a saved document, or a param handed down
+    // from a parent's styles, can name a device the config no longer has, and
+    // throwing turned that into a blank page rather than one unset property.
+    console.warn(
+      `easyblocks: breakpoint "${breakpoint}" is not one of the configured devices`
+    );
+
+    return undefined;
   }
 
   for (let i = componentWidthIndex - 1; i >= 0; i--) {
