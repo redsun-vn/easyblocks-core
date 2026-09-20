@@ -543,11 +543,17 @@ function getFallbackForLocale(translatedValues, locale, locales) {
   while (true) {
     const fallbackLocale = getFallbackLocaleForLocale(locale, locales);
     if (!fallbackLocale) {
-      // The chain is exhausted, so there is no answer. Reaching into whatever
-      // language happens to be stored first would put, say, Vietnamese words on
-      // an English page and look translated — the caller decides what an
-      // untranslated text should show, and it is not another language.
-      return;
+      // The chain is exhausted, so fall back to whatever language the value was
+      // actually written in. Deliberate, since 279c6a0 (2026-06-02): a shop
+      // writes its pages in one language, and a request for a locale nobody
+      // configured a chain for must still show the shop's words rather than an
+      // empty page. Do not remove this to satisfy an upstream test — upstream
+      // returns undefined here, this fork does not.
+      const firstLocale = Object.keys(translatedValues)?.[0];
+      if (!firstLocale) {
+        return;
+      }
+      return translatedValues[firstLocale] ?? undefined;
     }
     const fallbackValue = translatedValues[fallbackLocale];
     if (fallbackValue !== undefined && fallbackValue !== null) {

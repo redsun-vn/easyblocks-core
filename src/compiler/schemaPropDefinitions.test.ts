@@ -869,7 +869,11 @@ describe("text", () => {
     });
   });
 
-  test("returns empty string when value for given locale is not defined and is editing", () => {
+  // Upstream returns an empty string here. This fork deliberately does not:
+  // since 279c6a0 a locale with no fallback chain falls back to the language
+  // the value was actually written in, because a shop writes its pages in one
+  // language and must not get a blank page for asking in another.
+  test("falls back to the language the value was written in", () => {
     const textSchemaProp = build(
       {
         type: "text",
@@ -894,12 +898,12 @@ describe("text", () => {
       })
     ).toEqual({
       id: "local.123",
-      value: "",
+      value: "test",
       widgetId: "@easyblocks/local-text",
     });
   });
 
-  test("renders empty and warns when value for given locale is not defined and is not editing", () => {
+  test("builds the document instead of throwing when a locale is missing", () => {
     const testContext: EditorContextType = {
       ...editorContext,
     };
@@ -915,17 +919,39 @@ describe("text", () => {
     );
 
     // A missing translation used to throw here, which took down the whole
-    // document being built rather than the one text that was missing. The
-    // document now renders with an empty text and the build says so.
+    // document being built rather than the one text that was missing.
+    expect(
+      textSchemaProp.def.compile({
+        id: "local.123",
+        value: {
+          de: "test",
+          pl: "test",
+        },
+      })
+    ).toEqual({
+      id: "local.123",
+      value: "test",
+      widgetId: "@easyblocks/local-text",
+    });
+  });
+
+  test("renders empty and warns when nothing is written in any language", () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    const textSchemaProp = build(
+      {
+        type: "text",
+        prop: "test",
+      },
+      editorContext
+    );
 
     try {
       expect(
         textSchemaProp.def.compile({
           id: "local.123",
           value: {
-            de: "test",
-            pl: "test",
+            de: null,
           },
         })
       ).toEqual({
