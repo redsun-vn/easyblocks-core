@@ -1,4 +1,4 @@
-import { mockConsoleMethod } from "@easyblocks/test-utils";
+import { mockConsoleMethod } from "../testUtils.console";
 import { isTrulyResponsiveValue, responsiveValueFill } from "../responsiveness";
 import {
   CompiledComponentConfig,

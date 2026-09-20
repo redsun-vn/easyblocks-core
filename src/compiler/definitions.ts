@@ -437,6 +437,17 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
         return [];
       }
 
+      // A `null` in a saved child array — bad JSON, a failed undo — reached
+      // `normalizeComponent` and read `._id` off it. That TypeError blanks the
+      // page, so an unusable child is treated as no child at all.
+      if (!x[0] || typeof x[0] !== "object") {
+        console.warn(
+          `easyblocks: prop "${schemaProp.prop}" holds an unusable child, which has been dropped`,
+        );
+
+        return [];
+      }
+
       return [normalizeComponent(x[0], compilationContext)];
     };
 
@@ -500,11 +511,25 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
       if (!Array.isArray(x)) {
         return [];
       }
-      const ret = (x || []).map((item: NoCodeComponentEntry) =>
-        normalizeComponent(item, compilationContext),
+
+      // Unusable entries are dropped rather than handed to
+      // `normalizeComponent`, which reads `._id` off them. A single `null` in
+      // a saved collection — bad JSON, a failed undo — used to blank the page
+      // with a TypeError instead of costing one child.
+      const usable: NoCodeComponentEntry[] = x.filter(
+        (item: unknown): item is NoCodeComponentEntry =>
+          !!item && typeof item === "object",
       );
 
-      return ret;
+      if (usable.length !== x.length) {
+        console.warn(
+          `easyblocks: ${x.length - usable.length} unusable item(s) in a collection have been dropped`,
+        );
+      }
+
+      return usable.map((item: NoCodeComponentEntry) =>
+        normalizeComponent(item, compilationContext),
+      );
     };
 
     return {
@@ -1245,10 +1270,24 @@ export function normalizeComponent(
 
         const values = configComponent._itemProps[templateId][fieldName];
 
+        // `templateId` is a key inside the saved document's `_itemProps`, so it
+        // names whatever component owned this child when the page was saved.
+        // Rename or remove that component and the key is left pointing at
+        // nothing — and reading `.schema` off nothing is a TypeError, which
+        // blanks the page exactly as a throw would.
         const ownerDefinition = findComponentDefinitionById(
           templateId,
           compilationContext,
-        )!;
+        );
+
+        if (!ownerDefinition) {
+          console.warn(
+            `easyblocks: item props are stored under "${templateId}", which is not a component in this config; skipping them`,
+          );
+
+          continue;
+        }
+
         const ownerSchemaProp = ownerDefinition.schema.find(
           (x) => x.prop === fieldName,
         ) as ComponentCollectionSchemaProp | undefined;

@@ -735,7 +735,15 @@ function createOwnComponentProps({
   const values = Object.fromEntries(
     componentDefinition.schema.map((schemaProp) => {
       if (isSchemaPropComponentOrComponentCollection(schemaProp)) {
-        let configValue: Array<NoCodeComponentEntry> = config[schemaProp.prop];
+        // `normalize` guarantees an array here, so this only bites when
+        // something compiles a config that never went through it — but reading
+        // `.length` off undefined blanks the page, and an empty list is what
+        // normalize would have produced anyway.
+        let configValue: Array<NoCodeComponentEntry> = Array.isArray(
+          config[schemaProp.prop],
+        )
+          ? config[schemaProp.prop]
+          : [];
 
         if (configValue.length === 0) {
           return [schemaProp.prop, []];

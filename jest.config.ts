@@ -13,6 +13,7 @@ const config: Config.InitialOptions = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  setupFiles: ["<rootDir>/jest.setup.ts"],
 };
 
 export default config;

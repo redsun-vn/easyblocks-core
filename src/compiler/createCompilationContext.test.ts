@@ -13,43 +13,44 @@ const basicConfig: Config = {
   ],
 };
 
+// Mirrors `DEFAULT_DEVICES` in `devices.ts`. It drifted once already — the
+// breakpoints were changed there and not here — and nobody saw it, because
+// this whole suite failed to load rather than failing a test.
 const defaults = {
   xs: {
     id: "xs",
     w: 375,
     h: 667,
-    breakpoint: 568,
+    breakpoint: 639,
     label: "Mobile",
   },
   sm: {
     id: "sm",
     w: 667,
     h: 375,
-    breakpoint: 768,
-    label: "Mobile SM h",
-    hidden: true,
+    breakpoint: 767,
+    label: "Mobile SM - h",
   },
   md: {
     id: "md",
     w: 768,
     h: 1024,
-    breakpoint: 992,
+    breakpoint: 1023,
     label: "Tablet",
   },
   lg: {
     id: "lg",
     w: 1024,
     h: 768,
-    breakpoint: 1280,
-    label: "TabletH",
-    hidden: true,
+    breakpoint: 1279,
+    label: "Small Desktop - Tablet H",
   },
   xl: {
     id: "xl",
     w: 1366,
     h: 768,
-    breakpoint: 1600,
-    label: "Desktop",
+    breakpoint: 1535,
+    label: "Medium Desktop",
     isMain: true,
   },
   "2xl": {
