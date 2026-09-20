@@ -1,6 +1,6 @@
 /* with love from shopstory */
 import { b as isDocument, a as isComponentConfig, o as isLocalTextReference, s as isExternalSchemaProp, i as isTrulyResponsiveValue, p as responsiveValueEntries, k as getExternalReferenceLocationKey, t as serialize } from './findComponentDefinition-2b190cc9.js';
-import { a as createCompilationContext, c as compileInternal, n as normalize, A as configTraverse } from './configTraverse-2e9c357d.js';
+import { a as createCompilationContext, c as compileInternal, n as normalize, A as configTraverse } from './configTraverse-ac6ef8cd.js';
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {

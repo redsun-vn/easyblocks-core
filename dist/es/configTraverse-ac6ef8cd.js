@@ -8037,7 +8037,28 @@ function createBuiltinTypes() {
       },
       allowCustom: true,
       validate(value) {
-        return typeof value === "string" && !!parseSpacing(value);
+        if (typeof value !== "string") {
+          return false;
+        }
+
+        // `parseSpacing` throws on anything that is not px or vw, and this
+        // function is called while a document is being compiled. Letting the
+        // throw through does not reject one value: it takes down the whole
+        // build, which means a blank page on the published site and a canvas
+        // that disappears and does not come back in the editor.
+        //
+        // The field it comes from is a free-text input, so reaching it needs no
+        // mistake beyond typing `1rem`, `5%`, `2em` or `auto` — all of them
+        // things somebody who has seen any CSS would try. Measured: typing
+        // `1rem` emptied the canvas and the editor stayed empty until reload.
+        //
+        // A validator's answer is a boolean. Anything it cannot parse is simply
+        // not a valid spacing.
+        try {
+          return !!parseSpacing(value);
+        } catch {
+          return false;
+        }
       }
     },
     color: {
