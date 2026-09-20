@@ -3,9 +3,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var buildDocument = require('./buildDocument-835d5fb1.js');
+var buildDocument = require('./buildDocument-00c71408.js');
 require('./findComponentDefinition-13d8e05b.js');
-require('./configTraverse-ed6b7e7a.js');
+require('./configTraverse-9e6fb7c0.js');
 require('js-xxhash');
 require('postcss-value-parser');
 require('zod');

@@ -542,24 +542,37 @@ export const schemaPropDefinitions: SchemaPropDefinitionProviders = {
         configPrefix,
         cache,
       ) => {
-        return arr.map((componentConfig, index) =>
-          compileComponent(
-            componentConfig as NoCodeComponentEntry,
-            compilationContext,
-            (contextProps.itemProps || [])[index] || {},
-            serializedDefinitions,
-            cache,
-            (
-              editingInfoComponents as
-                | EditingInfoComponentCollection
-                | undefined
-            )?.items?.[index],
-            `${configPrefix}.${index}`,
-          ),
-        );
+        // Unusable entries are skipped here as well as in `normalize`. A value
+        // written straight into the form during a session — a paste, a failed
+        // undo — reaches `compile` without having been normalized, and a null
+        // among the children emptied the editor from deep inside the panel
+        // builder.
+        return arr
+          .filter(
+            (componentConfig) =>
+              !!componentConfig && typeof componentConfig === "object",
+          )
+          .map((componentConfig, index) =>
+            compileComponent(
+              componentConfig as NoCodeComponentEntry,
+              compilationContext,
+              (contextProps.itemProps || [])[index] || {},
+              serializedDefinitions,
+              cache,
+              (
+                editingInfoComponents as
+                  | EditingInfoComponentCollection
+                  | undefined
+              )?.items?.[index],
+              `${configPrefix}.${index}`,
+            ),
+          );
       },
       getHash: (value) => {
-        return value.map((v) => v._component).join(";");
+        return value
+          .filter((v) => !!v && typeof v === "object")
+          .map((v) => v._component)
+          .join(";");
       },
     };
   },

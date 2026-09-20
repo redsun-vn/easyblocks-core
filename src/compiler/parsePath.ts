@@ -49,7 +49,12 @@ export function parsePath(path: string, form: any): PathInfo {
     const testedPath = pathSplit.slice(0, i).join(".");
     const value = dotNotationGet(values, testedPath);
 
-    if (typeof value === "object" && typeof value._component === "string") {
+    // `typeof null` is "object", so this read used to be a TypeError on a null
+    // in a child array — and it runs while the editor builds its panel, so the
+    // canvas emptied. `normalize` drops such entries on the way in, but a value
+    // written straight into the form during a session, by a paste or a failed
+    // undo, reaches here without passing through it.
+    if (value && typeof value === "object" && typeof value._component === "string") {
       if (pathInfo === undefined) {
         pathInfo = {
           templateId: value._component,
