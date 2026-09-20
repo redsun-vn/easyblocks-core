@@ -1161,20 +1161,38 @@ function normalizeTokenValue<T>(
   scalarValueNormalize: (x: any) => T | undefined = (x) => undefined,
 ): TokenValue<T> | undefined {
   const input = x ?? defaultValue;
-  const widgetId = input.widgetId ?? defaultWidgetId;
+  const widgetId = input?.widgetId ?? defaultWidgetId;
 
-  // if (typeof input !== "object" && "value" in defaultValue) {
-  //   const normalizedVal = scalarValueNormalize(defaultValue.value);
+  // A token value that was saved as a plain scalar — `"#fafafa"`, `"300px"`,
+  // `123` — rather than as `{ tokenId }` or `{ value }`.
+  //
+  // The `in` operator below only works on objects, so a scalar threw a
+  // TypeError on the normalize path, which blanks the page. A prop that used
+  // to be declared `string` and was later changed to `color`, `space` or
+  // `font` leaves exactly this behind on every page already saved.
+  //
+  // The scalar is put through the same normalizer the `{ value }` branch uses,
+  // so a readable one is kept and an unreadable one falls back to the default.
+  if (input === null || typeof input !== "object") {
+    const normalizedVal = scalarValueNormalize(input);
 
-  //   if (normalizedVal !== undefined) {
-  //     return {
-  //       value: normalizedVal,
-  //       widgetId,
-  //     };
-  //   }
+    if (normalizedVal !== undefined) {
+      return {
+        value: normalizedVal,
+        widgetId,
+      };
+    }
 
-  //   return;
-  // }
+    return x === undefined
+      ? undefined
+      : normalizeTokenValue(
+          undefined,
+          themeValues,
+          defaultValue,
+          defaultWidgetId,
+          scalarValueNormalize,
+        );
+  }
 
   const hasTokenId = "tokenId" in input && typeof input.tokenId === "string";
 

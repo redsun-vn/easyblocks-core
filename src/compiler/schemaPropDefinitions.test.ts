@@ -964,8 +964,8 @@ test("[boolean] behaves correctly with correct default value", () => {
   simpleTest(x, false, false);
 });
 
-describe.skip("boolean responsive field", () => {
-  describe.skip("with correct default value", () => {
+describe("boolean responsive field", () => {
+  describe("with correct default value", () => {
     const defaultTrueCompiled: ResponsiveValue<boolean> = {
       b4: true,
       $res: true,
@@ -1283,10 +1283,10 @@ function testThemeValue(
   x: ReturnType<typeof build>,
   defaultValue: any, // Correct normalized default value
   globalDefaultValue: any,
-  refVal1: any, // { value: "red", ref: "devRed"}
-  refVal2: any, // { value: "blue", ref: "devBlue" }
-  refVal3: any, // { value: "white", ref: "white" }
-  refValResponsive: any, // like { value: responsiveVal, ref: "devResponsive" }
+  refVal1: any, // { value: "red", tokenId: "devRed"}
+  refVal2: any, // { value: "blue", tokenId: "devBlue" }
+  refVal3: any, // { value: "white", tokenId: "white" }
+  refValResponsive: any, // like { value: responsiveVal, tokenId: "devResponsive" }
   inCorrectScalarValue: any,
   correctScalarValue: any, // like "#fafafa
   mapping?: {
@@ -1363,15 +1363,15 @@ function testThemeValue(
       x,
       {
         value: inCorrectScalarValue,
-        ref: "nonExistentRef",
+        tokenId: "nonExistentRef",
       },
       defres({
         value: globalDefaultValue.value,
-        ref: "nonExistentRef",
+        tokenId: "nonExistentRef",
       }),
       defres({
         value: globalDefaultValue.value,
-        ref: "nonExistentRef",
+        tokenId: "nonExistentRef",
       }),
       defresFilled(globalDefaultValue.value),
       useMatchObject
@@ -1383,15 +1383,15 @@ function testThemeValue(
       x,
       {
         value: correctScalarValue,
-        ref: "nonExistentRef",
+        tokenId: "nonExistentRef",
       },
       defres({
         value: correctScalarValue,
-        ref: "nonExistentRef",
+        tokenId: "nonExistentRef",
       }),
       defres({
         value: correctScalarValue,
-        ref: "nonExistentRef",
+        tokenId: "nonExistentRef",
       }),
       defresFilled(correctScalarValue),
       useMatchObject
@@ -1468,7 +1468,7 @@ function testThemeValue(
   test("correcting value for ref!!!", () => {
     superTest(
       x,
-      { value: inCorrectScalarValue, ref: refVal2.ref },
+      { value: inCorrectScalarValue, tokenId: refVal2.ref },
       defres(refVal2),
       defres(refVal2),
       defresFilled(refVal2.value),
@@ -1619,34 +1619,34 @@ function testThemeValue(
 // global color default value
 const globalColorDefault = {
   value: "#000000",
-  ref: "$dark",
+  tokenId: "$dark",
 };
 
 // example values
 const colorRefVal1 = {
   value: editorContext.theme.colors.devRed.value,
-  ref: "devRed",
+  tokenId: "devRed",
 };
 const colorRefVal2 = {
   value: editorContext.theme.colors.devBlue.value,
-  ref: "devBlue",
+  tokenId: "devBlue",
 };
-const colorRefVal3 = { value: "white", ref: "white" }; // built-in
+const colorRefVal3 = { value: "white", tokenId: "white" }; // built-in
 const colorRefResponsiveVal1 = {
   value: editorContext.theme.colors.devResponsive.value,
-  ref: "devResponsive",
+  tokenId: "devResponsive",
 };
 const colorScalarVal1 = "#fafafa";
 const colorIncorrectScalarVal = 123; // number is not correct color
 
 const colorMappingFixture = {
   master: {
-    ref: "$light",
+    tokenId: "$light",
     value: "#FFFFFF",
   },
   mapped: colorRefVal2,
   unmappedMaster: {
-    ref: "$dark",
+    tokenId: "$dark",
     value: "#000000",
   },
 };
@@ -1674,7 +1674,7 @@ describe.skip("color field", () => {
     expect(x.field.tokens).toMatchObject(colors);
   });
 
-  describe.skip("with no default value", () => {
+  describe("with no default value", () => {
     const x = build(
       {
         prop: "blabla",
@@ -1697,10 +1697,10 @@ describe.skip("color field", () => {
     );
   });
 
-  describe.skip("with default value as a (non-existent ref)", () => {
+  describe("with default value as a (non-existent ref)", () => {
     const defaultValue = {
       value: "white",
-      ref: "non-existent",
+      tokenId: "non-existent",
     };
 
     const x = build(
@@ -1726,10 +1726,10 @@ describe.skip("color field", () => {
     );
   });
 
-  describe.skip("with correct default value", () => {
+  describe("with correct default value", () => {
     const defaultValue = {
       value: "white",
-      ref: "white",
+      tokenId: "white",
     };
 
     const x = build(
@@ -1764,13 +1764,13 @@ const globalSpaceDefault = { value: "0px", widgetId: "@easyblocks/space" };
 
 const spaceRefVal1 = {
   value: editorContext.theme.space.devSmall.value,
-  ref: "devSmall",
+  tokenId: "devSmall",
 };
-const spaceRefVal2 = { value: "200px", ref: "devLarge" };
-const spaceRefVal3 = { value: "1px", ref: "1" };
+const spaceRefVal2 = { value: "200px", tokenId: "devLarge" };
+const spaceRefVal3 = { value: "1px", tokenId: "1" };
 const spaceRefResponsiveVal1 = {
   value: editorContext.theme.space.devResponsive.value,
-  ref: "devResponsive",
+  tokenId: "devResponsive",
 };
 const spaceScalarVal1 = "300px";
 const spaceIncorrectScalarVal = "xxx";
@@ -1792,7 +1792,7 @@ describe.skip("space field", () => {
     expect(x.field.tokens).toMatchObject(editorContext.theme.space);
   });
 
-  describe.skip("without default value", () => {
+  describe("without default value", () => {
     const definition = build(
       {
         prop: "blabla",
@@ -1816,10 +1816,10 @@ describe.skip("space field", () => {
     );
   });
 
-  describe.skip("with default value as non-existent ref", () => {
+  describe("with default value as non-existent ref", () => {
     const defaultValue = {
       value: "111px",
-      ref: "non-existent",
+      tokenId: "non-existent",
     };
 
     const definition = build(
@@ -1846,10 +1846,10 @@ describe.skip("space field", () => {
     );
   });
 
-  describe.skip("with correct default value", () => {
+  describe("with correct default value", () => {
     const defaultValue = {
       value: "1px",
-      ref: "1",
+      tokenId: "1",
     };
     const definition = build(
       {
@@ -1881,7 +1881,7 @@ describe.skip("space field", () => {
         prop: "blabla",
         type: "space",
         // Value here is only for TS to stop crying
-        defaultValue: { ref: "containerMargin.default", value: "0px" },
+        defaultValue: { tokenId: "containerMargin.default", value: "0px" },
       },
       editorContext
     );
@@ -1912,7 +1912,7 @@ describe.skip("space field", () => {
 
     const normalized = x.def.normalize({
       b1: { value: 16 },
-      b4: { value: 10, ref: "non-existent" },
+      b4: { value: 10, tokenId: "non-existent" },
       $res: true,
     });
 
@@ -1932,19 +1932,19 @@ const globalFontDefault = {
 
 const fontRefVal1 = {
   value: editorContext.theme.fonts.devBody.value,
-  ref: "devBody",
+  tokenId: "devBody",
 };
 const fontRefVal2 = {
   value: editorContext.theme.fonts.devHeading.value,
-  ref: "devHeading",
+  tokenId: "devHeading",
 };
 const fontRefVal3 = {
   value: {},
-  ref: "$body",
+  tokenId: "$body",
 };
 const fontRefResponsiveVal1 = {
   value: editorContext.theme.fonts.devResponsive.value,
-  ref: "devResponsive",
+  tokenId: "devResponsive",
 };
 
 const fontScalarVal1 = editorContext.theme.fonts.devBody.value;
@@ -1952,7 +1952,7 @@ const fontIncorrectScalarVal = 1234;
 
 const fontMappingFixture = {
   master: {
-    ref: "$heading1",
+    tokenId: "$heading1",
     value: {},
   },
   mapped: fontRefVal2,
@@ -1981,7 +1981,7 @@ describe.skip("font field", () => {
     expect(x.field.tokens).toMatchObject(fonts);
   });
 
-  describe.skip("without default value", () => {
+  describe("without default value", () => {
     const definition = build(
       {
         prop: "blabla",
@@ -2066,7 +2066,7 @@ function testIconWithDefaultIconAsResult(x: ReturnType<typeof build>) {
 }
 
 describe.skip("Icon field", () => {
-  describe.skip("no default value", () => {
+  describe("no default value", () => {
     const definition = build(
       {
         prop: "blabla",
@@ -2078,7 +2078,7 @@ describe.skip("Icon field", () => {
     testIconWithDefaultIconAsResult(definition);
   });
 
-  describe.skip("incorrect default value", () => {
+  describe("incorrect default value", () => {
     const definition = build(
       // @ts-ignore Incorrect defaultValue type added on purpose
       {
@@ -2092,7 +2092,7 @@ describe.skip("Icon field", () => {
     testIconWithDefaultIconAsResult(definition);
   });
 
-  describe.skip("correct default value", () => {
+  describe("correct default value", () => {
     const defaultValueRaw = arrowRightIcon.value;
     const defaultValue = {
       value: defaultValueRaw,
@@ -2317,7 +2317,7 @@ expect.extend({
  */
 
 // This test is done in hurry just to test, all component tests should be claned up
-describe.skip("component normalize with context props", () => {
+describe("component normalize with context props", () => {
   test("doesn't normalize context props if they're not there in input", () => {
     const normalized = normalize(
       {
@@ -2400,7 +2400,7 @@ describe.skip("component normalize with context props", () => {
   });
 });
 
-describe.skip("[component field] no parent context", () => {
+describe("[component field] no parent context", () => {
   const x = build(
     {
       prop: "blabla",
@@ -2413,7 +2413,8 @@ describe.skip("[component field] no parent context", () => {
   test("field created correctly", () => {
     expect(x.field.label).toBe("blabla");
     expect(x.field.name).toBe("blabla");
-    expect(x.field.component).toBe("ss-block");
+    // `ss-block` was the old name; `tinaFieldProviders` builds `block`.
+    expect(x.field.component).toBe("block");
   });
 
   test("incorrect values are interpreted correctly", () => {
@@ -2455,7 +2456,7 @@ describe.skip("[component field] no parent context", () => {
   });
 });
 
-describe.skip("[component field required] no parent context", () => {
+describe("[component field required] no parent context", () => {
   const x = build(
     {
       prop: "blabla",
@@ -2506,8 +2507,8 @@ describe.skip("[component field required] no parent context", () => {
   });
 });
 
-describe.skip("component field", () => {
-  describe.skip("with parent context", () => {
+describe("component field", () => {
+  describe("with parent context", () => {
     build(
       {
         prop: "Card1",
@@ -2518,7 +2519,7 @@ describe.skip("component field", () => {
     );
   });
 
-  describe.skip("with custom component", () => {
+  describe("with custom component", () => {
     const normalized = normalize(
       {
         _component: "MyButton",
@@ -2833,7 +2834,7 @@ describe.skip("[component] with local refs", () => {
       _component: "$TestSection",
       margin: {
         value: 1,
-        ref: "s1",
+        tokenId: "s1",
       },
       isHorizontal: false,
       Card1: [card1],
@@ -2863,7 +2864,7 @@ describe.skip("[component] with local refs", () => {
     });
   });
 
-  describe.skip("compilation works", () => {
+  describe("compilation works", () => {
     test.each([true, false])(`in mode isEditing=%s`, async (isEditing) => {
       const testEditorContext = {
         ...editorContext,
@@ -3007,7 +3008,7 @@ describe.skip("[component] with local refs", () => {
   });
 });
 
-describe.skip("[component-collection-localised]", () => {
+describe("[component-collection-localised]", () => {
   test("returns fallback value when value for locale is empty", () => {
     const compiledTestCollection = compileInternal(
       normalize(
@@ -3032,26 +3033,29 @@ describe.skip("[component-collection-localised]", () => {
     ).toHaveLength(1);
   });
 
-  test("it throws when there is no data for any locale", () => {
-    expect(() =>
-      compileInternal(
-        normalize(
-          {
-            _component: "$TestSection",
-            _id: "123",
-            CardsLocalised: {},
-          },
-          editorContext
-        ),
+  test("compiles as empty when there is no data for any locale", () => {
+    // This used to throw. A collection saved under a locale that later stopped
+    // being the default, on a page whose new default has no entry and no
+    // fallback, took the whole page down with it — so it now compiles to
+    // nothing, the same as the `compile` branch of this schema prop has always
+    // done.
+    const compiled = compileInternal(
+      normalize(
+        {
+          _component: "$TestSection",
+          _id: "123",
+          CardsLocalised: {},
+        },
         editorContext
-      )
-    ).toThrowError(
-      'Can\'t resolve localised value for prop "CardsLocalised" of component $TestSection'
+      ),
+      editorContext
     );
+
+    expect(compiled.compiled.components.CardsLocalised).toEqual([]);
   });
 });
 
-describe.skip("Missings", () => {
+describe("Missings", () => {
   let consoleWarnSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -3153,7 +3157,7 @@ describe.skip("Missings", () => {
   });
 });
 
-describe.skip("when responsive token is used, it should take precedence over auto", () => {
+describe("when responsive token is used, it should take precedence over auto", () => {
   test("single responsive value fills everything", () => {
     const card = normalizeComponent(
       {
