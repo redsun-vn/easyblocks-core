@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-56c8680a.js');
+var configTraverse = require('./configTraverse-1ca47f6b.js');
 var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');

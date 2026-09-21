@@ -24,8 +24,7 @@ const textEditableComponent: NoCodeComponentDefinition<
   label: "Simple Text",
   styles: textStyles,
   type: "item",
-  thumbnail:
-    "https://shopstory.s3.eu-central-1.amazonaws.com/picker_icon_text.png",
+  thumbnail: "/assets/images/layout/picker/text.png",
   schema: [
     {
       prop: "value",

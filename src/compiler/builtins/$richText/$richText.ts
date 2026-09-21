@@ -171,8 +171,7 @@ const editing: RichTextEditingFunction = ({
 const richTextEditableComponent: NoCodeComponentDefinition = {
   id: "@easyblocks/rich-text",
   label: "Text",
-  thumbnail:
-    "https://shopstory.s3.eu-central-1.amazonaws.com/picker_icon_text.png",
+  thumbnail: "/assets/images/layout/picker/text.png",
   schema: [
     {
       prop: "elements",
