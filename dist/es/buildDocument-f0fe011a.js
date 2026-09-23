@@ -1,8 +1,6 @@
 /* with love from shopstory */
-'use strict';
-
-var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
-var configTraverse = require('./configTraverse-1ca47f6b.js');
+import { b as isDocument, a as isComponentConfig, o as isLocalTextReference, s as isExternalSchemaProp, i as isTrulyResponsiveValue, p as responsiveValueEntries, k as getExternalReferenceLocationKey, t as serialize } from './findComponentDefinition-2b190cc9.js';
+import { a as createCompilationContext, c as compileInternal, n as normalize, A as configTraverse } from './configTraverse-4d13e461.js';
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {
@@ -40,7 +38,7 @@ function mergeDefinitions(definitions1, definitions2) {
 }
 
 function validate(input) {
-  const isValid = input === null || input === undefined || findComponentDefinition.isDocument(input) || isLegacyInput(input);
+  const isValid = input === null || input === undefined || isDocument(input) || isLegacyInput(input);
   if (!isValid) {
     return {
       isValid: false
@@ -52,14 +50,14 @@ function validate(input) {
   };
 }
 function isLegacyInput(input) {
-  return findComponentDefinition.isComponentConfig(input);
+  return isComponentConfig(input);
 }
 
 function normalizeInput(input) {
   if (isLegacyInput(input)) {
     return input;
   }
-  if (findComponentDefinition.isDocument(input) && input.entry) {
+  if (isDocument(input) && input.entry) {
     return input.entry;
   }
   throw new Error("Internal error: Can't obtain config from remote document.");
@@ -71,13 +69,13 @@ const compile = (content, config, contextParams) => {
     vars: {},
     code: {}
   };
-  const compilationContext = configTraverse.createCompilationContext(config, contextParams, content._component);
+  const compilationContext = createCompilationContext(config, contextParams, content._component);
   const inputConfigComponent = normalizeInput(content);
   const {
     meta,
     compiled,
     configAfterAuto
-  } = configTraverse.compileInternal(inputConfigComponent, compilationContext);
+  } = compileInternal(inputConfigComponent, compilationContext);
   resultMeta = mergeCompilationMeta(resultMeta, meta);
   return {
     compiled,
@@ -89,9 +87,9 @@ const compile = (content, config, contextParams) => {
 const findExternals = (input, config, contextParams) => {
   const inputConfigComponent = normalizeInput(input);
   const externalsWithSchemaProps = [];
-  const compilationContext = configTraverse.createCompilationContext(config, contextParams, input._component);
-  const normalizedConfig = configTraverse.normalize(inputConfigComponent, compilationContext);
-  configTraverse.configTraverse(normalizedConfig, compilationContext, _ref => {
+  const compilationContext = createCompilationContext(config, contextParams, input._component);
+  const normalizedConfig = normalize(inputConfigComponent, compilationContext);
+  configTraverse(normalizedConfig, compilationContext, _ref => {
     let {
       config,
       value,
@@ -100,26 +98,26 @@ const findExternals = (input, config, contextParams) => {
     // This kinda tricky, because "text" is a special case. It can be either local or external.
     // To prevent false positives, we need to check if it's local text reference and make sure that we won't
     // treat "text" that's actually external as non external.
-    if (schemaProp.type === "text" && findComponentDefinition.isLocalTextReference(value, "text") || schemaProp.type !== "text" && !findComponentDefinition.isExternalSchemaProp(schemaProp, compilationContext.types)) {
+    if (schemaProp.type === "text" && isLocalTextReference(value, "text") || schemaProp.type !== "text" && !isExternalSchemaProp(schemaProp, compilationContext.types)) {
       return;
     }
     const hasInputComponentRootParams = compilationContext.definitions.components.some(c => c.id === normalizedConfig._component && c.rootParams !== undefined);
     const configId = normalizedConfig._id === config._id && hasInputComponentRootParams ? "$" : config._id;
-    if (findComponentDefinition.isTrulyResponsiveValue(value)) {
-      findComponentDefinition.responsiveValueEntries(value).forEach(_ref2 => {
+    if (isTrulyResponsiveValue(value)) {
+      responsiveValueEntries(value).forEach(_ref2 => {
         let [breakpoint, currentValue] = _ref2;
         if (currentValue === undefined) {
           return;
         }
         externalsWithSchemaProps.push({
-          id: findComponentDefinition.getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
+          id: getExternalReferenceLocationKey(configId, schemaProp.prop, breakpoint),
           schemaProp: schemaProp,
           externalReference: currentValue
         });
       });
     } else {
       externalsWithSchemaProps.push({
-        id: findComponentDefinition.getExternalReferenceLocationKey(configId, schemaProp.prop),
+        id: getExternalReferenceLocationKey(configId, schemaProp.prop),
         schemaProp: schemaProp,
         externalReference: value
       });
@@ -172,7 +170,7 @@ function findChangedExternalData(resourcesWithSchemaProps, externalData, isExter
     }
 
     // If id is a string and it's either local text reference or a reference to document's data, then it's not pending
-    if (typeof resource.externalId === "string" && (findComponentDefinition.isLocalTextReference({
+    if (typeof resource.externalId === "string" && (isLocalTextReference({
       id: resource.externalId
     }, type) || resource.externalId.startsWith("$."))) {
       return false;
@@ -220,27 +218,70 @@ function getExternalTypeParams(schemaProp) {
   return schemaProp.params;
 }
 
-function traverse(obj, visitor) {
+/**
+ * Which font files a saved document is going to need.
+ *
+ * The renderer asks Google for exactly what comes back from here, so a variant
+ * missed here is a variant the browser has to fake: a bold it smears, or an
+ * italic it slants by shearing the upright letters. That shows up as a page
+ * that looked right while it was being built — the editor loads every weight
+ * of every family up front — and looks subtly wrong once published.
+ */
+
+/**
+ * Where a piece of text says it is italic.
+ *
+ * Two shapes, both of which the compiler produces. A `font` token value may
+ * carry `fontStyle` inside itself, which is the shape a component writes when
+ * its whole text is italic. A rich-text part instead keeps `fontStyle` beside
+ * its `font`, as a field of its own, because the italic there belongs to the
+ * few words an author selected rather than to the token they share with the
+ * rest of the line — and reading only the first shape is what left every
+ * italic in a rich text being faked by the browser.
+ *
+ * `oblique` asks for the italic file too. Nothing serves a separate oblique,
+ * and the real italic is far closer to what was asked for than a sheared
+ * upright.
+ */
+const isItalicStyle = style => style === "italic" || style === "oblique";
+
+/** The keys whose value is a font a node's own `fontStyle` is about. */
+const FONT_KEYS = new Set(["font", "mainFont"]);
+function traverse(obj, inheritedStyle, visitor) {
   if (typeof obj !== "object" || obj === null) return;
-  visitor(obj);
+  visitor(obj, inheritedStyle);
   if (Array.isArray(obj)) {
-    obj.forEach(item => traverse(item, visitor));
-  } else {
-    Object.values(obj).forEach(value => traverse(value, visitor));
+    obj.forEach(item => traverse(item, inheritedStyle, visitor));
+    return;
   }
+
+  /*
+   * A node's `fontStyle` travels into its own font and no further.
+   *
+   * Passing it to every descendant instead would be simpler and wrong in a way
+   * that costs bytes on every page: a component set in italic holding a child
+   * with a font of its own would have that child's italic file fetched too,
+   * for text nobody ever slants.
+   */
+  const ownStyle = typeof obj.fontStyle === "string" ? obj.fontStyle : undefined;
+  Object.entries(obj).forEach(_ref => {
+    let [key, value] = _ref;
+    traverse(value, FONT_KEYS.has(key) ? ownStyle : inheritedStyle, visitor);
+  });
 }
 /**
  * Walks the entry tree and collects every `{ fontFamily, fontWeight?, fontStyle? }` pair.
- * Splits weights into regular (`weights`) and italic (`italics`) axes based on `fontStyle`.
+ * Splits weights into regular (`weights`) and italic (`italics`) axes based on `fontStyle`,
+ * whether that style sits inside the font value or beside it.
  * Returns deduplicated fonts with only the variants actually used.
  */
 function extractFontsWithWeights(entry) {
   const map = new Map();
-  traverse(entry, node => {
+  traverse(entry, undefined, (node, style) => {
     if (node && typeof node === "object" && node.value && typeof node.value === "object" && typeof node.value.fontFamily === "string") {
       const family = node.value.fontFamily;
       const weight = typeof node.value.fontWeight === "number" ? node.value.fontWeight : 400;
-      const isItalic = node.value.fontStyle === "italic";
+      const isItalic = isItalicStyle(node.value.fontStyle) || isItalicStyle(style);
       let entryMap = map.get(family);
       if (!entryMap) {
         entryMap = {
@@ -252,11 +293,11 @@ function extractFontsWithWeights(entry) {
       (isItalic ? entryMap.italics : entryMap.weights).add(weight);
     }
   });
-  return Array.from(map.entries()).map(_ref => {
+  return Array.from(map.entries()).map(_ref2 => {
     let [family, {
       weights,
       italics
-    }] = _ref;
+    }] = _ref2;
     return {
       family,
       weights: Array.from(weights).sort((a, b) => a - b),
@@ -292,7 +333,7 @@ async function buildDocument(_ref) {
   return {
     renderableDocument: {
       renderableContent,
-      meta: findComponentDefinition.serialize(meta),
+      meta: serialize(meta),
       configAfterAuto
     },
     externalData,
@@ -319,10 +360,4 @@ async function resolveEntryForDocument(_ref2) {
   }
 }
 
-exports.buildDocument = buildDocument;
-exports.buildEntry = buildEntry;
-exports.compile = compile;
-exports.findExternals = findExternals;
-exports.mergeCompilationMeta = mergeCompilationMeta;
-exports.normalizeInput = normalizeInput;
-exports.validate = validate;
+export { buildEntry as a, buildDocument as b, compile as c, findExternals as f, mergeCompilationMeta as m, normalizeInput as n, validate as v };
