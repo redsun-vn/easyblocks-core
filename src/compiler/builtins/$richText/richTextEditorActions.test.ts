@@ -766,6 +766,65 @@ describe("updateSelection", () => {
   //     ]);
   //   });
   // });
+
+  it("leaves the selection over the part it just created, so a second change lands on the same text", () => {
+    const editorState = convertRichTextElementsToEditorValue([
+      buildRichTextBlockElementComponentConfig("paragraph", [
+        buildRichTextLineElementComponentConfig({
+          elements: [
+            buildRichTextPartComponentConfig({
+              color: { $res: true, xl: "black" },
+              font: { $res: true, xl: { fontFamily: "Arial" } },
+              value: "Lorem ipsum",
+            }),
+          ],
+        }),
+      ]),
+    ]);
+
+    const { editor } = setup(editorState, {
+      anchor: { path: [0, 0, 0], offset: 6 },
+      focus: { path: [0, 0, 0], offset: 11 },
+    });
+
+    updateSelection(editor, "font", {
+      $res: true,
+      xl: { fontFamily: "Comic Sans" },
+    });
+
+    // "ipsum" is a part of its own now, and it is the second one; the range the
+    // caller started from named the tail of the first part and no longer points
+    // at that text.
+    expect(editor.selection).toEqual({
+      anchor: { path: [0, 0, 1], offset: 0 },
+      focus: { path: [0, 0, 1], offset: 5 },
+    });
+
+    const second = updateSelection(editor, "font", {
+      $res: true,
+      xl: { fontFamily: "Georgia" },
+    });
+
+    expect(second?.elements).toEqual([
+      configContaining("@easyblocks/rich-text-block-element", {
+        type: "paragraph",
+        elements: [
+          configContaining("@easyblocks/rich-text-line-element", {
+            elements: [
+              configContaining("@easyblocks/rich-text-part", {
+                value: "Lorem ",
+                font: { $res: true, xl: { fontFamily: "Arial" } },
+              }),
+              configContaining("@easyblocks/rich-text-part", {
+                value: "ipsum",
+                font: { $res: true, xl: { fontFamily: "Georgia" } },
+              }),
+            ],
+          }),
+        ],
+      }),
+    ]);
+  });
 });
 
 function setup(
