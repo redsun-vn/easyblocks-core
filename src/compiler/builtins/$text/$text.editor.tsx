@@ -2,6 +2,7 @@
 import { dotNotationGet } from "@/utils";
 import React, { ReactElement } from "react";
 import { InternalNoCodeComponentProps } from "../../../components/ComponentBuilder/ComponentBuilder";
+import { translateInEditor } from "../editorTranslate";
 import { InlineTextarea } from "./InlineTextarea";
 
 type TextProps = {
@@ -26,7 +27,10 @@ function TextEditor(props: TextProps) {
       {isLocalTextReference ? (
         <InlineTextarea
           path={path}
-          placeholder={"Here goes text content"}
+          placeholder={translateInEditor(
+            "editor.canvas.text.placeholder",
+            "Here goes text content",
+          )}
           stitches={runtime.stitches}
         />
       ) : (

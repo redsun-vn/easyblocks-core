@@ -38,6 +38,7 @@ import { Devices, ResponsiveValue } from "../../../types";
 import { compileBox, getBoxStyles } from "../../box";
 import { getDevicesWidths } from "../../devices";
 import { duplicateConfig } from "../../duplicateConfig";
+import { translateInEditor } from "../editorTranslate";
 import type { RichTextComponentConfig } from "./$richText";
 import {
   RICH_TEXT_CONFIG_SYNC_THROTTLE_TIMEOUT,
@@ -836,7 +837,10 @@ function RichTextEditor(props: RichTextProps) {
         {/* this wrapper div prevents from Chrome bug where "pointer-events: none" on contenteditable is ignored*/}
         <Editable
           className={contentEditableClassName}
-          placeholder="Here goes text content"
+          placeholder={translateInEditor(
+            "editor.canvas.text.placeholder",
+            "Here goes text content",
+          )}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           renderPlaceholder={renderPlaceholder}

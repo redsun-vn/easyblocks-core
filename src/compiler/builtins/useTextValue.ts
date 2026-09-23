@@ -2,6 +2,7 @@ import { cleanString } from "@/utils";
 import debounce from "lodash/debounce";
 import React from "react";
 import { Locale, getFallbackForLocale } from "../../locales";
+import { translateInEditor } from "./editorTranslate";
 
 export function useTextValue(
   value: any,
@@ -125,6 +126,8 @@ export function useTextValue(
     onBlur: handleBlur,
     value: cleanString(localInputValue),
     style,
-    placeholder: defaultPlaceholder ?? "Enter text",
+    placeholder:
+      defaultPlaceholder ??
+      translateInEditor("editor.canvas.text.enter", "Enter text"),
   };
 }
