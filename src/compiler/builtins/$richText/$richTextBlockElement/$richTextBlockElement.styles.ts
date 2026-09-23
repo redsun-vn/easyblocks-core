@@ -5,6 +5,7 @@ import {
   NoCodeComponentStylesFunctionInput,
   NoCodeComponentStylesFunctionResult,
 } from "../../../../types";
+import { isGradientColor } from "../../../../utils/isGradientColor";
 import type { RichTextBlockElementType } from "./$richTextBlockElement";
 
 export type RichTextBlockElementValues = {
@@ -81,9 +82,7 @@ export function richTextBlockElementStyles({
       : numberedListMarkerStyles),
   };
 
-  const isGradient = mainColor.toLowerCase().includes("gradient");
-
-  const colorStyles = isGradient
+  const colorStyles = isGradientColor(mainColor)
     ? {
       background: mainColor,
       backgroundClip: "text",
