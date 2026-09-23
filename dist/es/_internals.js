@@ -852,6 +852,19 @@ function RichTextEditor(props) {
   const [isEnabled, setIsEnabled] = useState(false);
   const previousRichTextComponentConfig = useRef();
   const currentSelectionRef = useRef(null);
+
+  /**
+   * Where the selection ends up after a change made from the sidebar.
+   *
+   * Such a change can split the parts the selection spans — give half a word
+   * its own font and that half becomes a part of its own — so the range that
+   * was selected before the change no longer names the same text. The change
+   * is applied on a temporary editor, which ends with the range that does, and
+   * that range is kept here until the render carrying the new config picks it
+   * up. Reading it from the focused fields instead would depend on those
+   * having reached this frame already.
+   */
+  const selectionAfterRichTextChange = useRef(null);
   const pendingExternalUpdate = useRef(null);
   const isConfigChanged = !isConfigEqual(previousRichTextComponentConfig.current, richTextConfig);
   if (previousRichTextComponentConfig.current && isConfigChanged) {
@@ -865,11 +878,13 @@ function RichTextEditor(props) {
     // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
     editor.children = nextEditorValue;
     setEditorValue(nextEditorValue);
+    const selectionAfterChange = selectionAfterRichTextChange.current;
+    selectionAfterRichTextChange.current = null;
 
     // Store for layout effect — never mutate editor during render
     pendingExternalUpdate.current = {
       nextEditorValue,
-      newEditorSelection: isEnabled ? getEditorSelectionFromFocusedFields(focussedField, form) : null
+      newEditorSelection: isEnabled ? selectionAfterChange ?? getEditorSelectionFromFocusedFields(focussedField, form) : null
     };
   }
   useLayoutEffect(() => {
@@ -889,27 +904,44 @@ function RichTextEditor(props) {
     pendingExternalUpdate.current = null;
     lastChangeReason.current = "external";
     if (!isEnabled) return;
+    const moveSelectionTo = selection => {
+      try {
+        if (selection !== null && editor.selection !== null) {
+          if (Editor.hasPath(editor, selection.anchor.path) && Editor.hasPath(editor, selection.focus.path)) {
+            Transforms.setSelection(editor, selection);
+          }
+        } else if (selection !== null && editor.selection === null) {
+          if (Editor.hasPath(editor, selection.anchor.path) && Editor.hasPath(editor, selection.focus.path)) {
+            Transforms.select(editor, selection);
+          }
+        } else {
+          Transforms.deselect(editor);
+        }
+      } catch (e) {
+        try {
+          Transforms.deselect(editor);
+        } catch {}
+      }
+    };
     if (isDecorationActive) {
       currentSelectionRef.current = newEditorSelection;
+
+      // The editable is blurred, so what the user sees highlighted is drawn by
+      // the decoration from the range above — but the editor still holds the
+      // range it had before this change, and a change that splits a part makes
+      // that older range name different text. The next change from the sidebar
+      // is applied to whatever the editor holds, so leaving the two apart made
+      // a second edit in a row land somewhere else: pick a style, then a font,
+      // and the font went nowhere. Nothing refocuses the editable in between,
+      // so this is the only place they can be brought back together. Slate
+      // leaves the browser selection alone while it is not focused, so moving
+      // the editor's own selection does not disturb what is on screen.
+      if (newEditorSelection !== null) {
+        moveSelectionTo(newEditorSelection);
+      }
       return;
     }
-    try {
-      if (newEditorSelection !== null && editor.selection !== null) {
-        if (Editor.hasPath(editor, newEditorSelection.anchor.path) && Editor.hasPath(editor, newEditorSelection.focus.path)) {
-          Transforms.setSelection(editor, newEditorSelection);
-        }
-      } else if (newEditorSelection !== null && editor.selection === null) {
-        if (Editor.hasPath(editor, newEditorSelection.anchor.path) && Editor.hasPath(editor, newEditorSelection.focus.path)) {
-          Transforms.select(editor, newEditorSelection);
-        }
-      } else {
-        Transforms.deselect(editor);
-      }
-    } catch (e) {
-      try {
-        Transforms.deselect(editor);
-      } catch {}
-    }
+    moveSelectionTo(newEditorSelection);
   });
   const isRichTextActive = focussedField.some(focusedField => focusedField.startsWith(path));
   useLayoutEffect(() => {
@@ -932,6 +964,7 @@ function RichTextEditor(props) {
       // editor.children = deepClone(editorValue);
       setIsEnabled(false);
       currentSelectionRef.current = null;
+      selectionAfterRichTextChange.current = null;
     }
     if (!editor.selection) {
       return;
@@ -986,6 +1019,7 @@ function RichTextEditor(props) {
           return;
         }
         currentSelectionRef.current = temporaryEditor.selection;
+        selectionAfterRichTextChange.current = temporaryEditor.selection;
         actions.runChange(() => {
           const newRichTextElement = {
             ...richTextConfig,
