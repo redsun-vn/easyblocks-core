@@ -3,7 +3,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-1ca47f6b.js');
+var configTraverse = require('./configTraverse-975c9348.js');
 var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
@@ -62,6 +62,43 @@ function duplicateConfig(inputConfig, compilationContext) {
     }
   });
   return config;
+}
+
+/**
+ * The words these editor-side builtins put on the canvas, in the editor's
+ * language.
+ *
+ * The panel around them has been translated for a while; the hints inside the
+ * canvas — the grey text an empty block shows — were written in English in the
+ * source and stayed English whatever the editor was set to. On a Vietnamese
+ * shop that is the only English left on the screen, and it sits in the one
+ * place an author is being told what to do.
+ *
+ * These components already reach the editor through `editorWindowAPI` on the
+ * parent window, which is how the canvas talks to the editor across the iframe
+ * boundary, and the translation files and the chosen UI language are already on
+ * that object. So this reads what is there rather than adding a channel: there
+ * is nothing for a host to wire up, and a host that passes no files at all
+ * keeps the English it has today.
+ */
+
+/** The language the editor falls back to, as the editor itself does. */
+const DEFAULT_UI_LOCALE = "en-US";
+function translateInEditor(key, fallback) {
+  try {
+    const editorContext = window.parent?.editorWindowAPI?.editorContext;
+    const files = editorContext?.translationFiles;
+    if (!files) {
+      return fallback;
+    }
+    const file = editorContext.uiLocale && files[editorContext.uiLocale] || files[DEFAULT_UI_LOCALE];
+    const translated = file?.[key];
+    return typeof translated === "string" && translated !== "" ? translated : fallback;
+  } catch {
+    // The canvas renders outside an editor too, and a cross-origin parent
+    // throws on access rather than answering. The English is the answer there.
+    return fallback;
+  }
 }
 
 const RICH_TEXT_CONFIG_SYNC_THROTTLE_TIMEOUT = 150;
@@ -1299,7 +1336,7 @@ function RichTextEditor(props) {
     onChange: handleEditableChange
   }, /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(slateReact.Editable, {
     className: contentEditableClassName,
-    placeholder: "Here goes text content",
+    placeholder: translateInEditor("editor.canvas.text.placeholder", "Here goes text content"),
     renderElement: renderElement,
     renderLeaf: renderLeaf,
     renderPlaceholder: renderPlaceholder,
@@ -1543,7 +1580,7 @@ function useTextValue(value, onChange, locale, locales, defaultPlaceholder, norm
     onBlur: handleBlur,
     value: ComponentBuilder.cleanString(localInputValue),
     style,
-    placeholder: defaultPlaceholder ?? "Enter text"
+    placeholder: defaultPlaceholder ?? translateInEditor("editor.canvas.text.enter", "Enter text")
   };
 }
 
@@ -1641,7 +1678,7 @@ function TextEditor(props) {
     as: "div"
   }), isLocalTextReference ? /*#__PURE__*/React__default["default"].createElement(InlineTextarea, {
     path: path,
-    placeholder: "Here goes text content",
+    placeholder: translateInEditor("editor.canvas.text.placeholder", "Here goes text content"),
     stitches: runtime.stitches
   }) : value ?? /*#__PURE__*/React__default["default"].createElement("span", null, "\xA0"));
 }

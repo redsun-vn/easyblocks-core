@@ -816,6 +816,22 @@ function findPathOfFirstAncestorOfType(path, templateId, form) {
   }
 }
 
+/**
+ * Whether a colour value paints with a gradient rather than one flat colour.
+ *
+ * It decides how text is painted, and the two ways are not interchangeable. A
+ * gradient can only reach glyphs as a background clipped to them, which means
+ * the glyphs themselves are drawn transparent; a flat colour goes straight into
+ * `color`, where the rest of the platform can see it.
+ *
+ * Painting a flat colour the gradient way looks identical until something else
+ * wants to know what colour the text is — and then it is transparent. A
+ * selection is the plainest example: the browser draws its highlight and fills
+ * the glyphs with their own colour, so text painted this way disappears into
+ * the highlight and an author cannot see which words they have selected.
+ */
+const isGradientColor = color => typeof color === "string" && color.toLowerCase().includes("gradient");
+
 const DEFAULT_FONT_VALUES = {
   fontWeight: "initial",
   fontStyle: "initial"
@@ -835,14 +851,42 @@ function richTextPartStyles(_ref) {
     ...font
   };
   const hasTextWrapper = TextWrapper.length > 0;
-  const textStyles = {
-    __as: "span",
+
+  /*
+   * A flat colour goes into `color`; only a gradient is clipped to the glyphs.
+   *
+   * Everything used to take the clipped path, which draws the letters
+   * transparent and paints them from behind. Selecting them then showed the
+   * highlight and nothing else — the words an author had just selected became
+   * invisible, in the one moment they most need to see them. The list markers
+   * beside this already made the same distinction; the words themselves had
+   * not.
+   */
+  const colorStyles = isGradientColor(color) ? {
     background: color,
     backgroundClip: "text",
-    color: "transparent",
+    color: "transparent"
+  } : {
+    color
+  };
+  const textStyles = {
+    __as: "span",
+    ...colorStyles,
     ...fontWithDefaults,
     fontStyle: fontStyle ?? "normal"
   };
+  if (isGradientColor(color)) {
+    /*
+     * A gradient has nowhere else to go, so its glyphs stay transparent — and
+     * a selection would swallow them. The fill is only asked for while the
+     * text is selected, which is exactly when the browser is painting a
+     * highlight behind it, and a dark fill reads on every default highlight
+     * any of the browsers use.
+     */
+    textStyles["&::selection"] = {
+      WebkitTextFillColor: "#111111"
+    };
+  }
   if (hasTextWrapper && !isEditing) {
     // Force pointer events to be enabled on the text when text wrapper is attached and we're not editing
     textStyles.pointerEvents = "auto";
@@ -7734,8 +7778,7 @@ function richTextBlockElementStyles(_ref) {
     fontSize: mainFontSize,
     ...(type === "bulleted-list" ? bulletedListMarkerStyles : numberedListMarkerStyles)
   };
-  const isGradient = mainColor.toLowerCase().includes("gradient");
-  const colorStyles = isGradient ? {
+  const colorStyles = isGradientColor(mainColor) ? {
     background: mainColor,
     backgroundClip: "text",
     color: "transparent"
@@ -7980,10 +8023,19 @@ function textStyles(_ref) {
     params
   } = _ref;
   const align = params.passedAlign || "left";
-  const fontWithDefaults = {
+
+  // Flat colours go into `color`, gradients are clipped to the glyphs. Drawing
+  // a flat colour the clipped way leaves the letters transparent, and a
+  // selection then shows its highlight with nothing legible inside it.
+  const colorStyles = isGradientColor(values.color) ? {
     background: values.color,
     backgroundClip: "text",
-    color: "transparent",
+    color: "transparent"
+  } : {
+    color: values.color
+  };
+  const fontWithDefaults = {
+    ...colorStyles,
     fontWeight: "initial",
     fontStyle: "initial",
     ...values.font

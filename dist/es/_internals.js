@@ -1,6 +1,6 @@
 /* with love from shopstory */
-import { B as deepClone, D as traverseComponents, A as configTraverse, E as uniqueId, F as buildRichTextBlockElementComponentConfig, G as buildRichTextLineElementComponentConfig, H as buildRichTextPartComponentConfig, I as nonNullable, J as deepCompare, K as dotNotationGet, L as dotNotationSet, f as getFallbackForLocale, j as responsiveValueFill, d as getDevicesWidths, e as getDefaultLocale, a as createCompilationContext } from './configTraverse-4d13e461.js';
-export { C as CompilationCache, F as buildRichTextBlockElementComponentConfig, R as buildRichTextBulletedListBlockElementComponentConfig, S as buildRichTextComponentConfig, G as buildRichTextLineElementComponentConfig, b as buildRichTextNoCodeEntry, T as buildRichTextParagraphBlockElementComponentConfig, H as buildRichTextPartComponentConfig, c as compileInternal, A as configTraverse, Q as findPathOfFirstAncestorOfType, g as getSchemaDefinition, n as normalize, P as parsePath, N as scalarizeConfig, O as stripRichTextPartSelection, M as textStyles, D as traverseComponents } from './configTraverse-4d13e461.js';
+import { B as deepClone, D as traverseComponents, A as configTraverse, E as uniqueId, F as buildRichTextBlockElementComponentConfig, G as buildRichTextLineElementComponentConfig, H as buildRichTextPartComponentConfig, I as nonNullable, J as deepCompare, K as dotNotationGet, L as dotNotationSet, f as getFallbackForLocale, j as responsiveValueFill, d as getDevicesWidths, e as getDefaultLocale, a as createCompilationContext } from './configTraverse-7ed77b9f.js';
+export { C as CompilationCache, F as buildRichTextBlockElementComponentConfig, R as buildRichTextBulletedListBlockElementComponentConfig, S as buildRichTextComponentConfig, G as buildRichTextLineElementComponentConfig, b as buildRichTextNoCodeEntry, T as buildRichTextParagraphBlockElementComponentConfig, H as buildRichTextPartComponentConfig, c as compileInternal, A as configTraverse, Q as findPathOfFirstAncestorOfType, g as getSchemaDefinition, n as normalize, P as parsePath, N as scalarizeConfig, O as stripRichTextPartSelection, M as textStyles, D as traverseComponents } from './configTraverse-7ed77b9f.js';
 import { D as compileBox, G as getBoxStyles } from './findComponentDefinition-2b190cc9.js';
 export { D as compileBox, A as findComponentDefinition, v as findComponentDefinitionById, G as getBoxStyles, H as isCustomSchemaProp, s as isExternalSchemaProp, B as isSchemaPropActionTextModifier, y as isSchemaPropCollection, x as isSchemaPropComponent, z as isSchemaPropComponentCollectionLocalised, u as isSchemaPropComponentOrComponentCollection, C as isSchemaPropTextModifier, I as textModifierSchemaProp } from './findComponentDefinition-2b190cc9.js';
 import _extends from '@babel/runtime/helpers/extends';
@@ -53,6 +53,43 @@ function duplicateConfig(inputConfig, compilationContext) {
     }
   });
   return config;
+}
+
+/**
+ * The words these editor-side builtins put on the canvas, in the editor's
+ * language.
+ *
+ * The panel around them has been translated for a while; the hints inside the
+ * canvas — the grey text an empty block shows — were written in English in the
+ * source and stayed English whatever the editor was set to. On a Vietnamese
+ * shop that is the only English left on the screen, and it sits in the one
+ * place an author is being told what to do.
+ *
+ * These components already reach the editor through `editorWindowAPI` on the
+ * parent window, which is how the canvas talks to the editor across the iframe
+ * boundary, and the translation files and the chosen UI language are already on
+ * that object. So this reads what is there rather than adding a channel: there
+ * is nothing for a host to wire up, and a host that passes no files at all
+ * keeps the English it has today.
+ */
+
+/** The language the editor falls back to, as the editor itself does. */
+const DEFAULT_UI_LOCALE = "en-US";
+function translateInEditor(key, fallback) {
+  try {
+    const editorContext = window.parent?.editorWindowAPI?.editorContext;
+    const files = editorContext?.translationFiles;
+    if (!files) {
+      return fallback;
+    }
+    const file = editorContext.uiLocale && files[editorContext.uiLocale] || files[DEFAULT_UI_LOCALE];
+    const translated = file?.[key];
+    return typeof translated === "string" && translated !== "" ? translated : fallback;
+  } catch {
+    // The canvas renders outside an editor too, and a cross-origin parent
+    // throws on access rather than answering. The English is the answer there.
+    return fallback;
+  }
 }
 
 const RICH_TEXT_CONFIG_SYNC_THROTTLE_TIMEOUT = 150;
@@ -1290,7 +1327,7 @@ function RichTextEditor(props) {
     onChange: handleEditableChange
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Editable, {
     className: contentEditableClassName,
-    placeholder: "Here goes text content",
+    placeholder: translateInEditor("editor.canvas.text.placeholder", "Here goes text content"),
     renderElement: renderElement,
     renderLeaf: renderLeaf,
     renderPlaceholder: renderPlaceholder,
@@ -1534,7 +1571,7 @@ function useTextValue(value, onChange, locale, locales, defaultPlaceholder, norm
     onBlur: handleBlur,
     value: cleanString(localInputValue),
     style,
-    placeholder: defaultPlaceholder ?? "Enter text"
+    placeholder: defaultPlaceholder ?? translateInEditor("editor.canvas.text.enter", "Enter text")
   };
 }
 
@@ -1632,7 +1669,7 @@ function TextEditor(props) {
     as: "div"
   }), isLocalTextReference ? /*#__PURE__*/React.createElement(InlineTextarea, {
     path: path,
-    placeholder: "Here goes text content",
+    placeholder: translateInEditor("editor.canvas.text.placeholder", "Here goes text content"),
     stitches: runtime.stitches
   }) : value ?? /*#__PURE__*/React.createElement("span", null, "\xA0"));
 }

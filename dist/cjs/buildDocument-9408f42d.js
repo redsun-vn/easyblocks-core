@@ -2,7 +2,7 @@
 'use strict';
 
 var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
-var configTraverse = require('./configTraverse-1ca47f6b.js');
+var configTraverse = require('./configTraverse-975c9348.js');
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {
