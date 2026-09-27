@@ -173,6 +173,14 @@ export type ComponentSchemaProp = SchemaPropShared<"component"> & {
    * collapsed-type behaviour byte for byte.
    */
   placeholderStrictAccepts?: boolean;
+  /**
+   * Opt-in. When true, this slot can be the target of an item dragged out of a
+   * sidebar panel, so the drop lands inside it rather than in the document's
+   * root collection. Slots that leave this unset are not offered as targets at
+   * all, which is the only behaviour the panel drag has ever had: it could
+   * address the root collection and nothing else.
+   */
+  panelDropTarget?: boolean;
   tab?: TTabSchemaProp;
 };
 
@@ -189,6 +197,10 @@ export type ComponentCollectionSchemaProp =
      * Opt-in. See `ComponentSchemaProp.placeholderStrictAccepts`.
      */
     placeholderStrictAccepts?: boolean;
+    /**
+     * Opt-in. See `ComponentSchemaProp.panelDropTarget`.
+     */
+    panelDropTarget?: boolean;
     tab?: TTabSchemaProp;
   };
 
@@ -663,6 +675,18 @@ export type Config = {
   disableCustomTemplates?: boolean;
   hideCloseButton?: boolean;
   templates?: Template[];
+  /**
+   * The template whose nesting the editor reuses when a dropped component needs a
+   * wrapper to be allowed where it landed — normally a one-column row.
+   *
+   * A component dropped into a column that already accepts it needs nothing
+   * around it, while the same component dropped on the page root needs whatever
+   * the app's layout puts a loose component inside. That shape is the app's, not
+   * the editor's, so the app names one of its own templates and the editor walks
+   * it rather than knowing any component id. Leave it unset and nothing is ever
+   * wrapped: a drop that does not fit where it landed is refused, as before.
+   */
+  dropWrapperTemplateId?: string;
   tokens?: {
     [key in keyof ConfigTokens]?: Array<ConfigTokenValue<ConfigTokens[key]>>;
   } & {
