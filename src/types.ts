@@ -711,6 +711,22 @@ export type SchemaPropShared<Type extends string> = {
   group?: string;
   layout?: "row" | "column";
   tab?: TTabSchemaProp;
+  /**
+   * Opt-in. The selected block gets handles on its edges that set this field
+   * by dragging, as another way to pick the value the panel offers.
+   */
+  canvasResize?: CanvasResizeOption;
+};
+
+export type CanvasResizeOption = {
+  /** `x` drags the left and right edges, `y` the bottom edge. */
+  axis: "x" | "y";
+  /**
+   * The values the drag steps through, smallest first. Leave it out when the
+   * field has `params.options`: those are the steps, so a drag can never write
+   * a value the panel would not offer.
+   */
+  steps?: Array<string>;
 };
 
 type ValueSchemaProp<
