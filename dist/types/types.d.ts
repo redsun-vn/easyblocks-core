@@ -540,6 +540,17 @@ export type CanvasResizeOption = {
      * a value the panel would not offer.
      */
     steps?: Array<string>;
+    /**
+     * A switch on the parent block that puts the field into the unit the drag
+     * steps in — a row's twelve-track grid for a column's span. The first value
+     * a drag writes turns it on, through the parent's own change rules, so the
+     * page looks the same before and after; `tracks` is how many steps the
+     * switch gives.
+     */
+    parentSwitch?: {
+        prop: string;
+        tracks: number;
+    };
 };
 type ValueSchemaProp<Type extends string, ValueType, Responsiveness extends "optional" | "forced" | "never"> = SchemaPropShared<Type> & {
     defaultValue?: Responsiveness extends "optional" | "forced" ? ResponsiveValue<ValueType> : ValueType;
