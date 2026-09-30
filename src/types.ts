@@ -735,6 +735,29 @@ export type CanvasResizeOption = {
    * switch gives.
    */
   parentSwitch?: { prop: string; tracks: number };
+  /**
+   * How the parent lays its items out if this item's span were `values[index]`,
+   * for a span that sits on the parent's grid.
+   *
+   * With it a drag writes nothing until the pointer is released: each step is
+   * drawn straight onto the canvas's grid, which is what lets the page follow
+   * the pointer. Writing every step instead runs the whole editor for each one.
+   * The answer has to be the block's own layout rule, because an item's width
+   * can depend on its siblings' — a column left to share the rest of a row.
+   *
+   * `parent` holds the parent's values and `values` every item's value of this
+   * field, both at the breakpoint being edited — the dragged item's is the
+   * step's key, which for a span is the same number as a string; `switchOn`
+   * says the drag will
+   * also turn `parentSwitch` on, so the other items' values are still in the
+   * unit they had before it. Return `null` to have the drag write every step.
+   */
+  previewSpans?: (input: {
+    parent: Record<string, unknown>;
+    values: Array<unknown>;
+    index: number;
+    switchOn: boolean;
+  }) => { tracks: number; spans: Array<number> } | null;
 };
 
 type ValueSchemaProp<
