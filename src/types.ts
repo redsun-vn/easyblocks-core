@@ -1194,4 +1194,6 @@ export type TokenValue<T = any> = {
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export type TTabSchemaProp = "styles" | "data" | "animation";
+// `advanced` holds escape hatches such as per-instance CSS; the editor shows that
+// tab only for a component that has a field on it.
+export type TTabSchemaProp = "styles" | "data" | "animation" | "advanced";
