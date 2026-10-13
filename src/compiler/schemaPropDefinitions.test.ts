@@ -935,7 +935,9 @@ describe("text", () => {
     });
   });
 
-  test("renders empty and warns when nothing is written in any language", () => {
+  // `null` is what the editor stores when someone clears a text field, so an
+  // empty render is what they asked for and nothing is missing.
+  test("renders a cleared text empty without warning", () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
     const textSchemaProp = build(
@@ -952,6 +954,38 @@ describe("text", () => {
           id: "local.123",
           value: {
             de: null,
+          },
+        })
+      ).toEqual({
+        id: "local.123",
+        value: "",
+        widgetId: "@easyblocks/local-text",
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test("renders empty and warns when words exist in a language no fallback reaches", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    const textSchemaProp = build(
+      {
+        type: "text",
+        prop: "test",
+      },
+      editorContext
+    );
+
+    try {
+      expect(
+        textSchemaProp.def.compile({
+          id: "local.123",
+          value: {
+            de: null,
+            pl: "test",
           },
         })
       ).toEqual({

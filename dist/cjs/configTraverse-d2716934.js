@@ -6769,10 +6769,14 @@ const textProvider = (schemaProp, compilationContext) => {
         // Let's apply fallback
         if (typeof value !== "string") {
           const fallbackValue = getFallbackForLocale(x.value, locale, compilationContext.locales);
-          if (fallbackValue === undefined && Object.keys(x.value).length > 0) {
-            // Written in some language, just not this one, and no fallback
-            // leads anywhere. The page renders with a gap, which is quiet
-            // enough on its own — so say it out loud here.
+
+          // Written in some language, just not this one, and no fallback leads
+          // anywhere. The page renders with a gap, which is quiet enough on its
+          // own — so say it out loud here. Not for a text with no words in any
+          // language: the editor stores `null` when someone clears a field, so
+          // that gap is the one they asked for.
+          const hasWordsElsewhere = Object.values(x.value).some(v => typeof v === "string" && v !== "");
+          if (fallbackValue === undefined && hasWordsElsewhere) {
             console.warn(`easyblocks: text "${x.id}" has no value for locale "${locale}" and no fallback resolves to one; it renders empty`);
           }
           return {
