@@ -2,7 +2,7 @@
 'use strict';
 
 var React = require('react');
-var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
+var findComponentDefinition = require('./findComponentDefinition-33ee6a8d.js');
 var core = require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
