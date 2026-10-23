@@ -6,8 +6,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var buildDocument = require('./buildDocument-db7ad13f.js');
 var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
 var configTraverse = require('./configTraverse-d2716934.js');
-var LazyEasyblocks = require('./LazyEasyblocks-b59023cb.js');
-var ComponentBuilder = require('./ComponentBuilder-90c8b1b4.js');
+var LazyEasyblocks = require('./LazyEasyblocks-58718b74.js');
+var ComponentBuilder = require('./ComponentBuilder-0aad994d.js');
 require('zod');
 require('js-xxhash');
 require('postcss-value-parser');
@@ -101,84 +101,6 @@ function responsiveValueReduce(resVal, reducer, initialValue, devices) {
     result = reducer(result, resVal[key], key);
   }
   return result;
-}
-
-/**
- * Class names for every Box of a compiled tree, worked out before the tree is sent.
- *
- * A compiled document carries a style object per Box, and the browser turns each one into a
- * class through Stitches while it hydrates. On a large page those objects are a third of the
- * payload, and the work is done again by every visitor for a result that never changes.
- * Doing it once, where the compiled tree is cached, removes both.
- *
- * Each Box object is replaced by `{ __isBox, __as, __className }`, the class string `Box`
- * would have produced itself, and `css` holds the rules for those classes. Stitches names a
- * class by hashing its styles, so the names are the same ones the browser would compute.
- *
- * Only Boxes under a `styled` key are touched: that is what `ComponentBuilder` hands to
- * `buildBoxes`, so anything else keeps the shape its readers expect.
- *
- * The walk is the one `buildBoxes` does (arrays by index, objects by key), and it is
- * synchronous on purpose: `createEasyblocksStitches()` hands back the one shared instance
- * and empties its sheet, so no other render may touch that sheet before `getCssText()` has
- * been read.
- *
- * The input is not changed; objects on the path to a Box are copied, everything else is
- * shared.
- */
-function precomputeBoxClassNames(renderableContent, devices) {
-  const {
-    stitches,
-    getCssText
-  } = ComponentBuilder.createEasyblocksStitches();
-  const walk = (value, inStyled) => {
-    if (Array.isArray(value)) {
-      let changed = false;
-      const next = value.map(item => {
-        const result = walk(item, inStyled);
-        changed ||= result !== item;
-        return result;
-      });
-      return changed ? next : value;
-    }
-    if (typeof value !== "object" || value === null) {
-      return value;
-    }
-    if (inStyled && value.__isBox) {
-      const {
-        __as,
-        ...styles
-      } = value;
-      const {
-        boxClassName,
-        componentClassName
-      } = ComponentBuilder.getBoxClassNames(stitches, devices, styles);
-      const precomputed = {
-        __isBox: true,
-        __className: [boxClassName, componentClassName].filter(Boolean).join(" ")
-      };
-      if (__as !== undefined) {
-        precomputed.__as = __as;
-      }
-      return precomputed;
-    }
-    let next;
-    for (const key in value) {
-      const result = walk(value[key], inStyled || key === "styled");
-      if (result !== value[key]) {
-        next ??= {
-          ...value
-        };
-        next[key] = result;
-      }
-    }
-    return next ?? value;
-  };
-  const result = walk(renderableContent, false);
-  return {
-    renderableContent: result,
-    css: getCssText()
-  };
 }
 
 function isNoCodeComponentOfType(definition, type) {
@@ -283,6 +205,5 @@ exports.box = box;
 exports.getBrightnessColor = getBrightnessColor;
 exports.globalSectionGroups = globalSectionGroups;
 exports.isNoCodeComponentOfType = isNoCodeComponentOfType;
-exports.precomputeBoxClassNames = precomputeBoxClassNames;
 exports.responsiveValueReduce = responsiveValueReduce;
 exports.responsiveValueSet = responsiveValueSet;

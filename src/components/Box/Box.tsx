@@ -23,21 +23,16 @@ const Box = React.forwardRef<HTMLElement, BoxProps>((props, ref) => {
   const { __compiled, __name, passedProps, devices, stitches, ...restProps } =
     props;
 
-  const { __as, __className, ...styles } = __compiled;
+  const { __as, ...styles } = __compiled;
   const realProps = { ...restProps, ...passedProps };
 
   const { as, itemWrappers, className, ...restPassedProps } = realProps;
 
   const { boxClassName, componentClassName } = useMemo(
-    () =>
-      // Computed ahead of time (`precomputeBoxClassNames`): the rules are already in the
-      // page's CSS, so there is nothing for Stitches to generate here.
-      typeof __className === "string"
-        ? { boxClassName: __className, componentClassName: undefined }
-        : getBoxClassNames(stitches, devices, styles),
+    () => getBoxClassNames(stitches, devices, styles),
     // `stitches` and `devices` join the hash because the class names are only valid for the
     // instance that generated them and the devices they were compiled against.
-    [stitches, devices, styles.__hash, __className],
+    [stitches, devices, styles.__hash],
   );
 
   return React.createElement(

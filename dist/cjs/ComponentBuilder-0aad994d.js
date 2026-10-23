@@ -412,7 +412,6 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
   } = props;
   const {
     __as,
-    __className,
     ...styles
   } = __compiled;
   const realProps = {
@@ -428,16 +427,10 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
   const {
     boxClassName,
     componentClassName
-  } = React.useMemo(() =>
-  // Computed ahead of time (`precomputeBoxClassNames`): the rules are already in the
-  // page's CSS, so there is nothing for Stitches to generate here.
-  typeof __className === "string" ? {
-    boxClassName: __className,
-    componentClassName: undefined
-  } : getBoxClassNames(stitches, devices, styles),
+  } = React.useMemo(() => getBoxClassNames(stitches, devices, styles),
   // `stitches` and `devices` join the hash because the class names are only valid for the
   // instance that generated them and the devices they were compiled against.
-  [stitches, devices, styles.__hash, __className]);
+  [stitches, devices, styles.__hash]);
   return /*#__PURE__*/React__default["default"].createElement(as || __as || "div", {
     ref,
     ...restPassedProps,
@@ -905,7 +898,6 @@ exports.componentPickerOpened = componentPickerOpened;
 exports.createEasyblocksStitches = createEasyblocksStitches;
 exports.easyblocksGetCssText = easyblocksGetCssText;
 exports.easyblocksGetStyleTag = easyblocksGetStyleTag;
-exports.getBoxClassNames = getBoxClassNames;
 exports.itemInserted = itemInserted;
 exports.itemMoved = itemMoved;
 exports.responsiveValueValues = responsiveValueValues;

@@ -1,7 +1,7 @@
 /* with love from shopstory */
 import _extends from '@babel/runtime/helpers/extends';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { b as cleanString, E as EasyblocksMetadataProvider, d as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './ComponentBuilder-06698931.js';
+import { b as cleanString, E as EasyblocksMetadataProvider, d as EasyblocksExternalDataProvider, C as ComponentBuilder, R as RichTextPartClient } from './ComponentBuilder-a540c049.js';
 
 function RichTextClient(props) {
   const {

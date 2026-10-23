@@ -11,7 +11,6 @@ export { Easyblocks, type ComponentOverrides, type EasyblocksProps, } from "./co
 export { LazyEasyblocks, type LazyEasyblocksProps, } from "./components/LazyEasyblocks";
 export { createEasyblocksStitches, easyblocksGetCssText, easyblocksGetStyleTag, } from "./components/ssr";
 export type { EasyblocksStitches } from "./components/ssr";
-export { precomputeBoxClassNames } from "./components/Box/precompute-box-class-names";
 export type { AssetDTO, ConfigDTO, DocumentDTO, DocumentWithResolvedConfigDTO, } from "./EasyblocksBackend";
 export { isNoCodeComponentOfType } from "./isNoCodeComponentOfType";
 export { getDefaultLocale, getFallbackForLocale, getFallbackLocaleForLocale, type Locale, } from "./locales";
