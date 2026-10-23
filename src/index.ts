@@ -49,6 +49,7 @@ export {
   easyblocksGetStyleTag,
 } from "./components/ssr";
 export type { EasyblocksStitches } from "./components/ssr";
+export { precomputeBoxClassNames } from "./components/Box/precompute-box-class-names";
 export type {
   AssetDTO,
   ConfigDTO,
