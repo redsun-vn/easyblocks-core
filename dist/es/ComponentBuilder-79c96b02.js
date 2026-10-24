@@ -1,6 +1,6 @@
 /* with love from shopstory */
 import React, { useMemo, useContext, createContext, Fragment } from 'react';
-import { w as entries, t as serialize, G as getBoxStyles, v as findComponentDefinitionById, o as isLocalTextReference, i as isTrulyResponsiveValue$1, r as resolveExternalValue, u as isSchemaPropComponentOrComponentCollection, x as isSchemaPropComponent } from './findComponentDefinition-2b190cc9.js';
+import { w as entries, t as serialize, G as getBoxStyles, v as findComponentDefinitionById, o as isLocalTextReference, i as isTrulyResponsiveValue$1, r as resolveExternalValue, u as isSchemaPropComponentOrComponentCollection, x as isSchemaPropComponent } from './findComponentDefinition-2f355598.js';
 import { createStitches } from '@stitches/core';
 
 function cleanString(value) {

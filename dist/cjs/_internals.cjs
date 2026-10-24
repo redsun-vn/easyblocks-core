@@ -3,20 +3,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var configTraverse = require('./configTraverse-d2716934.js');
-var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
+var configTraverse = require('./configTraverse-99893ab3.js');
+var findComponentDefinition = require('./findComponentDefinition-33ee6a8d.js');
 var _extends = require('@babel/runtime/helpers/extends');
 var throttle = require('lodash/throttle');
 var React = require('react');
 var reactDom = require('react-dom');
 var slate = require('slate');
 var slateReact = require('slate-react');
-var ComponentBuilder = require('./ComponentBuilder-90c8b1b4.js');
+var ComponentBuilder = require('./ComponentBuilder-8cc05724.js');
 var TextareaAutosize = require('react-textarea-autosize');
 var debounce = require('lodash/debounce');
 require('js-xxhash');
 require('postcss-value-parser');
-require('zod');
 require('@stitches/core');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }

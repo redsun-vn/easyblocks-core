@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { isCompiledComponentConfig } from "./isCompiledComponentConfig";
 import {
   RenderableContent,
@@ -49,16 +48,52 @@ function isEmptyRenderableContent(
   );
 }
 
-const documentSchema = z.object({
-  documentId: z.string(),
-  projectId: z.string(),
-  rootContainer: z.string().optional(),
-  preview: z.object({}).optional(),
-  config: z.optional(z.object({})),
-});
+/**
+ * What `z.object(...)` accepts as an object: anything zod's type detection calls "object",
+ * which leaves out null, arrays, dates, maps, sets and promises (thenables).
+ *
+ * These guards used to be zod schemas. They are written out by hand because this module is
+ * shared by every entry of the package, the client one included, and importing zod here put
+ * all of zod into every storefront page for two shape checks. `checkers.test.ts` holds them
+ * to the schemas they replace.
+ */
+function isZodObjectLike(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  if (
+    typeof (value as { then?: unknown }).then === "function" &&
+    typeof (value as { catch?: unknown }).catch === "function"
+  ) {
+    return false;
+  }
+
+  return !(
+    (typeof Map !== "undefined" && value instanceof Map) ||
+    (typeof Set !== "undefined" && value instanceof Set) ||
+    (typeof Date !== "undefined" && value instanceof Date)
+  );
+}
+
+function isOptional<T>(
+  value: unknown,
+  check: (value: unknown) => value is T
+): value is T | undefined {
+  return value === undefined || check(value);
+}
+
+const isString = (value: unknown): value is string => typeof value === "string";
 
 function isDocument(value: unknown): value is Document {
-  return documentSchema.safeParse(value).success;
+  return (
+    isZodObjectLike(value) &&
+    isString(value.documentId) &&
+    isString(value.projectId) &&
+    isOptional(value.rootContainer, isString) &&
+    isOptional(value.preview, isZodObjectLike) &&
+    isOptional(value.config, isZodObjectLike)
+  );
 }
 
 function isComponentConfig(value: any): value is NoCodeComponentEntry {
@@ -69,13 +104,9 @@ function isComponentConfig(value: any): value is NoCodeComponentEntry {
   );
 }
 
-const localValueSchema = z.object({
-  value: z.any(),
-  widgetId: z.string(),
-});
-
 function isLocalValue(value: any): value is LocalValue {
-  return localValueSchema.safeParse(value).success;
+  // `value: z.any()` accepted a missing `value` too, so only `widgetId` is checked.
+  return isZodObjectLike(value) && isString(value.widgetId);
 }
 
 export function isResolvedCompoundExternalDataValue(

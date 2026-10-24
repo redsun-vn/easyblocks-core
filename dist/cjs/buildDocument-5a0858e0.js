@@ -1,8 +1,8 @@
 /* with love from shopstory */
 'use strict';
 
-var findComponentDefinition = require('./findComponentDefinition-13d8e05b.js');
-var configTraverse = require('./configTraverse-d2716934.js');
+var findComponentDefinition = require('./findComponentDefinition-33ee6a8d.js');
+var configTraverse = require('./configTraverse-99893ab3.js');
 
 function mergeCompilationMeta(meta1, meta2) {
   if (!meta2 && !meta1) {
