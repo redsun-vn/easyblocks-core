@@ -9,8 +9,8 @@ import React, { useState, useRef, useLayoutEffect, useEffect, useCallback, useMe
 import { flushSync } from 'react-dom';
 import { Element, Range, Editor, Text, Node, Transforms, createEditor } from 'slate';
 import { withReact, ReactEditor, Slate, Editable } from 'slate-react';
-import { b as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-dfcd9aec.js';
-export { C as ComponentBuilder, E as EasyblocksMetadataProvider, f as componentPickerClosed, h as componentPickerOpened, i as itemInserted, j as itemMoved, k as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-dfcd9aec.js';
+import { b as cleanString, B as Box, R as RichTextPartClient, C as ComponentBuilder } from './ComponentBuilder-04653b31.js';
+export { C as ComponentBuilder, E as EasyblocksMetadataProvider, f as componentPickerClosed, h as componentPickerOpened, i as itemInserted, j as itemMoved, k as richTextChangedEvent, s as selectionFramePositionChanged, u as useEasyblocksMetadata } from './ComponentBuilder-04653b31.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import debounce from 'lodash/debounce';
 import 'js-xxhash';

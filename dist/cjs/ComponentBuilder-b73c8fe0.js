@@ -25,26 +25,38 @@ function responsiveValueValues(value) {
   return values;
 }
 
+// useLayoutEffect only runs in a browser; on the server it would just warn.
+const useBrowserLayoutEffect = typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
 function RichTextPartClient(props) {
   const {
     value,
     Text,
     TextWrapper
   } = props;
-  const textValue = value || "\uFEFF";
-  if (TextWrapper) {
-    return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, /*#__PURE__*/React__default["default"].createElement(TextWrapper.type, TextWrapper.props, textValue));
-  }
+  const textValue = value || "﻿";
+  const isPlainText = !TextWrapper && typeof textValue === "string";
+  const textRef = React.useRef(null);
 
   // Plain text the page author typed may be rewritten before React sees it: Cloudflare's
   // email obfuscation turns an address into `<a class="__cf_email__">[email protected]</a>`
   // in the HTML on every zone that has it on, and the host decides that, not us. React
-  // then failed hydration on the text (#425) and re-rendered the boundary on the client.
-  // With a single string child, `suppressHydrationWarning` makes React accept the
-  // rewritten server copy instead; Cloudflare's own decoder script, which the zone injects
-  // with the rewrite, turns it back into the address.
+  // then failed hydration on the text (#425) and re-rendered the whole boundary on the
+  // client. With `suppressHydrationWarning` React keeps the rewritten copy instead, and it
+  // never writes the text back, while the storefront's CSP (`strict-dynamic`) blocks the
+  // decoder script Cloudflare injects. So once hydrated, the element gets the author's
+  // text again: the same end result the re-render gave, without re-rendering anything.
+  useBrowserLayoutEffect(() => {
+    const element = textRef.current;
+    if (isPlainText && element && element.textContent !== textValue) {
+      element.textContent = textValue;
+    }
+  }, [isPlainText, textValue]);
+  if (TextWrapper) {
+    return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, /*#__PURE__*/React__default["default"].createElement(TextWrapper.type, TextWrapper.props, textValue));
+  }
   return /*#__PURE__*/React__default["default"].createElement(Text.type, _extends__default["default"]({}, Text.props, {
-    suppressHydrationWarning: typeof textValue === "string" ? true : undefined
+    ref: isPlainText ? textRef : undefined,
+    suppressHydrationWarning: isPlainText ? true : undefined
   }), textValue);
 }
 
