@@ -20,5 +20,19 @@ export function RichTextPartClient(props: RichTextPartProps) {
     );
   }
 
-  return <Text.type {...Text.props}>{textValue}</Text.type>;
+  // Plain text the page author typed may be rewritten before React sees it: Cloudflare's
+  // email obfuscation turns an address into `<a class="__cf_email__">[email protected]</a>`
+  // in the HTML on every zone that has it on, and the host decides that, not us. React
+  // then failed hydration on the text (#425) and re-rendered the boundary on the client.
+  // With a single string child, `suppressHydrationWarning` makes React accept the
+  // rewritten server copy instead; Cloudflare's own decoder script, which the zone injects
+  // with the rewrite, turns it back into the address.
+  return (
+    <Text.type
+      {...Text.props}
+      suppressHydrationWarning={typeof textValue === "string" ? true : undefined}
+    >
+      {textValue}
+    </Text.type>
+  );
 }
