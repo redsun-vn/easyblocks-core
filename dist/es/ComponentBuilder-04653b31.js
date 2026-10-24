@@ -1,13 +1,8 @@
 /* with love from shopstory */
-'use strict';
-
-var React = require('react');
-var findComponentDefinition = require('./findComponentDefinition-33ee6a8d.js');
-var core = require('@stitches/core');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+import _extends from '@babel/runtime/helpers/extends';
+import React, { useRef, useEffect, useLayoutEffect, useMemo, useContext, createContext, Fragment } from 'react';
+import { w as entries, t as serialize, G as getBoxStyles, v as findComponentDefinitionById, o as isLocalTextReference, i as isTrulyResponsiveValue$1, r as resolveExternalValue, u as isSchemaPropComponentOrComponentCollection, x as isSchemaPropComponent } from './findComponentDefinition-2f355598.js';
+import { createStitches } from '@stitches/core';
 
 function cleanString(value) {
   return value.replace(/\u2028/g, "");
@@ -15,7 +10,7 @@ function cleanString(value) {
 
 function responsiveValueValues(value) {
   const values = [];
-  findComponentDefinition.entries(value).forEach(_ref => {
+  entries(value).forEach(_ref => {
     let [key, v] = _ref;
     if (key === "$res") return;
     values.push(v);
@@ -23,17 +18,39 @@ function responsiveValueValues(value) {
   return values;
 }
 
+// useLayoutEffect only runs in a browser; on the server it would just warn.
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 function RichTextPartClient(props) {
   const {
     value,
     Text,
     TextWrapper
   } = props;
-  const textValue = value || "\uFEFF";
+  const textValue = value || "﻿";
+  const isPlainText = !TextWrapper && typeof textValue === "string";
+  const textRef = useRef(null);
+
+  // Plain text the page author typed may be rewritten before React sees it: Cloudflare's
+  // email obfuscation turns an address into `<a class="__cf_email__">[email protected]</a>`
+  // in the HTML on every zone that has it on, and the host decides that, not us. React
+  // then failed hydration on the text (#425) and re-rendered the whole boundary on the
+  // client. With `suppressHydrationWarning` React keeps the rewritten copy instead, and it
+  // never writes the text back, while the storefront's CSP (`strict-dynamic`) blocks the
+  // decoder script Cloudflare injects. So once hydrated, the element gets the author's
+  // text again: the same end result the re-render gave, without re-rendering anything.
+  useBrowserLayoutEffect(() => {
+    const element = textRef.current;
+    if (isPlainText && element && element.textContent !== textValue) {
+      element.textContent = textValue;
+    }
+  }, [isPlainText, textValue]);
   if (TextWrapper) {
-    return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, /*#__PURE__*/React__default["default"].createElement(TextWrapper.type, TextWrapper.props, textValue));
+    return /*#__PURE__*/React.createElement(Text.type, Text.props, /*#__PURE__*/React.createElement(TextWrapper.type, TextWrapper.props, textValue));
   }
-  return /*#__PURE__*/React__default["default"].createElement(Text.type, Text.props, textValue);
+  return /*#__PURE__*/React.createElement(Text.type, _extends({}, Text.props, {
+    ref: isPlainText ? textRef : undefined,
+    suppressHydrationWarning: isPlainText ? true : undefined
+  }), textValue);
 }
 
 function selectionFramePositionChanged(target, container) {
@@ -48,7 +65,7 @@ function selectionFramePositionChanged(target, container) {
 function richTextChangedEvent(payload) {
   return {
     type: "@easyblocks-editor/rich-text-changed",
-    payload: findComponentDefinition.serialize(payload)
+    payload: serialize(payload)
   };
 }
 function componentPickerOpened(path) {
@@ -368,7 +385,7 @@ function buildComponentClassName(stitches, devices, styles) {
    * browsers without it.
    */
   const cloned = typeof structuredClone === "function" ? structuredClone(styles) : JSON.parse(JSON.stringify(styles));
-  return stitches.css(findComponentDefinition.getBoxStyles(cloned, devices))();
+  return stitches.css(getBoxStyles(cloned, devices))();
 }
 function getBoxClassNames(stitches, devices, styles) {
   const scope = getScope(stitches);
@@ -392,7 +409,7 @@ function getBoxClassNames(stitches, devices, styles) {
   return classNames;
 }
 
-const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
+const Box = /*#__PURE__*/React.forwardRef((props, ref) => {
   /**
    * passedProps - the props given in component code like <MyBox data-id="abc" /> (data-id is in passedProps)
    * restProps - the props given by Shopstory (like from actionWrapper)
@@ -428,7 +445,7 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
   const {
     boxClassName,
     componentClassName
-  } = React.useMemo(() =>
+  } = useMemo(() =>
   // Computed ahead of time (`precomputeBoxClassNames`): the rules are already in the
   // page's CSS, so there is nothing for Stitches to generate here.
   typeof __className === "string" ? {
@@ -438,7 +455,7 @@ const Box = /*#__PURE__*/React__default["default"].forwardRef((props, ref) => {
   // `stitches` and `devices` join the hash because the class names are only valid for the
   // instance that generated them and the devices they were compiled against.
   [stitches, devices, styles.__hash, __className]);
-  return /*#__PURE__*/React__default["default"].createElement(as || __as || "div", {
+  return /*#__PURE__*/React.createElement(as || __as || "div", {
     ref,
     ...restPassedProps,
     className: [boxClassName, componentClassName, className].filter(Boolean).join(" "),
@@ -459,12 +476,12 @@ Box.displayName = "Box";
 let externalDataContext = null;
 function getExternalDataContext() {
   if (!externalDataContext) {
-    externalDataContext = /*#__PURE__*/React.createContext(null);
+    externalDataContext = /*#__PURE__*/createContext(null);
   }
   return externalDataContext;
 }
 function useEasyblocksExternalData() {
-  const context = React.useContext(getExternalDataContext());
+  const context = useContext(getExternalDataContext());
   if (!context) {
     throw new Error("useEasyblocksExternalData must be used within a EasyblocksExternalDataProvider");
   }
@@ -476,7 +493,7 @@ function EasyblocksExternalDataProvider(_ref) {
     externalData
   } = _ref;
   const ExternalDataContext = getExternalDataContext();
-  return /*#__PURE__*/React__default["default"].createElement(ExternalDataContext.Provider, {
+  return /*#__PURE__*/React.createElement(ExternalDataContext.Provider, {
     value: externalData
   }, children);
 }
@@ -504,7 +521,7 @@ function EasyblocksExternalDataProvider(_ref) {
 function createEasyblocksStitches() {
   // Typed loosely on purpose: `sheet` is part of the runtime surface but not the published
   // types, and `Box` already receives this instance as `any`.
-  const stitches = core.createStitches({});
+  const stitches = createStitches({});
 
   // Creating the instance empties its sheet, so whatever `Box` generated for the previous
   // tree is gone. Its cache of class names has to go with it, or Boxes will keep being
@@ -530,7 +547,7 @@ function createEasyblocksStitches() {
    * it — the sheet groups rules by layer, so a rule landing in an earlier group rewrites the
    * middle of the string, and sending the whole sheet again is the only safe answer there.
    */
-  const getStyleTag = () => /*#__PURE__*/React__default["default"].createElement("style", {
+  const getStyleTag = () => /*#__PURE__*/React.createElement("style", {
     id: "stitches",
     dangerouslySetInnerHTML: {
       __html: getCssText()
@@ -555,7 +572,7 @@ function easyblocksGetCssText() {
   return easyblocksStitchesInstances.map(stitches => stitches.getCssText()).join(" ");
 }
 function easyblocksGetStyleTag() {
-  return /*#__PURE__*/React__default["default"].createElement("style", {
+  return /*#__PURE__*/React.createElement("style", {
     id: "stitches",
     dangerouslySetInnerHTML: {
       __html: easyblocksGetCssText()
@@ -567,7 +584,7 @@ function easyblocksGetStyleTag() {
 let metadataContext = null;
 function getMetadataContext() {
   if (!metadataContext) {
-    metadataContext = /*#__PURE__*/React.createContext(undefined);
+    metadataContext = /*#__PURE__*/createContext(undefined);
   }
   return metadataContext;
 }
@@ -578,10 +595,10 @@ const EasyblocksMetadataProvider = _ref => {
     stitches
   } = _ref;
   if (!stitches && easyblocksStitchesInstances.length === 0) {
-    easyblocksStitchesInstances.push(core.createStitches({}));
+    easyblocksStitchesInstances.push(createStitches({}));
   }
   const MetadataContext = getMetadataContext();
-  return /*#__PURE__*/React__default["default"].createElement(MetadataContext.Provider, {
+  return /*#__PURE__*/React.createElement(MetadataContext.Provider, {
     value: {
       ...meta,
       stitches: stitches ?? easyblocksStitchesInstances[0]
@@ -589,7 +606,7 @@ const EasyblocksMetadataProvider = _ref => {
   }, children);
 };
 function useEasyblocksMetadata() {
-  const context = React.useContext(getMetadataContext());
+  const context = useContext(getMetadataContext());
   if (!context) {
     throw new Error("useEasyblocksMetadata must be used within a EasyblocksMetadataProvider");
   }
@@ -607,7 +624,7 @@ function buildBoxes(compiled, name, actionWrappers, meta) {
         devices: meta.vars.devices,
         stitches: meta.stitches
       };
-      return /*#__PURE__*/React__default["default"].createElement(Box, boxProps);
+      return /*#__PURE__*/React.createElement(Box, boxProps);
     }
     const ret = {};
     for (const key in compiled) {
@@ -642,7 +659,7 @@ const _componentSlotsCache = new WeakMap();
 function getComponentSlots(schema) {
   let slots = _componentSlotsCache.get(schema);
   if (!slots) {
-    slots = schema.filter(findComponentDefinition.isSchemaPropComponentOrComponentCollection);
+    slots = schema.filter(isSchemaPropComponentOrComponentCollection);
     _componentSlotsCache.set(schema, slots);
   }
   return slots;
@@ -653,20 +670,20 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
     path = path + "." + meta.vars.locale;
   }
   if (schemaProp.noInline) {
-    const elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React__default["default"].createElement(ComponentBuilder, {
+    const elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React.createElement(ComponentBuilder, {
       key: compiledChild._id,
       path: `${path}.${index}`,
       compiled: compiledChild,
       components: components
     }) : compiledChild);
-    if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
+    if (isSchemaPropComponent(schemaProp)) {
       return elements[0];
     } else {
       return elements;
     }
   }
   const EditableComponentBuilder = isEditing ? components["EditableComponentBuilder.editor"] : components["EditableComponentBuilder.client"];
-  let elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React__default["default"].createElement(EditableComponentBuilder, {
+  let elements = compiledArray.map((compiledChild, index) => "_component" in compiledChild ? /*#__PURE__*/React.createElement(EditableComponentBuilder, {
     key: compiledChild._id,
     compiled: compiledChild,
     index: index,
@@ -685,7 +702,7 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
     // Opt-in only. Slots that do not set the flag pass `accepts` as undefined,
     // which keeps the placeholder on its original single-type drop check.
     const strictAccepts = schemaProp.placeholderStrictAccepts ? schemaProp.accepts : undefined;
-    elements = [/*#__PURE__*/React__default["default"].createElement(Placeholder, {
+    elements = [/*#__PURE__*/React.createElement(Placeholder, {
       key: "placeholder",
       id: id,
       path: path,
@@ -711,12 +728,12 @@ function getCompiledSubcomponents(id, compiledArray, contextProps, schemaProp, p
       meta: meta
     })];
   }
-  if (findComponentDefinition.isSchemaPropComponent(schemaProp)) {
-    return elements[0] ?? /*#__PURE__*/React__default["default"].createElement(React.Fragment, null);
+  if (isSchemaPropComponent(schemaProp)) {
+    return elements[0] ?? /*#__PURE__*/React.createElement(Fragment, null);
   }
   return elements;
 }
-const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function ComponentBuilder(props) {
+const ComponentBuilder = /*#__PURE__*/React.memo(function ComponentBuilder(props) {
   const {
     compiled,
     passedProps,
@@ -741,7 +758,7 @@ const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function Co
 
   // Reuse a stable wrapper so findComponentDefinitionById's WeakMap cache hits.
   const defContext = getDefinitionsContext(meta.vars.definitions);
-  const componentDefinition = findComponentDefinition.findComponentDefinitionById(compiled._component, defContext);
+  const componentDefinition = findComponentDefinitionById(compiled._component, defContext);
   const component = getComponent(componentDefinition, components, isEditing);
   const isMissingComponent = compiled._component === "@easyblocks/missing-component";
   const isMissingInstance = component === undefined;
@@ -752,12 +769,12 @@ const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function Co
       return null;
     }
     if (isMissingComponent) {
-      return /*#__PURE__*/React__default["default"].createElement(MissingComponent, {
+      return /*#__PURE__*/React.createElement(MissingComponent, {
         error: true
       }, "Missing");
     } else {
       console.warn(`Missing "${compiled._component}"`);
-      return /*#__PURE__*/React__default["default"].createElement(MissingComponent, {
+      return /*#__PURE__*/React.createElement(MissingComponent, {
         component: componentDefinition,
         error: true
       }, "Missing");
@@ -767,14 +784,14 @@ const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function Co
   const shopstoryCompiledConfig = compiled;
 
   // Memoize the runtime object — it only depends on meta which is stable per render tree.
-  const runtime = React.useMemo(() => ({
+  const runtime = useMemo(() => ({
     stitches: meta.stitches,
     resop: resop,
     devices: meta.vars.devices
   }), [meta.stitches, meta.vars.devices]);
 
   // Memoize buildBoxes — only recompute when the compiled styled tree changes.
-  const styledBoxes = React.useMemo(() => buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta), [shopstoryCompiledConfig.styled, meta]);
+  const styledBoxes = useMemo(() => buildBoxes(shopstoryCompiledConfig.styled, "", {}, meta), [shopstoryCompiledConfig.styled, meta]);
 
   // Use cached slot list instead of filtering every schema prop on each render.
   const componentSlots = getComponentSlots(componentDefinition.schema);
@@ -798,7 +815,7 @@ const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function Co
   } = allPassedProps || {};
 
   // Memoize the easyblocks prop — only changes when the component instance or selection changes.
-  const easyblocksProp = React.useMemo(() => ({
+  const easyblocksProp = useMemo(() => ({
     id: shopstoryCompiledConfig._id,
     isEditing,
     path,
@@ -807,14 +824,14 @@ const ComponentBuilder = /*#__PURE__*/React__default["default"].memo(function Co
   }), [shopstoryCompiledConfig._id, isEditing, path, runtime, __isSelected]);
 
   // Memoize external props — only changes when compiled props or external data changes.
-  const externalProps = React.useMemo(() => mapExternalProps(shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData), [shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData]);
+  const externalProps = useMemo(() => mapExternalProps(shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData), [shopstoryCompiledConfig.props, shopstoryCompiledConfig._id, componentDefinition, externalData]);
   const componentProps = {
     ...restPassedProps,
     ...externalProps,
     ...styled,
     __easyblocks: easyblocksProp
   };
-  return /*#__PURE__*/React__default["default"].createElement(Component, componentProps);
+  return /*#__PURE__*/React.createElement(Component, componentProps);
 });
 function getComponent(componentDefinition, components, isEditing) {
   let component;
@@ -855,12 +872,12 @@ function mapExternalProps(props, configId, componentDefinition, externalData) {
     const schemaProp = schemaMap.get(propName);
     if (schemaProp) {
       const propValue = props[propName];
-      if (schemaProp.type === "text" && findComponentDefinition.isLocalTextReference(propValue, "text")) {
+      if (schemaProp.type === "text" && isLocalTextReference(propValue, "text")) {
         resultsProps[propName] = propValue.value;
       } else if (
       // FIXME: this is a mess
-      !findComponentDefinition.isTrulyResponsiveValue(propValue) && typeof propValue === "object" && "id" in propValue && "widgetId" in propValue && !("value" in propValue) || findComponentDefinition.isTrulyResponsiveValue(propValue) && responsiveValueValues(propValue).every(v => typeof v === "object" && v && "id" in v && "widgetId" in v && !("value" in v))) {
-        resultsProps[propName] = findComponentDefinition.resolveExternalValue(propValue, configId, schemaProp, externalData);
+      !isTrulyResponsiveValue$1(propValue) && typeof propValue === "object" && "id" in propValue && "widgetId" in propValue && !("value" in propValue) || isTrulyResponsiveValue$1(propValue) && responsiveValueValues(propValue).every(v => typeof v === "object" && v && "id" in v && "widgetId" in v && !("value" in v))) {
+        resultsProps[propName] = resolveExternalValue(propValue, configId, schemaProp, externalData);
       } else {
         resultsProps[propName] = props[propName];
       }
@@ -894,21 +911,4 @@ function getComponentMainType(componentTypes) {
   return type;
 }
 
-exports.Box = Box;
-exports.ComponentBuilder = ComponentBuilder;
-exports.EasyblocksExternalDataProvider = EasyblocksExternalDataProvider;
-exports.EasyblocksMetadataProvider = EasyblocksMetadataProvider;
-exports.RichTextPartClient = RichTextPartClient;
-exports.cleanString = cleanString;
-exports.componentPickerClosed = componentPickerClosed;
-exports.componentPickerOpened = componentPickerOpened;
-exports.createEasyblocksStitches = createEasyblocksStitches;
-exports.easyblocksGetCssText = easyblocksGetCssText;
-exports.easyblocksGetStyleTag = easyblocksGetStyleTag;
-exports.getBoxClassNames = getBoxClassNames;
-exports.itemInserted = itemInserted;
-exports.itemMoved = itemMoved;
-exports.responsiveValueValues = responsiveValueValues;
-exports.richTextChangedEvent = richTextChangedEvent;
-exports.selectionFramePositionChanged = selectionFramePositionChanged;
-exports.useEasyblocksMetadata = useEasyblocksMetadata;
+export { Box as B, ComponentBuilder as C, EasyblocksMetadataProvider as E, RichTextPartClient as R, easyblocksGetStyleTag as a, cleanString as b, createEasyblocksStitches as c, EasyblocksExternalDataProvider as d, easyblocksGetCssText as e, componentPickerClosed as f, getBoxClassNames as g, componentPickerOpened as h, itemInserted as i, itemMoved as j, richTextChangedEvent as k, responsiveValueValues as r, selectionFramePositionChanged as s, useEasyblocksMetadata as u };
