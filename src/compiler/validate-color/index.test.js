@@ -491,6 +491,44 @@ describe("validateHTMLColor", () => {
     );
   });
 });
+// -- Gradients, single and stacked as background layers
+describe("validateColor with gradients", () => {
+  const valid = [
+    "linear-gradient(90deg, #fff 0%, #000 100%)",
+    "linear-gradient(to right, var(--a), red)",
+    "repeating-linear-gradient(45deg, #000 0 10px, #fff 10px 20px)",
+    "radial-gradient(40rem 26rem at 15% 0%, rgb(157 78 221 / 0.45), transparent 60%), radial-gradient(36rem 24rem at 95% 100%, rgb(0 178 219 / 0.25), transparent 60%), #280060",
+    "linear-gradient(red, blue), conic-gradient(from 0deg, red, blue)",
+    "  radial-gradient(circle, red, blue),   rgba(0, 0, 0, 0.5)  ",
+  ];
+  const invalid = [
+    "#280060, radial-gradient(circle, red, blue)",
+    "radial-gradient(circle, red, blue), notacolor",
+    "radial-gradient(circle, red, blue), #280060; color: red",
+    "radial-gradient(circle, red, blue), #fff} body{color:red",
+    "radial-gradient(circle, red, blue), url(x.png), #fff",
+    "radial-gradient(circle, red, blue)), #fff",
+    "radial-gradient(red), #fff",
+    "red, blue",
+    // Half-typed in the custom colour field: ends with `)` but the gradient's
+    // own bracket is still open.
+    "radial-gradient(40rem 26rem at 15% 0%, rgb(157 78 221 / 0.45)",
+    "linear-gradient(red, rgb(0 0 0)",
+    "linear-gradient(red, blue); color: red; x(a)",
+  ];
+
+  valid.map((c) =>
+    it(`validates "${c}"`, () => {
+      expect(validateColor(c)).toBe(true);
+    })
+  );
+  invalid.map((c) =>
+    it(`invalidates "${c}"`, () => {
+      expect(validateColor(c)).toBe(false);
+    })
+  );
+});
+
 // -- ALL colors
 describe("validateColor", () => {
   describe("test invalid cases", () => {

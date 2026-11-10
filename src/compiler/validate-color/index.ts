@@ -282,6 +282,28 @@ export function validateGradient(input: string): boolean {
 
   const value = input.trim();
 
+  if (!isSafeInStyleRule(value)) return false;
+
+  return validateSingleGradientLoosely(value) || validateGradientLayers(value);
+}
+
+/**
+ * A colour is written straight into a style rule — on the page and in the
+ * editor's own swatch. A bracket left open, or a `;`/brace/quote, makes the
+ * browser read the rest of that stylesheet as part of this one value: the
+ * half-typed `radial-gradient(…, rgb(1 2 3)` wiped out the editor panel's
+ * styling. So every colour must close its brackets and carry none of those.
+ */
+function isSafeInStyleRule(value: string): boolean {
+  return !/[;{}<>"'\\]/.test(value) && splitTopLevelCommas(value) !== null;
+}
+
+/**
+ * The original check: starts with a gradient function, ends with `)`, has a
+ * comma inside. Kept so every well-formed gradient a shop has already saved
+ * still passes; `isSafeInStyleRule` adds the bracket and character guard.
+ */
+function validateSingleGradientLoosely(value: string): boolean {
   const gradientTypes = [
     "linear-gradient(",
     "radial-gradient(",
@@ -297,7 +319,94 @@ export function validateGradient(input: string): boolean {
   return stops.length >= 2;
 }
 
+const GRADIENT_FUNCTION =
+  /^(repeating-)?(linear|radial|conic)-gradient\(/i;
+
+/**
+ * Splits a value on the commas that sit outside every bracket, which is where
+ * CSS separates background layers. Returns null when the brackets do not pair
+ * up, so a value the browser would also misread is refused rather than guessed.
+ */
+function splitTopLevelCommas(value: string): Array<string> | null {
+  const parts: Array<string> = [];
+  let depth = 0;
+  let start = 0;
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+
+    if (char === "(") {
+      depth++;
+    } else if (char === ")") {
+      depth--;
+      if (depth < 0) return null;
+    } else if (char === "," && depth === 0) {
+      parts.push(value.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+
+  if (depth !== 0) return null;
+  parts.push(value.slice(start).trim());
+  return parts;
+}
+
+/** One gradient layer: a gradient function whose own bracket closes the layer. */
+function isSingleGradientLayer(layer: string): boolean {
+  const match = layer.match(GRADIENT_FUNCTION);
+  if (!match || !layer.endsWith(")")) return false;
+
+  const inside = layer.slice(match[0].length, -1);
+  const stops = splitTopLevelCommas(inside);
+
+  // A bracket inside that closes early would make the trailing ")" belong to
+  // something else, e.g. `linear-gradient(a, b) x(c)`.
+  return stops !== null && stops.length >= 2 && stops.every(Boolean);
+}
+
+/**
+ * Stacked background layers, the way designers write a mesh of glows:
+ * `radial-gradient(…), radial-gradient(…), #280060`.
+ *
+ * Also covers a single `repeating-*-gradient`, which the original check never
+ * knew about.
+ *
+ * Every layer must be a gradient, except the last, which may be a plain colour
+ * — the same place CSS lets a `background` carry its colour.
+ */
+function validateGradientLayers(value: string): boolean {
+  const layers = splitTopLevelCommas(value);
+  if (!layers) return false;
+
+  const last = layers[layers.length - 1];
+  const rest = layers.slice(0, -1);
+
+  return (
+    rest.every(isSingleGradientLayer) &&
+    (isSingleGradientLayer(last) || validatePlainColor(last))
+  );
+}
+
+/** A single colour, without the gradient forms. */
+function validatePlainColor(color: string): boolean {
+  return (
+    validateHTMLColorHex(color) ||
+    validateHTMLColorName(color) ||
+    validateHTMLColorSpecialName(color) ||
+    validateHTMLColorRgb(color) ||
+    validateHTMLColorHsl(color) ||
+    validateHTMLColorHwb(color) ||
+    validateHTMLColorLab(color)
+  );
+}
+
 const validateColor = (color: string) => {
+  // The single-colour regexes are not anchored at the start, so a half-typed
+  // gradient ending in `rgb(1 2 3)` used to pass as an rgb colour.
+  if (typeof color === "string" && !isSafeInStyleRule(color)) {
+    return false;
+  }
+
   if (
     (color && validateHTMLColorHex(color)) ||
     validateHTMLColorName(color) ||
